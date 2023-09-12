@@ -97,19 +97,19 @@ Value(x::SparseVector{Float64}) =
 """
 $(TYPEDEF)
 
+Convenience shortcut for "interval" bound; consisting of lower and upper bound
+value.
+"""
+const IntervalBound = Tuple{Float64,Float64}
+
+"""
+$(TYPEDEF)
+
 Shortcut for possible bounds: either no bound is present (`nothing`), or a
 single number is interpreted as an exact equality bound, or a tuple of 2 values
 is interpreted as an interval bound.
 """
 const Bound = Union{Nothing,Float64,IntervalBound}
-
-"""
-$(TYPEDEF)
-
-Convenience shortcut for "interval" bound; consisting of lower and upper bound
-value.
-"""
-const IntervalBound = Tuple{Float64, Float64}
 
 """
 $(TYPEDEF)
@@ -273,7 +273,8 @@ function Base.:+(a::ConstraintTree, b::ConstraintTree)
 end
 
 function Base.:*(a_orig::ConstraintTree, b_orig::ConstraintTree)
-    # TODO this might be much better inplace, but the copy luckily ain't substantial
+    # TODO this might be much better inplace, but the copy luckily isn't
+    # substantial in most cases
     a = copy(elems(a_orig))
     b = elems(b_orig)
 
@@ -357,9 +358,10 @@ solution_tree(x::Constraint, vars::AbstractVector{Float64}) = value_product(x.va
 """
 $(TYPEDSIGNATURES)
 
-Convert a [`ConstraintTree`](@ref) and a vector of variable assignments (typically
-representing a constrained problem solution) to a [`SolutionTree`](@ref) of
-constraint values w.r.t. the given variable assignment.
+Convert a [`ConstraintTree`](@ref) and a vector of variable assignments
+(typically representing a constrained problem solution) to a
+[`SolutionTree`](@ref) of constraint values w.r.t. the given variable
+assignment.
 """
 solution_tree(x::ConstraintTree, vars::AbstractVector{Float64}) = SolutionTree(
     elems = SortedDict{Symbol,SolutionTreeElem}(
