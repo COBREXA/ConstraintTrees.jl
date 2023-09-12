@@ -175,17 +175,17 @@ Use operator `^` to put a name on a [`Constraint`](@ref) to convert it into a
 single element [`ConstraintTree`](@ref):
 
 ```julia
-x = :myConstraint ^ Constraint(Value(...), 1.0)
-dir = :myConstraintDir ^ x
+x = :my_constraint ^ Constraint(Value(...), 1.0)
+dir = :my_constraint_dir ^ x
 
-dir.myConstraintDir.myConstraint.bound   # returns 1.0
+dir.my_constraint_dir.my_constraint.bound   # returns 1.0
 ```
 
 Use operator `*` to glue two constraint trees together while *sharing* the
 variable indexes specified by the contained [`Value`](@ref)s.
 
 ```julia
-myConstraints = :constraint1 ^ Constraint(...) * :constraint2 ^ Constraint(...)
+my_constraints = :constraint1 ^ Constraint(...) * :constraint2 ^ Constraint(...)
 ```
 
 Use operator `+` to glue two constraint trees together *without sharing* of any
@@ -194,7 +194,7 @@ sets of variable indexes used by either tree are completely disjunct, and then
 glue the trees together as with `*`:
 
 ```julia
-twoIndependentModels = myModel + otherModel
+two_independent_systems = my_system + other_system
 ```
 
 Because of the renumbering, you can not easily use constraints and values from
