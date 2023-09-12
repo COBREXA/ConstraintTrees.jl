@@ -302,6 +302,26 @@ function Base.:*(a::Constraint, b::Constraint)
 end
 
 #
+# Simple constraint trees
+#
+
+"""
+$(TYPEDSIGNATURES)
+
+Make a trivial constraint system that constraints variables in range
+`1:length(keys)` named as given by `keys` to the given interval.
+"""
+function allocate_variables(; keys::Vector{Symbol}, lower_bounds = -Inf, upper_bounds = Inf)
+    # TODO: generalize to all constraint kinds as given by `Bound`
+    lbs = length(lower_bounds) == 1 ? Base.Iterators.cycle(lower_bounds) : lower_bounds
+    ubs = length(upper_bounds) == 1 ? Base.Iterators.cycle(upper_bounds) : upper_bounds
+    make_constraint_tree(
+        k => Constraint(value = Value(Int[i], Float64[1.0]), bound = (lb, ub)) for
+        ((i, k), lb, ub) in zip(enumerate(keys), lbs, ubs)
+    )
+end
+
+#
 # Solution trees
 #
 
