@@ -40,6 +40,9 @@ Base.keys(x::SolutionTree) = keys(elems(x))
 
 Base.values(x::SolutionTree) = values(elems(x))
 
+Base.length(x::SolutionTree) = length(elems(x))
+
+Base.iterate(x::SolutionTree) = iterate(elems(x))
 Base.iterate(x::SolutionTree, st) = iterate(elems(x), st)
 
 Base.eltype(x::SolutionTree) = eltype(elems(x))
@@ -67,6 +70,6 @@ assignment.
 """
 solution_tree(x::ConstraintTree, vars::AbstractVector{Float64}) = SolutionTree(
     elems = SortedDict{Symbol,SolutionTreeElem}(
-        keys(elems(x)) .=> solution_tree.(values(elems(x)), Ref(ov)),
+        keys(x) .=> solution_tree.(values(x), Ref(vars)),
     ),
 )
