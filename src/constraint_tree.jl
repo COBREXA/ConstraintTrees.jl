@@ -101,7 +101,15 @@ function Base.getproperty(x::ConstraintTree, sym::Symbol)
     elems(x)[sym]
 end
 
-Base.propertynames(x::ConstraintTree) = keys(elems(x))
+Base.keys(x::ConstraintTree) = keys(elems(x))
+
+Base.values(x::ConstraintTree) = values(elems(x))
+
+Base.iterate(x::ConstraintTree, st) = iterate(elems(x), st)
+
+Base.eltype(x::ConstraintTree) = eltype(elems(x))
+
+Base.propertynames(x::ConstraintTree) = keys(x)
 
 Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
 
@@ -152,15 +160,27 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Make a trivial constraint system that constraints variables in range
-`1:length(keys)` named as given by `keys` to the given interval.
+Make a trivial constraint system that creates variables with indexes in
+range `1:length(keys)` named in order as given by `keys`.
+
+Parameter `bounds` is either `nothing` for creating unconstrained variables, a
+single bound (of precise length 1) for creating all variables of the same
+constraint, or an iterable object of same length as `keys` with individual
+bounds for each variable in the same order as `keys`.
+
+The individual bounds should be of type [`Bound`](@ref). To pass a single
+interval bound for all variables, it is impossible to use a tuple (since its
+length is 2); in such case use `bound = Ref((minimum, maximum))`, which has the
+correct length.
 """
-function allocate_variables(; keys::Vector{Symbol}, lower_bounds = -Inf, upper_bounds = Inf)
-    # TODO: generalize to all constraint kinds as given by `Bound`
-    lbs = length(lower_bounds) == 1 ? Base.Iterators.cycle(lower_bounds) : lower_bounds
-    ubs = length(upper_bounds) == 1 ? Base.Iterators.cycle(upper_bounds) : upper_bounds
+function allocate_variables(; keys::Vector{Symbol}, bounds = nothing)
+    bs =
+        isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
+        length(bounds) == 1 ? Base.Iterators.cycle(bounds) :
+        length(bounds) == length(keys) ? bounds :
+        error("lengths of bounds and keys differ for allocated variables")
     make_constraint_tree(
-        k => Constraint(value = Value(Int[i], Float64[1.0]), bound = (lb, ub)) for
-        ((i, k), lb, ub) in zip(enumerate(keys), lbs, ubs)
+        k => Constraint(value = Value(Int[i], Float64[1.0]), bound = b) for
+        ((i, k), b) in zip(enumerate(keys), bs)
     )
 end

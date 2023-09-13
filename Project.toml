@@ -11,10 +11,15 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 [compat]
 DataStructures = "0.18"
 DocStringExtensions = "0.8, 0.9"
+SBML = "1"
+JuMP = "1"
 julia = "1.6"
 
 [extras]
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+SBML = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Downloads", "JuMP", "SBML", "Test"]
