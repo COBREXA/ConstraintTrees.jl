@@ -36,6 +36,14 @@ function Base.getproperty(x::SolutionTree, sym::Symbol)
     elems(x)[sym]
 end
 
+Base.keys(x::SolutionTree) = keys(elems(x))
+
+Base.values(x::SolutionTree) = values(elems(x))
+
+Base.iterate(x::SolutionTree, st) = iterate(elems(x), st)
+
+Base.eltype(x::SolutionTree) = eltype(elems(x))
+
 Base.propertynames(x::SolutionTree) = keys(elems(x))
 
 Base.getindex(x::SolutionTree, sym::Symbol) = getindex(elems(x), sym)

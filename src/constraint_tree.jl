@@ -101,7 +101,15 @@ function Base.getproperty(x::ConstraintTree, sym::Symbol)
     elems(x)[sym]
 end
 
-Base.propertynames(x::ConstraintTree) = keys(elems(x))
+Base.keys(x::ConstraintTree) = keys(elems(x))
+
+Base.values(x::ConstraintTree) = values(elems(x))
+
+Base.iterate(x::ConstraintTree, st) = iterate(elems(x), st)
+
+Base.eltype(x::ConstraintTree) = eltype(elems(x))
+
+Base.propertynames(x::ConstraintTree) = keys(x)
 
 Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
 
