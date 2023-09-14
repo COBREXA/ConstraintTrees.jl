@@ -22,6 +22,7 @@ Base.@kwdef struct Value
     weights::Vector{Float64}
 end
 
+Base.zero(::Type{Value}) = Value(idxs = [], weights = [])
 Base.:*(a::Real, b::Value) = b * a
 Base.:*(a::Value, b::Real) = Value(idxs = a.idxs, weights = b .* a.weights)
 Base.:-(a::Value, b::Value) = a + (-1 * b)

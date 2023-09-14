@@ -105,6 +105,9 @@ Base.keys(x::ConstraintTree) = keys(elems(x))
 
 Base.values(x::ConstraintTree) = values(elems(x))
 
+Base.length(x::ConstraintTree) = length(elems(x))
+
+Base.iterate(x::ConstraintTree) = iterate(elems(x))
 Base.iterate(x::ConstraintTree, st) = iterate(elems(x), st)
 
 Base.eltype(x::ConstraintTree) = eltype(elems(x))
@@ -112,6 +115,43 @@ Base.eltype(x::ConstraintTree) = eltype(elems(x))
 Base.propertynames(x::ConstraintTree) = keys(x)
 
 Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
+
+#
+# Tree-wide operations with variables
+#
+
+"""
+$(TYPEDSIGNATURES)
+
+Find the expected count of variables in a [`Constraint`](@ref).
+"""
+var_count(x::Constraint) = isempty(x.value.idxs) ? 0 : last(x.value.idxs)
+
+"""
+$(TYPEDSIGNATURES)
+
+Find the expected count of variables in a [`ConstraintTree`](@ref).
+"""
+var_count(x::ConstraintTree) = isempty(elems(x)) ? 0 : maximum(var_count.(values(elems(x))))
+
+"""
+$(TYPEDSIGNATURES)
+
+Offset all variable indexes in a [`Constraint`](@ref) by the given increment.
+"""
+incr_var_idxs(x::Constraint, incr::Int) = Constraint(
+    value = Value(idxs = x.value.idxs .+ incr, weights = x.value.weights),
+    bound = x.bound,
+)
+
+"""
+$(TYPEDSIGNATURES)
+
+Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
+increment.
+"""
+incr_var_idxs(x::ConstraintTree, incr::Int) =
+    ConstraintTree(elems = SortedDict(k => incr_var_idxs(v, incr) for (k, v) in elems(x)))
 
 #
 # Algebraic construction
