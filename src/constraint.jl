@@ -38,6 +38,7 @@ Base.@kwdef struct Constraint
     bound::Bound = nothing
 end
 
+Base.:-(a::Constraint) = -1 * a
 Base.:*(a::Real, b::Constraint) = b * a
 Base.:*(a::Constraint, b::Real) = Constraint(
     value = a.value * b,
