@@ -90,12 +90,22 @@ collect(keys(c))
 
 @test 2 == length((keys(c)))#src
 
-# ## Adding combined constraints
+# ## Value and constraint arithmetics
 
 # Values may be combined additively and multiplied by real constants; which
 # allows us to easily create more complex linear combination of any values
 # already occurring in the model:
-c.fluxes.R_PFK.value - 2 * c.fluxes.R_ACALD.value
+3 * c.fluxes.R_PFK.value - c.fluxes.R_ACALD.value / 2
+
+# For simplicity, you can also scale whole constraints, but it is impossible to
+# add them together because the meaning of the bounds would get broken:
+(3 * c.fluxes.R_PFK, -c.fluxes.R_ACALD / 2)
+
+# To process constraints in bulk, you may use `C.value` for easier access to
+# values and making constraints.
+sum(C.value.(values(c.fluxes)))
+
+# ## Adding combined constraints
 
 # Metabolic modeling relies on the fact that the total rates of any metabolite
 # getting created and consumed by the reaction equals to zero (which
