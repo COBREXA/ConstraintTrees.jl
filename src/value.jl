@@ -7,7 +7,9 @@ $(TYPEDEF)
 A representation of a "value" in a linear constrained optimization problem. The
 value is a linear combination of several variables.
 
-Values can be combined additively and multiplied by real-number constants.
+`Value`s can be combined additively and multiplied by real-number constants.
+
+Multiplying two `Value`s yields a quadratic form (in a [`QValue`](@ref)).
 
 # Fields
 $(TYPEDFIELDS)
