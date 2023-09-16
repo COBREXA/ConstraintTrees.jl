@@ -17,9 +17,16 @@ $(TYPEDFIELDS)
 Base.@kwdef struct QValue
     """
     Indexes of variable pairs used by the value. The indexes must always be
-    sorted in strictly lexicographically increasing order, and the second index
-    must always be greater than or equal to the first one. As with
-    [`Value`](@ref), index `0` represents the affine element.
+    sorted in strictly co-lexicographically increasing order, and the second
+    index must always be greater than or equal to the first one. (Speaking in
+    matrix terms, the indexing follows the indexes in an upper triangular
+    matrix by columns.)
+
+    As an outcome, the second index of the last index pair can be used as the
+    upper bound of all variable indexes.
+
+    As with [`Value`](@ref), index `0` represents the
+    affine element.
     """
     idxs::Vector{Tuple{Int,Int}}
     "Coefficient of the variable pairs selected by `idxs`."
@@ -57,6 +64,13 @@ Base.:*(a::QValue, b::Real) = QValue(idxs = a.idxs, weights = b .* a.weights)
 Base.:-(a::QValue, b::QValue) = a + (-1 * b)
 Base.:/(a::QValue, b::Real) = QValue(idxs = a.idxs, weights = a.weights ./ b)
 
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper for co-lex ordering of indexes.
+"""
+_colex_leq((a,b), (c,d)) = ((b,a) <= (d,c))
+
 function Base.:+(a::QValue, b::QValue)
     r_idxs = Tuple{Int,Int}[]
     r_weights = Float64[]
@@ -64,16 +78,17 @@ function Base.:+(a::QValue, b::QValue)
     ae = length(a.idxs)
     bi = 1
     be = length(b.idxs)
+
     while ai <= ae && bi <= be
-        if a.idxs[ai] < b.idxs[bi]
+        if colex_leq(a.idxs[ai], b.idxs[bi])
             push!(r_idxs, a.idxs[ai])
             push!(r_weights, a.weights[ai])
             ai += 1
-        elseif a.idxs[ai] > b.idxs[bi]
+        elseif colex_leq(b.idxs[bi], a.idxs[ai])
             push!(r_idxs, b.idxs[bi])
             push!(r_weights, b.weights[bi])
             bi += 1
-        else # a.idxs[ai] == b.idxs[bi] -- merge case
+        else # index pairs are equal; merge case
             push!(r_idxs, a.idxs[ai])
             push!(r_weights, a.weights[ai] + b.weights[bi])
             ai += 1
@@ -98,16 +113,18 @@ Base.:*(a::Value, b::Value) =
         QValue(
             idxs = [
                 (aidx, bidx) for aidx in a.idxs for bidx in b.idxs if aidx <= bidx
-            ]weights = [
+            ],
+            weights = [
                 vals[ai, bi] for ai in eachindex(a.idxs) for
-                bi in eachindex(b.idxs) if a.idxs[ai] <= b.idxs[bi]
+                bi in eachindex(b.idxs) if colex_leq(a.idxs[ai], b.idxs[bi])
             ],
         ) + QValue(
             idxs = [
                 (bidx, aidx) for bidx in b.idxs for aidx in a.idxs if bidx < aidx
-            ]weights = [
+            ],
+            weights = [
                 vals[bi, ai] for bi in eachindex(b.idxs) for
-                ai in eachindex(a.idxs) if b.idxs[bi] < a.idxs[ai]
+                ai in eachindex(a.idxs) if !colex_leq(a.idxs[ai], b.idxs[bi])
             ],
         )
     end
@@ -131,10 +148,11 @@ matrix is force-symmetrized by calculating `x' + x`.
 QValue(x::SparseMatrixCSC{Float64}) =
     let
         rs, cs, vals = fndnz(x' + x)
-        # note: this very heavily relies on (col,row) indexes coming from
-        # `findnz` in correct order.
+        # Note: Correctness of this now relies on (row,col) index pairs coming
+        # from `findnz` in correct (co-lexicographical) order. Might be worth
+        # testing.
         QValue(
-            idxs = [(cs[i], rs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
+            idxs = [(rs[i], cs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
             weights = [vals[i] for i in eachindex(rs) if rs[i] <= cs[i]],
         )
     end

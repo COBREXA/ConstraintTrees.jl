@@ -5,8 +5,8 @@ import DataStructures: SortedDict
 $(TYPEDEF)
 
 A hierarchical tree of many constraints that together describe a constrained
-linear system. The tree may recursively contain other trees in a directory-like
-structure.
+system. The tree may recursively contain other trees in a directory-like
+structure; and these contain [`Constraint`](@ref)s and [`QConstraint`](@ref)s.
 
 Members of the constraint tree are accessible via the record dot syntax as
 properties; e.g. a constraint labeled with `:abc` in a constraint tree `t` may
@@ -15,8 +15,8 @@ through `elems(t)`.
 
 # Constructing the constraint trees
 
-Use operator `^` to put a name on a [`Constraint`](@ref) to convert it into a
-single element [`ConstraintTree`](@ref):
+Use operator `^` to put a name on a constraint to convert it into a single
+element [`ConstraintTree`](@ref):
 
 ```julia
 x = :my_constraint ^ Constraint(Value(...), 1.0)
@@ -26,10 +26,11 @@ dir.my_constraint_dir.my_constraint.bound   # returns 1.0
 ```
 
 Use operator `*` to glue two constraint trees together while *sharing* the
-variable indexes specified by the contained [`Value`](@ref)s.
+variable indexes specified by the contained [`Value`](@ref)s and
+[`QValue`](@ref)s.
 
 ```julia
-my_constraints = :constraint1 ^ Constraint(...) * :constraint2 ^ Constraint(...)
+my_constraints = :linear_limit ^ Constraint(...) * :quadratic_limit ^ QConstraint(...)
 ```
 
 Use operator `+` to glue two constraint trees together *without sharing* of any
@@ -41,9 +42,11 @@ glue the trees together as with `*`:
 two_independent_systems = my_system + other_system
 ```
 
+# Variable sharing limitations
+
 Because of the renumbering, you can not easily use constraints and values from
 the values *before* the addition in the constraint tree that is the result of
-the addition. There is no check against that; the resulting
+the addition. There is no check against that -- the resulting
 [`ConstraintTree`](@ref) will be valid, but will probably describe a different
 optimization problem than you intended.
 
@@ -60,7 +63,7 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct ConstraintTree
     "Sorted dictionary of elements of the constraint tree."
-    elems::SortedDict{Symbol,Union{Constraint,ConstraintTree}}
+    elems::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}
 end
 
 """
@@ -68,7 +71,7 @@ $(TYPEDEF)
 
 A shortcut for elements of the [`ConstraintTree`](@ref).
 """
-const ConstraintTreeElem = Union{Constraint,ConstraintTree}
+const ConstraintTreeElem = Union{Constraint,QConstraint,ConstraintTree}
 
 """
 $(TYPEDSIGNATURES)
@@ -124,8 +127,21 @@ Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
 $(TYPEDSIGNATURES)
 
 Find the expected count of variables in a [`Constraint`](@ref).
+
+(This is a O(1) operation, relying on the order of indexes in
+[`Value`](@ref)s.)
 """
 var_count(x::Constraint) = isempty(x.value.idxs) ? 0 : last(x.value.idxs)
+
+"""
+$(TYPEDSIGNATURES)
+
+Find the expected count of variables in a [`Constraint`](@ref).
+
+(This is a O(1) operation, relying on the co-lexicographical ordering of
+indexes in [`QValue`](@ref)s)
+"""
+var_count(x::QConstraint) = isempty(x.qvalue.idxs) ? 0 : let (_,max)=last(x.qvalue.idxs); max end
 
 """
 $(TYPEDSIGNATURES)
@@ -141,6 +157,16 @@ Offset all variable indexes in a [`Constraint`](@ref) by the given increment.
 """
 incr_var_idxs(x::Constraint, incr::Int) = Constraint(
     value = Value(idxs = x.value.idxs .+ incr, weights = x.value.weights),
+    bound = x.bound,
+)
+
+"""
+$(TYPEDSIGNATURES)
+
+Offset all variable indexes in a [`QConstraint`](@ref) by the given increment.
+"""
+incr_var_idxs(x::QConstraint, incr::Int) = QConstraint(
+    qvalue = QValue(idxs = broadcast(ii -> ii .+ 4, x.qvalue.idxs), weights = x.qvalue.weights),
     bound = x.bound,
 )
 
@@ -165,8 +191,8 @@ function Base.:+(a::ConstraintTree, b::ConstraintTree)
 end
 
 function Base.:*(a_orig::ConstraintTree, b_orig::ConstraintTree)
-    # TODO this might be much better inplace, but the copy luckily isn't
-    # substantial in most cases
+    # TODO this might be much better inplace with an accumulator, but the copy
+    # luckily isn't substantial in most cases
     a = copy(elems(a_orig))
     b = elems(b_orig)
 
