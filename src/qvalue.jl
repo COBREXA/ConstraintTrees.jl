@@ -5,29 +5,56 @@ using SparseArrays
 $(TYPEDEF)
 
 A representation of a quadratic form in the constrained optimization problem.
-The `QValue` is a linear combination of several variable pairs.
+The `QValue` is an affine quadratic combination (i.e., a polynomial of maximum
+degree 2) over the variables.
 
 `QValue`s can be combined additively and multiplied by real-number constants.
+The cleanest way to construct a `QValue` is to multiply two [`Value`](@ref)s.
 
 # Fields
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct QValue
     """
-    Indexes of variable pairs used by the value. The indexes are always sorted
-    in lexicographically increasing order, and the second index is greater or
-    equal than the first one.
+    Indexes of variable pairs used by the value. The indexes must always be
+    sorted in strictly lexicographically increasing order, and the second index
+    must always be greater than or equal to the first one. As with
+    [`Value`](@ref), index `0` represents the affine element.
     """
     idxs::Vector{Tuple{Int,Int}}
-    "Coefficient of the variable pairs as used by the quadratic value"
+    "Coefficient of the variable pairs selected by `idxs`."
     weights::Vector{Float64}
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Construct a constant [`QValue`](@ref) with a single affine element.
+"""
+QValue(x::Real) = QValue(idxs = [(0,0)], weights=[x])
+
+"""
+$(TYPEDSIGNATURES)
+
+Construct a [`QValue`](@ref) that is equivalent to a given [`Value`](@ref).
+"""
+QValue(x::Value) = QValue(idxs = [(0,idx) for idx=x.idxs], weights=x.weights)
+
+Base.convert(::Type{QValue}, x::Real) = QValue(x)
+Base.convert(::Type{QValue}, x::Value) = QValue(x)
 Base.zero(::Type{QValue}) = QValue(idxs = [], weights = [])
+Base.:+(a::Real, b::QValue) = QValue(a) + b
+Base.:+(a::QValue, b::Real) = a + QValue(b)
+Base.:+(a::Value, b::QValue) = QValue(a) + b
+Base.:+(a::QValue, b::Value) = a + QValue(b)
+Base.:-(a::QValue) = -1 * a
+Base.:-(a::Real, b::QValue) = QValue(a) - b
+Base.:-(a::QValue, b::Real) = a - QValue(b)
+Base.:-(a::Value, b::QValue) = QValue(a) - b
+Base.:-(a::QValue, b::Value) = a - QValue(b)
 Base.:*(a::Real, b::QValue) = b * a
 Base.:*(a::QValue, b::Real) = QValue(idxs = a.idxs, weights = b .* a.weights)
 Base.:-(a::QValue, b::QValue) = a + (-1 * b)
-Base.:-(a::QValue) = -1 * a
 Base.:/(a::QValue, b::Real) = QValue(idxs = a.idxs, weights = a.weights ./ b)
 
 function Base.:+(a::QValue, b::QValue)
@@ -66,30 +93,6 @@ function Base.:+(a::QValue, b::QValue)
     Value(idxs = r_idxs, weights = r_weights)
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Shortcut for computing a product of the [`QValue`](@ref) and anything
-vector-like.
-"""
-qvalue_product(x::QValue, y) = sum(x.weights .* y[first.(x.idxs)] .* y[last.(x.idxs)])
-
-"""
-$(TYPEDSIGNATURES)
-
-Shortcut for making a [`QValue`](@ref) out of a square sparse matrix. The
-matrix is force-symmetrized by calculating `x'+x`.
-"""
-QValue(x::SparseMatrixCSC{Float64}) =
-    let
-        rs, cs, vals = fndnz(x' + x)
-        # note: this relies on (col,row) indexes being in correct order.
-        QValue(
-            idxs = [(cs[i], rs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
-            weights = [vals[i] for i in eachindex(rs) if rs[i] <= cs[i]],
-        )
-    end
-
 Base.:*(a::Value, b::Value) =
     let vals = a.weigths .* b.weights'
         QValue(
@@ -106,5 +109,32 @@ Base.:*(a::Value, b::Value) =
                 vals[bi, ai] for bi in eachindex(b.idxs) for
                 ai in eachindex(a.idxs) if b.idxs[bi] < a.idxs[ai]
             ],
+        )
+    end
+
+"""
+$(TYPEDSIGNATURES)
+
+Shortcut for computing a product of the [`QValue`](@ref) and anything
+vector-like.
+"""
+qvalue_product(x::QValue, y) = sum(let idx1,idx2=x.idxs[i]
+    (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
+end for (i, w) = enumerate(x.weights))
+
+"""
+$(TYPEDSIGNATURES)
+
+Shortcut for making a [`QValue`](@ref) out of a square sparse matrix. The
+matrix is force-symmetrized by calculating `x' + x`.
+"""
+QValue(x::SparseMatrixCSC{Float64}) =
+    let
+        rs, cs, vals = fndnz(x' + x)
+        # note: this very heavily relies on (col,row) indexes coming from
+        # `findnz` in correct order.
+        QValue(
+            idxs = [(cs[i], rs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
+            weights = [vals[i] for i in eachindex(rs) if rs[i] <= cs[i]],
         )
     end

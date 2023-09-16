@@ -16,11 +16,11 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct Value
     """
-    Indexes of the variables used by the value. The indexes are always sorted
-    in increasing order. The affine element has index 0.
+    Indexes of the variables used by the value. The indexes must always be
+    sorted in strictly increasing order. The affine element has index 0.
     """
     idxs::Vector{Int}
-    "Coefficients of the variables as used by the value"
+    "Coefficients of the variables selected by `idxs`."
     weights::Vector{Float64}
 end
 
@@ -29,8 +29,9 @@ $(TYPEDSIGNATURES)
 
 Construct a constant [`Value`](@ref) with a single affine element.
 """
-Value(a::Real) = Value(idxs = [0], weights = [a])
+Value(x::Real) = Value(idxs = [0], weights = [x])
 
+Base.convert(::Type{Value}, x::Real) = Value(x)
 Base.zero(::Type{Value}) = Value(idxs = [], weights = [])
 Base.:+(a::Real, b::Value) = Value(a) + b
 Base.:+(a::Value, b::Real) = a + Value(b)
