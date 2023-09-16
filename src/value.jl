@@ -85,7 +85,8 @@ $(TYPEDSIGNATURES)
 Shortcut for making a dot-product between a value and anything indexable by the
 value indexes.
 """
-value_product(x::Value, y) = sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i,idx) = enumerate(x.idxs))
+value_product(x::Value, y) =
+    sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs))
 
 """
 $(TYPEDSIGNATURES)

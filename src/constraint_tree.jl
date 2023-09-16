@@ -141,7 +141,9 @@ Find the expected count of variables in a [`Constraint`](@ref).
 (This is a O(1) operation, relying on the co-lexicographical ordering of
 indexes in [`QValue`](@ref)s)
 """
-var_count(x::QConstraint) = isempty(x.qvalue.idxs) ? 0 : let (_,max)=last(x.qvalue.idxs); max end
+var_count(x::QConstraint) = isempty(x.qvalue.idxs) ? 0 : let (_, max) = last(x.qvalue.idxs)
+    max
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -166,7 +168,10 @@ $(TYPEDSIGNATURES)
 Offset all variable indexes in a [`QConstraint`](@ref) by the given increment.
 """
 incr_var_idxs(x::QConstraint, incr::Int) = QConstraint(
-    qvalue = QValue(idxs = broadcast(ii -> ii .+ 4, x.qvalue.idxs), weights = x.qvalue.weights),
+    qvalue = QValue(
+        idxs = broadcast(ii -> ii .+ 4, x.qvalue.idxs),
+        weights = x.qvalue.weights,
+    ),
     bound = x.bound,
 )
 

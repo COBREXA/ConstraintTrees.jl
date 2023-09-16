@@ -16,7 +16,8 @@ Base.@kwdef struct Constraint
     bound::Bound = nothing
 end
 
-Base.convert(::Type{QConstraint}, x::Constraint) = QConstraint(qvalue=QValue(x.value), bound=x.bound)
+Base.convert(::Type{QConstraint}, x::Constraint) =
+    QConstraint(qvalue = QValue(x.value), bound = x.bound)
 
 Base.:-(a::QConstraint) = -1 * a
 Base.:*(a::Real, b::QConstraint) = b * a

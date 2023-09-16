@@ -38,14 +38,14 @@ $(TYPEDSIGNATURES)
 
 Construct a constant [`QValue`](@ref) with a single affine element.
 """
-QValue(x::Real) = QValue(idxs = [(0,0)], weights=[x])
+QValue(x::Real) = QValue(idxs = [(0, 0)], weights = [x])
 
 """
 $(TYPEDSIGNATURES)
 
 Construct a [`QValue`](@ref) that is equivalent to a given [`Value`](@ref).
 """
-QValue(x::Value) = QValue(idxs = [(0,idx) for idx=x.idxs], weights=x.weights)
+QValue(x::Value) = QValue(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
 
 Base.convert(::Type{QValue}, x::Real) = QValue(x)
 Base.convert(::Type{QValue}, x::Value) = QValue(x)
@@ -69,7 +69,7 @@ $(TYPEDSIGNATURES)
 
 Internal helper for co-lex ordering of indexes.
 """
-_colex_leq((a,b), (c,d)) = ((b,a) <= (d,c))
+_colex_leq((a, b), (c, d)) = ((b, a) <= (d, c))
 
 function Base.:+(a::QValue, b::QValue)
     r_idxs = Tuple{Int,Int}[]
@@ -111,17 +111,13 @@ end
 Base.:*(a::Value, b::Value) =
     let vals = a.weigths .* b.weights'
         QValue(
-            idxs = [
-                (aidx, bidx) for aidx in a.idxs for bidx in b.idxs if aidx <= bidx
-            ],
+            idxs = [(aidx, bidx) for aidx in a.idxs for bidx in b.idxs if aidx <= bidx],
             weights = [
                 vals[ai, bi] for ai in eachindex(a.idxs) for
                 bi in eachindex(b.idxs) if colex_leq(a.idxs[ai], b.idxs[bi])
             ],
         ) + QValue(
-            idxs = [
-                (bidx, aidx) for bidx in b.idxs for aidx in a.idxs if bidx < aidx
-            ],
+            idxs = [(bidx, aidx) for bidx in b.idxs for aidx in a.idxs if bidx < aidx],
             weights = [
                 vals[bi, ai] for bi in eachindex(b.idxs) for
                 ai in eachindex(a.idxs) if !colex_leq(a.idxs[ai], b.idxs[bi])
@@ -135,9 +131,11 @@ $(TYPEDSIGNATURES)
 Shortcut for computing a product of the [`QValue`](@ref) and anything
 vector-like.
 """
-qvalue_product(x::QValue, y) = sum(let idx1,idx2=x.idxs[i]
-    (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
-end for (i, w) = enumerate(x.weights))
+qvalue_product(x::QValue, y) = sum(
+    let idx1, idx2 = x.idxs[i]
+        (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
+    end for (i, w) in enumerate(x.weights)
+)
 
 """
 $(TYPEDSIGNATURES)
