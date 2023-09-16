@@ -5,7 +5,7 @@ using SparseArrays
 $(TYPEDEF)
 
 A representation of a "value" in a linear constrained optimization problem. The
-value is a linear combination of several variables.
+value is an affine linear combination of several variables.
 
 `Value`s can be combined additively and multiplied by real-number constants.
 
@@ -17,18 +17,29 @@ $(TYPEDFIELDS)
 Base.@kwdef struct Value
     """
     Indexes of the variables used by the value. The indexes are always sorted
-    in increasing order.
+    in increasing order. The affine element has index 0.
     """
     idxs::Vector{Int}
     "Coefficients of the variables as used by the value"
     weights::Vector{Float64}
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Construct a constant [`Value`](@ref) with a single affine element.
+"""
+Value(a::Real) = Value(idxs = [0], weights = [a])
+
 Base.zero(::Type{Value}) = Value(idxs = [], weights = [])
-Base.:*(a::Real, b::Value) = b * a
-Base.:*(a::Value, b::Real) = Value(idxs = a.idxs, weights = b .* a.weights)
+Base.:+(a::Real, b::Value) = Value(a) + b
+Base.:+(a::Value, b::Real) = a + Value(b)
+Base.:-(a::Real, b::Value) = Value(a) - b
+Base.:-(a::Value, b::Real) = a - Value(b)
 Base.:-(a::Value, b::Value) = a + (-1 * b)
 Base.:-(a::Value) = -1 * a
+Base.:*(a::Real, b::Value) = b * a
+Base.:*(a::Value, b::Real) = Value(idxs = a.idxs, weights = b .* a.weights)
 Base.:/(a::Value, b::Real) = Value(idxs = a.idxs, weights = a.weights ./ b)
 
 function Base.:+(a::Value, b::Value)
@@ -73,12 +84,13 @@ $(TYPEDSIGNATURES)
 Shortcut for making a dot-product between a value and anything indexable by the
 value indexes.
 """
-value_product(x::Value, y) = x.weights' * y[x.idxs]
+value_product(x::Value, y) = sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i,idx) = enumerate(x.idxs))
 
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for making a [`Value`](@ref) out of `SparseVector`.
+Shortcut for making a [`Value`](@ref) out of a linear combination defined by
+the `SparseVector`.
 """
 Value(x::SparseVector{Float64}) =
     let (idxs, weights) = findnz(x)
