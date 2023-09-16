@@ -69,7 +69,7 @@ $(TYPEDSIGNATURES)
 
 Internal helper for co-lex ordering of indexes.
 """
-_colex_leq((a, b), (c, d)) = ((b, a) <= (d, c))
+colex_le((a, b), (c, d)) = (b, a) < (d, c)
 
 function Base.:+(a::QValue, b::QValue)
     r_idxs = Tuple{Int,Int}[]
@@ -80,11 +80,11 @@ function Base.:+(a::QValue, b::QValue)
     be = length(b.idxs)
 
     while ai <= ae && bi <= be
-        if colex_leq(a.idxs[ai], b.idxs[bi])
+        if colex_le(a.idxs[ai], b.idxs[bi])
             push!(r_idxs, a.idxs[ai])
             push!(r_weights, a.weights[ai])
             ai += 1
-        elseif colex_leq(b.idxs[bi], a.idxs[ai])
+        elseif colex_le(b.idxs[bi], a.idxs[ai])
             push!(r_idxs, b.idxs[bi])
             push!(r_weights, b.weights[bi])
             bi += 1
@@ -105,22 +105,22 @@ function Base.:+(a::QValue, b::QValue)
         push!(r_weights, b.weights[bi])
         bi += 1
     end
-    Value(idxs = r_idxs, weights = r_weights)
+    QValue(idxs = r_idxs, weights = r_weights)
 end
 
 Base.:*(a::Value, b::Value) =
-    let vals = a.weigths .* b.weights'
+    let vals = a.weights .* b.weights'
         QValue(
-            idxs = [(aidx, bidx) for aidx in a.idxs for bidx in b.idxs if aidx <= bidx],
+            idxs = [(aidx, bidx) for bidx in b.idxs for aidx in a.idxs if aidx <= bidx],
             weights = [
-                vals[ai, bi] for ai in eachindex(a.idxs) for
-                bi in eachindex(b.idxs) if colex_leq(a.idxs[ai], b.idxs[bi])
+                vals[ai, bi] for bi in eachindex(b.idxs) for
+                ai in eachindex(a.idxs) if a.idxs[ai] <= b.idxs[bi]
             ],
         ) + QValue(
-            idxs = [(bidx, aidx) for bidx in b.idxs for aidx in a.idxs if bidx < aidx],
+            idxs = [(bidx, aidx) for aidx in a.idxs for bidx in b.idxs if bidx < aidx],
             weights = [
-                vals[bi, ai] for bi in eachindex(b.idxs) for
-                ai in eachindex(a.idxs) if !colex_leq(a.idxs[ai], b.idxs[bi])
+                vals[ai, bi] for ai in eachindex(a.idxs) for
+                bi in eachindex(b.idxs) if b.idxs[bi] < a.idxs[ai]
             ],
         )
     end
@@ -132,7 +132,7 @@ Shortcut for computing a product of the [`QValue`](@ref) and anything
 vector-like.
 """
 qvalue_product(x::QValue, y) = sum(
-    let idx1, idx2 = x.idxs[i]
+    let (idx1, idx2) = x.idxs[i]
         (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
     end for (i, w) in enumerate(x.weights)
 )

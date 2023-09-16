@@ -155,10 +155,17 @@ var_count(x::ConstraintTree) = isempty(elems(x)) ? 0 : maximum(var_count.(values
 """
 $(TYPEDSIGNATURES)
 
+Internal helper for manipulating variable indices.
+"""
+incr_var_idx(x::Int, incr::Int) = x == 0 ? 0 : x + incr
+
+"""
+$(TYPEDSIGNATURES)
+
 Offset all variable indexes in a [`Constraint`](@ref) by the given increment.
 """
 incr_var_idxs(x::Constraint, incr::Int) = Constraint(
-    value = Value(idxs = x.value.idxs .+ incr, weights = x.value.weights),
+    value = Value(idxs = incr_var_idx.(x.value.idxs, incr), weights = x.value.weights),
     bound = x.bound,
 )
 
@@ -169,7 +176,7 @@ Offset all variable indexes in a [`QConstraint`](@ref) by the given increment.
 """
 incr_var_idxs(x::QConstraint, incr::Int) = QConstraint(
     qvalue = QValue(
-        idxs = broadcast(ii -> ii .+ 4, x.qvalue.idxs),
+        idxs = broadcast(ii -> incr_var_idx.(ii, incr), x.qvalue.idxs),
         weights = x.qvalue.weights,
     ),
     bound = x.bound,

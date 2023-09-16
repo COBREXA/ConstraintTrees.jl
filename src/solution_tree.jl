@@ -62,7 +62,8 @@ constraint values w.r.t. the given variable assignment.
 function solution_tree end
 
 solution_tree(x::Constraint, vars::AbstractVector{Float64}) = value_product(x.value, vars)
-solution_tree(x::QConstraint, vars::AbstractVector{Float64}) = qvalue_product(x.value, vars)
+solution_tree(x::QConstraint, vars::AbstractVector{Float64}) =
+    qvalue_product(x.qvalue, vars)
 solution_tree(x::ConstraintTree, vars::AbstractVector{Float64}) = SolutionTree(
     elems = SortedDict{Symbol,SolutionTreeElem}(
         keys(x) .=> solution_tree.(values(x), Ref(vars)),
