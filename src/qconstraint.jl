@@ -14,10 +14,21 @@ Base.@kwdef struct QConstraint
     qvalue::QValue
     "A bound that the `qvalue` must satisfy."
     bound::Bound = nothing
+
+    QConstraint(v::QValue) = new(v, nothing)
+    QConstraint(v::QValue, b::Bound) = new(v, b)
 end
 
 Base.convert(::Type{QConstraint}, x::Constraint) =
     QConstraint(qvalue = QValue(x.value), bound = x.bound)
+
+"""
+$(TYPEDSIGNATURES)
+
+Overloaded constructor of [`Constraint`](@ref) that actually makes a
+[`QConstraint`](@ref) because that is implied by the type of the value in `v`.
+"""
+Constraint(v::QValue, b::Bound = nothing) = QConstraint(v, b)
 
 Base.:-(a::QConstraint) = -1 * a
 Base.:*(a::Real, b::QConstraint) = b * a

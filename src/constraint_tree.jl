@@ -64,6 +64,24 @@ $(TYPEDFIELDS)
 Base.@kwdef struct ConstraintTree
     "Sorted dictionary of elements of the constraint tree."
     elems::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}
+
+    ConstraintTree(x::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}) =
+        new(x)
+
+    """
+    $(TYPEDSIGNATURES)
+
+    Create a properly typed [`ConstraintTree`](@ref) out of anything that can be
+    used to construct the inner dictionary.
+
+    # Example
+    ```julia
+    ConstraintTree(:a => some_constraint, :b => another_constraint)
+    ConstraintTree(c for c=constraints if !isnothing(c.bound))
+    ```
+    """
+    ConstraintTree(x...) =
+        new(SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}(x...))
 end
 
 """
@@ -73,19 +91,6 @@ A shortcut for elements of the [`ConstraintTree`](@ref).
 """
 const ConstraintTreeElem = Union{Constraint,QConstraint,ConstraintTree}
 
-"""
-$(TYPEDSIGNATURES)
-
-Create a properly typed [`ConstraintTree`](@ref) out of anything that can be
-used to construct the inner dictionary.
-
-# Example
-```julia
-constraint_tree(:a => some_constraint, :b => another_constraint)
-constraint_tree(c for c=constraints if !isnothing(c.bound))
-```
-"""
-constraint_tree(x...) = ConstraintTree(elems = SortedDict{Symbol,ConstraintTreeElem}(x...))
 
 """
 $(TYPEDSIGNATURES)
@@ -241,6 +246,7 @@ Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
 variable(; bound = nothing) = Constraint(value = Value([1], [1.0]); bound)
+
 """
 $(TYPEDSIGNATURES)
 
@@ -263,7 +269,7 @@ function variables(; keys::Vector{Symbol}, bounds = nothing)
         length(bounds) == 1 ? Base.Iterators.cycle(bounds) :
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
-    constraint_tree(
+    ConstraintTree(
         k => Constraint(value = Value(Int[i], Float64[1.0]), bound = b) for
         ((i, k), b) in zip(enumerate(keys), bs)
     )

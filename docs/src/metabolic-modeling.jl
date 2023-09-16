@@ -71,7 +71,7 @@ c[:fluxes][:R_PFK]
 # variables to their valid bounds as defined by the model:
 rxn_constraints =
     let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
-        C.constraint_tree(
+        C.ConstraintTree(
             r => C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
             (r, ((lb, _), (ub, _))) in rxn_bounds # SBML units are ignored for simplicity
         )
@@ -88,7 +88,7 @@ c = c * :constraints^rxn_constraints;
 # Our model representation now contains 2 "directories":
 collect(keys(c))
 
-@test 2 == length((keys(c)))#src
+@test 2 == length((keys(c))) #src
 
 # ## Value and constraint arithmetics
 
@@ -119,9 +119,9 @@ system = C.variables(keys = [:x, :y])
 # number, as in the linear transformations below:
 system =
     :original_coords^system *
-    :transformed_coords^C.constraint_tree(
-        :xt => C.Constraint(value = 1 + system.x.value + 4 + system.y.value),
-        :yt => C.Constraint(value = 0.1 * (3 - system.y.value)),
+    :transformed_coords^C.ConstraintTree(
+        :xt => C.Constraint(1 + system.x.value + 4 + system.y.value),
+        :yt => C.Constraint(0.1 * (3 - system.y.value)),
     )
 
 # ## Adding combined constraints
@@ -131,7 +131,7 @@ system =
 # corresponds to conservation of mass). We can now add corresponding
 # "stoichiometric" network constraints by following the reactants and products
 # in the SBML structure:
-stoi_constraints = C.constraint_tree(
+stoi_constraints = C.ConstraintTree(
     Symbol(m) => C.Constraint(
         value = -sum(
             (
@@ -163,7 +163,7 @@ c = c * :stoichiometry^stoi_constraints;
 # We can save that information into the constraint system immediately:
 c *=
     :objective^C.Constraint(
-        value = sum(
+        sum(
             c.fluxes[Symbol(rid)].value * coeff for
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
             coeff != 0.0
@@ -183,7 +183,7 @@ c *=
 solution = [1.0, 5.0] # corresponds to :x and :y in order.
 
 # Solution tree is constructed in a straightforward manner:
-st = C.solution_tree(system, solution)
+st = C.SolutionTree(system, solution)
 
 # We can now check the values of the original values
 (st.original_coords.x, st.original_coords.y)
@@ -234,7 +234,7 @@ optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimize
 
 # To explore the solution more easily, we can make a solution tree with values
 # that correspond to ones in our constraint tree:
-result = C.solution_tree(c, optimal_variable_assignment);
+result = C.SolutionTree(c, optimal_variable_assignment);
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
 #
@@ -246,11 +246,11 @@ result.fluxes.R_PFK
 result.objective
 
 # Sometimes it is unnecessary to recover the values for all constraints, so we are better off selecting just a subtree:
-C.elems(C.solution_tree(c.fluxes, optimal_variable_assignment))
+C.elems(C.SolutionTree(c.fluxes, optimal_variable_assignment))
 
 #
 
-C.solution_tree(c.objective, optimal_variable_assignment)
+C.SolutionTree(c.objective, optimal_variable_assignment)
 
 # ## Combining and extending constraint systems
 #
@@ -267,8 +267,8 @@ C.solution_tree(c.objective, optimal_variable_assignment)
 # organisms:
 c =
     :community^(
-        :species1^(c * :handicap^C.Constraint(value = c.fluxes.R_PFK.value, bound = 0.0)) +
-        :species2^(c * :handicap^C.Constraint(value = c.fluxes.R_ACALD.value, bound = 0.0))
+        :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0.0)) +
+        :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0.0))
     )
 
 # We can create additional variables that represent total community intake of
@@ -279,7 +279,7 @@ c += :exchanges^C.variables(keys = [:oxygen, :biomass], bounds = [(-10.0, 10.0),
 # registered metabolites is in fact equal to total consumption or production by
 # each of the species:
 c *=
-    :exchange_constraints^C.constraint_tree(
+    :exchange_constraints^C.ConstraintTree(
         :oxygen => C.Constraint(
             value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
                     c.community.species2.fluxes.R_EX_o2_e.value,
@@ -294,7 +294,7 @@ c *=
     )
 
 # Let's see how much biomass are the two species capable of producing together:
-result = C.solution_tree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
+result = C.SolutionTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
 C.elems(result.exchanges)
 
 # Finally, we can iterate over all species in the small community and see how

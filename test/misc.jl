@@ -52,8 +52,8 @@ end
 
 @testset "Solution tree operations" begin
     ct = C.variables(keys = [:a, :b])
-    @test_throws BoundsError C.solution_tree(ct, [1.0])
-    st = C.solution_tree(ct, [123.0, 321.0])
+    @test_throws BoundsError C.SolutionTree(ct, [1.0])
+    st = C.SolutionTree(ct, [123.0, 321.0])
     @test st.a == 123.0
     @test st[:b] == 321.0
     @test collect(propertynames(st)) == [:a, :b]

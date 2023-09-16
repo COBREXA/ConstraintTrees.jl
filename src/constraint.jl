@@ -19,6 +19,9 @@ Base.@kwdef struct Constraint
     value::Value
     "A bound that the `value` must satisfy."
     bound::Bound = nothing
+
+    Constraint(v::Value) = new(v, nothing)
+    Constraint(v::Value, b::Bound) = new(v, b)
 end
 
 Base.:-(a::Constraint) = -1 * a
