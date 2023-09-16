@@ -16,6 +16,7 @@ JuMP = "1"
 julia = "1.6"
 
 [extras]
+Clarabel = "61c947e1-3e6d-4ee4-985a-eec8c727bd6e"
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
@@ -23,4 +24,4 @@ SBML = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Downloads", "GLPK", "JuMP", "SBML", "Test"]
+test = ["Clarabel", "Downloads", "GLPK", "JuMP", "SBML", "Test"]

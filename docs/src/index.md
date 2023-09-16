@@ -3,5 +3,5 @@
 
 ```@autodocs
 Modules = [ConstraintTrees]
-Pages = ["ConstraintTrees.jl"]
+Pages = ["src/ConstraintTrees.jl"]
 ```
