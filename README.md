@@ -1,16 +1,17 @@
 
-# ConstraintTrees.jl -- Tidy constraints for linear programming
+# ConstraintTrees.jl -- Tidy constraints for optimization problems
 
 | Build status | Documentation |
 |:---:|:---:|
 | ![CI status](https://github.com/COBREXA/ConstraintTrees.jl/workflows/CI/badge.svg?branch=master) [![codecov](https://codecov.io/gh/COBREXA/ConstraintTrees.jl/branch/master/graph/badge.svg?token=A2ui7exGIH)](https://codecov.io/gh/COBREXA/ConstraintTrees.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://cobrexa.github.io/ConstraintTrees.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://cobrexa.github.io/ConstraintTrees.jl/dev) |
 
 Package `ConstraintTrees.jl` provides a simple data structure `ConstraintTree`
-for organizing the contents of linear constrained optimization problems. As a
-main goal, it abstracts over the distinction between constraints and variables,
-allowing much tidier representation for many kinds of complex constraint
-systems. The primary purpose is to support constraint-based metabolic modeling
-within [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl).
+for organizing the contents of linear and quadratic constrained optimization
+problems. As a main goal, it abstracts over the distinction between constraints
+and variables, allowing much tidier representation for many kinds of complex
+constraint systems. The primary purpose is to support constraint-based
+metabolic modeling within
+[COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl).
 
 `ConstraintTrees.jl` is new and under active development. Feel free to discuss
 the changes and ideas.
