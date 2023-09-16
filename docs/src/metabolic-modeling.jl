@@ -105,6 +105,25 @@ collect(keys(c))
 # values and making constraints.
 sum(C.value.(values(c.fluxes)))
 
+# ### Affine values
+#
+# To simplify various modeling goals (mainly calculation of various kinds of
+# "distances"), the values support inclusion of an affine element -- the
+# variable with index 0 is assumed to be the "affine unit", and its assigned
+# value is fixed at `1.0`.
+
+# To demonstrate, let's make a small system with 2 variables.
+system = C.allocate_variables(keys = [:x, :y])
+
+# To add an affine element to a [`Value`](@ref), simply add it as a `Real`
+# number, as in the linear transformations below:
+system =
+    :original_coords^system *
+    :transformed_coords^C.make_constraint_tree(
+        :xt => C.Constraint(value = 1 + system.x.value + 4 + system.y.value),
+        :yt => C.Constraint(value = 0.1 * (3 - system.y.value)),
+    )
+
 # ## Adding combined constraints
 
 # Metabolic modeling relies on the fact that the total rates of any metabolite
@@ -150,6 +169,35 @@ c *=
             coeff != 0.0
         ),
     );
+
+# ## Solution trees
+#
+# To aid exploration of variable assignments in the constraint trees, we can
+# convert them to *solution trees*. These have the very same structure as
+# constraint trees, but carry only the "solved" constraint values instead of
+# full constraints.
+#
+# Let's demonstrate this quickly on the example of `system` with affine
+# variables from above. First, let's assume that someone solved the system (in
+# some way) and produced a solution of variables as follows:
+solution = [1.0, 5.0] # corresponds to :x and :y in order.
+
+# Solution tree is constructed in a straightforward manner:
+st = C.solution_tree(system, solution)
+
+# We can now check the values of the original values
+(st.original_coords.x, st.original_coords.y)
+
+@test isapprox(st.original_coords.x, 1.0) #src
+@test isapprox(st.original_coords.y, 5.0) #src
+
+# The other constraints automatically get their values that correspond to the
+# overall variable assignment:
+st_ = st.transformed_coords;
+(st_.xt, st_.yt)
+
+@test isapprox(st_.xt, 11.0) #src
+@test isapprox(st_.yt, -0.2) #src
 
 # ## Solving the constraint system using JuMP
 #

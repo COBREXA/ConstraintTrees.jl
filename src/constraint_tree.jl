@@ -238,6 +238,13 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Allocate a single unnamed variable, returning a Constraint with an optionally
+specified `bound`.
+"""
+allocate_variable(; bound = nothing) = Constraint(value = Value([1], [1.0]); bound)
+"""
+$(TYPEDSIGNATURES)
+
 Make a trivial constraint system that creates variables with indexes in
 range `1:length(keys)` named in order as given by `keys`.
 
