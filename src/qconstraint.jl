@@ -9,7 +9,7 @@ nature, type behaves just like the normal [`Constraint`](@ref).
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Constraint
+Base.@kwdef struct QConstraint
     "A [`QValue`](@ref) that describes what the constraint constraints."
     qvalue::QValue
     "A bound that the `qvalue` must satisfy."
