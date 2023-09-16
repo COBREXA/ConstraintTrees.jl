@@ -147,8 +147,7 @@ C.elems(st.line.point)
 @test isapprox(st.line.point.x, st.line.point.y, atol = 1e-3) #src
 @test isapprox(st.line.point.x, 5.670821358510901, atol = 1e-3) #src
 
-# ...and, with a bit of extra math, the minimized distance -- originally we
-# maximized the negative squared error, thus the negation and square root:
+# ...and, with a bit of extra math, the minimized distance:
 sqrt(st.objective)
 
 @test isapprox(sqrt(st.objective), 5.489928950781118, atol = 1e-3) #src
