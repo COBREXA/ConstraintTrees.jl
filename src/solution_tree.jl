@@ -6,14 +6,36 @@ A structure similar to [`ConstraintTree`](@ref), but only holds the resolved
 values of each constraint. As with [`ConstraintTree`](@ref), use record dot
 notation and [`elems`](@ref) to browse the solution structure.
 
-Use [`solution_tree`](@ref) to construct the [`SolutionTree`](@ref) out of a
+Use [`SolutionTree`](@ref) to construct the [`SolutionTree`](@ref) out of a
 [`ConstraintTree`](@ref) and a vector of variable values.
 
+To construct a `SolutionTree`, combine a [`ConstraintTree`](@ref) (or generally
+any [`ConstraintTreeElem`](@ref) with a vector of variable assignments
+(typically representing a constrained problem solution) using the overloaded
+2-parameter[`SolutionTree`](@ref) constructor. The result will contain a tree
+of constraint values w.r.t. the given variable assignment (or just a single
+number in case the input was only a single constraint).
+
+# Example
+```
+cs = ConstraintTree(...)
+vals = [1.0, 2.0, 4.0]
+SolutionTree(cs, vals)
+```
 # Fields
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct SolutionTree
     elems::SortedDict{Symbol,Union{Float64,SolutionTree}}
+    SolutionTree(x::Constraint, vars::AbstractVector{Float64}) =
+        value_product(x.value, vars)
+    SolutionTree(x::QConstraint, vars::AbstractVector{Float64}) =
+        qvalue_product(x.qvalue, vars)
+    SolutionTree(x::ConstraintTree, vars::AbstractVector{Float64}) = new(
+        SortedDict{Symbol,SolutionTreeElem}(
+            keys(x) .=> SolutionTree.(values(x), Ref(vars)),
+        ),
+    )
 end
 
 """
@@ -50,22 +72,3 @@ Base.eltype(x::SolutionTree) = eltype(elems(x))
 Base.propertynames(x::SolutionTree) = keys(elems(x))
 
 Base.getindex(x::SolutionTree, sym::Symbol) = getindex(elems(x), sym)
-
-"""
-$(TYPEDSIGNATURES)
-
-Combine a [`ConstraintTree`](@ref) (or generally any
-[`ConstraintTreeElem`](@ref) with a vector of variable assignments (typically
-representing a constrained problem solution) to a [`SolutionTree`](@ref) of
-constraint values w.r.t. the given variable assignment.
-"""
-function solution_tree end
-
-solution_tree(x::Constraint, vars::AbstractVector{Float64}) = value_product(x.value, vars)
-solution_tree(x::QConstraint, vars::AbstractVector{Float64}) =
-    qvalue_product(x.qvalue, vars)
-solution_tree(x::ConstraintTree, vars::AbstractVector{Float64}) = SolutionTree(
-    elems = SortedDict{Symbol,SolutionTreeElem}(
-        keys(x) .=> solution_tree.(values(x), Ref(vars)),
-    ),
-)

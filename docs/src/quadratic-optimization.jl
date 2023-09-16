@@ -38,10 +38,13 @@ error_val =
 # must not be too big); and directly observe the error values in the system.
 system = :vars^system * :error^C.QConstraint(qvalue = error_val, bound = (0.0, 100.0))
 
+# (For simplicity, you can also use the `Constraint` constructor to make
+# quadratic constraints out of `QValue`s -- it will overload properly.)
+
 # Let's pretend someone has solved the system, and see how much "error" the
 # solution has:
 solution = [1.0, 2.0, -1.0];
-st = C.solution_tree(system, solution);
+st = C.SolutionTree(system, solution);
 st.error
 
 # ...not bad for a first guess.
@@ -55,11 +58,11 @@ point = C.variables(keys = [:x, :y])
 
 # We can create a small system that constraints the point to stay within a
 # simple elliptical area centered around `(0.0, 10.0)`:
-ellipse_system = C.constraint_tree(
+ellipse_system = C.ConstraintTree(
     :point => point,
-    :in_area => C.QConstraint(
-        qvalue = squared(point.x.value) / 4 + squared(10.0 - point.y.value),
-        bound = (-Inf, 1.0),
+    :in_area => C.Constraint(
+        squared(point.x.value) / 4 + squared(10.0 - point.y.value),
+        (-Inf, 1.0),
     ),
 );
 
@@ -71,9 +74,9 @@ ellipse_system = C.constraint_tree(
 # single-variable-parametrized line equation.
 line_param = C.variable().value;
 line_system =
-    :point^C.constraint_tree(
-        :x => C.Constraint(value = 0 + 1 * line_param),
-        :y => C.Constraint(value = 0 + 1 * line_param),
+    :point^C.ConstraintTree(
+        :x => C.Constraint(0 + 1 * line_param),
+        :y => C.Constraint(0 + 1 * line_param),
     );
 
 # Finally, let's connect the systems using `+` operator and add the objective
@@ -82,8 +85,8 @@ s = :ellipse^ellipse_system + :line^line_system;
 
 s *=
     :objective^C.QConstraint(
-        qvalue = squared(s.ellipse.point.x.value - s.line.point.x.value) +
-                 squared(s.ellipse.point.y.value - s.line.point.y.value),
+        squared(s.ellipse.point.x.value - s.line.point.x.value) +
+        squared(s.ellipse.point.y.value - s.line.point.y.value),
     );
 # (Note that if we used `*` to connect the systems, the variables from the
 # definition of `point` would not be duplicated, and various non-interesting
@@ -132,7 +135,7 @@ end
 
 # We can now load a suitable optimizer and solve the system:
 import Clarabel
-st = C.solution_tree(s, optimized_vars(s, -s.objective.qvalue, Clarabel.Optimizer))
+st = C.SolutionTree(s, optimized_vars(s, -s.objective.qvalue, Clarabel.Optimizer))
 
 # If the optimization worked well, we can nicely get out the position of the
 # closest point to the line that is in the elliptical area:
