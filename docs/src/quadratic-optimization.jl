@@ -3,13 +3,13 @@
 #
 # In this example we demonstrate the use of quadratic constraints and values.
 # We assume that the reader is already familiar with the construction of
-# [`ConstraintTree`](@ref)s; if not, it is advisable to read the previous part
+# `ConstraintTree`s; if not, it is advisable to read the previous part
 # of the documentation first.
 #
 # In short, quadratic values and constraints are expressed similarly as other
-# contents of the constraint trees using types [`QValue`](@ref) and
-# [`QConstraint`](@ref), which are quadratic alikes of the linear
-# [`Value`](@ref) and [`Constraint`](@ref).
+# contents of the constraint trees using types `QValue` and
+# `QConstraint`, which are quadratic alikes of the linear
+# `Value` and `Constraint`.
 #
 # ## Working with quadratic values and constraints
 #
@@ -58,7 +58,7 @@ point = C.allocate_variables(keys = [:x, :y])
 ellipse_system = C.make_constraint_tree(
     :point => point,
     :in_area => C.QConstraint(
-        qvalue = squared(point.x.value / 2) + squared(10.0 - point.y.value),
+        qvalue = squared(point.x.value) / 4 + squared(10.0 - point.y.value),
         bound = (-Inf, 1.0),
     ),
 );
@@ -127,6 +127,7 @@ function optimized_vars(cs::C.ConstraintTree, objective::Union{C.Value,C.QValue}
         add_constraint.(values(c))
     end
     add_constraint(cs)
+    JuMP.set_silent(model)
     JuMP.optimize!(model)
     JuMP.value.(model[:x])
 end

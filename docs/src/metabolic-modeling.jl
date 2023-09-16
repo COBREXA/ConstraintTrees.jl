@@ -115,7 +115,7 @@ sum(C.value.(values(c.fluxes)))
 # To demonstrate, let's make a small system with 2 variables.
 system = C.allocate_variables(keys = [:x, :y])
 
-# To add an affine element to a [`Value`](@ref), simply add it as a `Real`
+# To add an affine element to a `Value`, simply add it as a `Real`
 # number, as in the linear transformations below:
 system =
     :original_coords^system *
