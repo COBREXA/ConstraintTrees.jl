@@ -55,7 +55,7 @@ point = C.allocate_variables(keys = [:x, :y])
 
 # We can create a small system that constraints the point to stay within a
 # simple elliptical area centered around `(0.0, 10.0)`:
-ellipse_system = C.make_constraint_tree(
+ellipse_system = C.constraint_tree(
     :point => point,
     :in_area => C.QConstraint(
         qvalue = squared(point.x.value) / 4 + squared(10.0 - point.y.value),
@@ -71,7 +71,7 @@ ellipse_system = C.make_constraint_tree(
 # single-variable-parametrized line equation.
 line_param = C.allocate_variable().value;
 line_system =
-    :point^C.make_constraint_tree(
+    :point^C.constraint_tree(
         :x => C.Constraint(value = 0 + 1 * line_param),
         :y => C.Constraint(value = 0 + 1 * line_param),
     );

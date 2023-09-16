@@ -71,7 +71,7 @@ c[:fluxes][:R_PFK]
 # variables to their valid bounds as defined by the model:
 rxn_constraints =
     let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
-        C.make_constraint_tree(
+        C.constraint_tree(
             r => C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
             (r, ((lb, _), (ub, _))) in rxn_bounds # SBML units are ignored for simplicity
         )
@@ -119,7 +119,7 @@ system = C.allocate_variables(keys = [:x, :y])
 # number, as in the linear transformations below:
 system =
     :original_coords^system *
-    :transformed_coords^C.make_constraint_tree(
+    :transformed_coords^C.constraint_tree(
         :xt => C.Constraint(value = 1 + system.x.value + 4 + system.y.value),
         :yt => C.Constraint(value = 0.1 * (3 - system.y.value)),
     )
@@ -131,7 +131,7 @@ system =
 # corresponds to conservation of mass). We can now add corresponding
 # "stoichiometric" network constraints by following the reactants and products
 # in the SBML structure:
-stoi_constraints = C.make_constraint_tree(
+stoi_constraints = C.constraint_tree(
     Symbol(m) => C.Constraint(
         value = -sum(
             (
@@ -283,7 +283,7 @@ c +=
 # registered metabolites is in fact equal to total consumption or production by
 # each of the species:
 c *=
-    :exchange_constraints^C.make_constraint_tree(
+    :exchange_constraints^C.constraint_tree(
         :oxygen => C.Constraint(
             value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
                     c.community.species2.fluxes.R_EX_o2_e.value,

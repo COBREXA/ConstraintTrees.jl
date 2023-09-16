@@ -81,11 +81,11 @@ used to construct the inner dictionary.
 
 # Example
 ```julia
-make_constraint_tree(:a => some_constraint, :b => another_constraint)
-make_constraint_tree(c for c=constraints if !isnothing(c.bound))
+constraint_tree(:a => some_constraint, :b => another_constraint)
+constraint_tree(c for c=constraints if !isnothing(c.bound))
 ```
 """
-make_constraint_tree(x...) =
+constraint_tree(x...) =
     ConstraintTree(elems = SortedDict{Symbol,ConstraintTreeElem}(x...))
 
 """
@@ -264,7 +264,7 @@ function allocate_variables(; keys::Vector{Symbol}, bounds = nothing)
         length(bounds) == 1 ? Base.Iterators.cycle(bounds) :
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
-    make_constraint_tree(
+    constraint_tree(
         k => Constraint(value = Value(Int[i], Float64[1.0]), bound = b) for
         ((i, k), b) in zip(enumerate(keys), bs)
     )
