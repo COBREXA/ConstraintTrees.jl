@@ -25,7 +25,7 @@ ecoli = SBML.readSBML("e_coli_core.xml")
 # Let's first build the constrained representation of the problem. First, we
 # will need a variable for each of the reactions in the model.
 
-c = C.allocate_variables(keys = Symbol.(keys(ecoli.reactions)))
+c = C.variables(keys = Symbol.(keys(ecoli.reactions)))
 
 @test length(C.elems(c)) == length(ecoli.reactions) #src
 
@@ -113,7 +113,7 @@ sum(C.value.(values(c.fluxes)))
 # value is fixed at `1.0`.
 
 # To demonstrate, let's make a small system with 2 variables.
-system = C.allocate_variables(keys = [:x, :y])
+system = C.variables(keys = [:x, :y])
 
 # To add an affine element to a `Value`, simply add it as a `Real`
 # number, as in the linear transformations below:
@@ -274,7 +274,7 @@ c =
 # We can create additional variables that represent total community intake of
 # oxygen, and total community production of biomass:
 c +=
-    :exchanges^C.allocate_variables(
+    :exchanges^C.variables(
         keys = [:oxygen, :biomass],
         bounds = [(-10.0, 10.0), nothing],
     )

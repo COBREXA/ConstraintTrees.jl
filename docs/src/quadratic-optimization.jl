@@ -18,7 +18,7 @@
 
 import ConstraintTrees as C
 
-system = C.allocate_variables(keys = [:x, :y, :z]);
+system = C.variables(keys = [:x, :y, :z]);
 qv = system.x.value * (system.y.value + 2 * system.z.value)
 
 @test qv.idxs == [(1, 2), (1, 3)] #src
@@ -51,7 +51,7 @@ st.error
 # Let's create a small quadratic system that finds the closest distance between
 # an ellipse and a line and let some of the conic solvers available in JuMP
 # solve it. First, let's make a representation of a point in 2D:
-point = C.allocate_variables(keys = [:x, :y])
+point = C.variables(keys = [:x, :y])
 
 # We can create a small system that constraints the point to stay within a
 # simple elliptical area centered around `(0.0, 10.0)`:
@@ -69,7 +69,7 @@ ellipse_system = C.constraint_tree(
 # (mainly, the solver that we are planning to use only supports positive
 # definite quadratic forms as constraints). Instead, let's use a
 # single-variable-parametrized line equation.
-line_param = C.allocate_variable().value;
+line_param = C.variable().value;
 line_system =
     :point^C.constraint_tree(
         :x => C.Constraint(value = 0 + 1 * line_param),

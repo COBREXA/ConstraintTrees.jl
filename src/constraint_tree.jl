@@ -241,7 +241,7 @@ $(TYPEDSIGNATURES)
 Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
-allocate_variable(; bound = nothing) = Constraint(value = Value([1], [1.0]); bound)
+variable(; bound = nothing) = Constraint(value = Value([1], [1.0]); bound)
 """
 $(TYPEDSIGNATURES)
 
@@ -258,7 +258,7 @@ interval bound for all variables, it is impossible to use a tuple (since its
 length is 2); in such case use `bound = Ref((minimum, maximum))`, which has the
 correct length.
 """
-function allocate_variables(; keys::Vector{Symbol}, bounds = nothing)
+function variables(; keys::Vector{Symbol}, bounds = nothing)
     bs =
         isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
         length(bounds) == 1 ? Base.Iterators.cycle(bounds) :
