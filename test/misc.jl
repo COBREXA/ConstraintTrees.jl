@@ -6,6 +6,36 @@ import SparseArrays as SP
     x = C.Value(SP.sparse([5.0, 0, 6.0, 0])) + C.Value(idxs = [2, 3], weights = [5.0, 4.0])
     @test x.idxs == [1, 2, 3]
     @test x.weights == [5.0, 5.0, 10.0]
+    x = convert(C.Value, 123.0)
+    @test x.idxs == [0]
+    @test x.weights == [123.0]
+end
+
+@testset "QValues" begin
+    @test (
+        1 - (1 * (1 + (zero(C.Value) - zero(C.QValue) + zero(C.Value)) + 1) * 1) +
+        convert(C.QValue, 123.0)
+    ).idxs == [(0, 0)]
+    @test convert(C.QValue, C.allocate_variable().value).idxs == [(0, 1)]
+    x =
+        C.Value(SP.sparse(Float64[])) + C.QValue(SP.sparse([1.0 0 1; 0 0 3; 1 0 0])) -
+        C.Value(SP.sparse([1.0, 2.0])) - 1.0
+    @test x.idxs == [(0, 0), (0, 1), (1, 1), (0, 2), (1, 3), (2, 3)]
+    @test x.weights == [-1.0, -1.0, 2.0, -2.0, 2.0, 3.0]
+    @test C.QValue(1.0).idxs == [(0, 0)]
+    @test C.QValue(C.Value(1.0)).idxs == [(0, 0)]
+end
+
+@testset "Constraints" begin
+    @test C.bound(C.allocate_variable(bound = 123.0)) == 123.0
+    @test C.value(C.allocate_variable(bound = 123.0)).idxs == [1]
+    @test C.bound(2 * -convert(C.QConstraint, (C.allocate_variable(bound = 123.0))) / 2) ==
+          -123.0
+
+    x = C.allocate_variable().value
+    s = :a^C.Constraint(value = x) + :b^C.QConstraint(qvalue = x * x - x)
+    @test C.value(s.a).idxs == [1]
+    @test C.value(s.b).idxs == [(0, 2), (2, 2)]
 end
 
 @testset "Constraint tree operations" begin
@@ -21,7 +51,7 @@ end
     @test_throws ErrorException ct1 * :a^ct1
 end
 
-@testset "Constraint tree operations" begin
+@testset "Solution tree operations" begin
     ct = C.allocate_variables(keys = [:a, :b])
     @test_throws BoundsError C.solution_tree(ct, [1.0])
     st = C.solution_tree(ct, [123.0, 321.0])

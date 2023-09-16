@@ -11,7 +11,7 @@ const IntervalBound = Tuple{Float64,Float64}
 $(TYPEDEF)
 
 Shortcut for possible bounds: either no bound is present (`nothing`), or a
-single number is interpreted as an exact equality bound, or a tuple of 2 values
-is interpreted as an interval bound.
+single number is interpreted as an exact equality bound, or a tuple of 2
+numbers is interpreted as an interval bound.
 """
 const Bound = Union{Nothing,Float64,IntervalBound}

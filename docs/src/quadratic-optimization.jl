@@ -82,10 +82,8 @@ s = :ellipse^ellipse_system + :line^line_system;
 
 s *=
     :objective^C.QConstraint(
-        qvalue = -(
-            squared(s.ellipse.point.x.value - s.line.point.x.value) +
-            squared(s.ellipse.point.y.value - s.line.point.y.value)
-        ),
+        qvalue = squared(s.ellipse.point.x.value - s.line.point.x.value) +
+                 squared(s.ellipse.point.y.value - s.line.point.y.value),
     );
 # (Note that if we used `*` to connect the systems, the variables from the
 # definition of `point` would not be duplicated, and various non-interesting
@@ -134,7 +132,7 @@ end
 
 # We can now load a suitable optimizer and solve the system:
 import Clarabel
-st = C.solution_tree(s, optimized_vars(s, s.objective.qvalue, Clarabel.Optimizer))
+st = C.solution_tree(s, optimized_vars(s, -s.objective.qvalue, Clarabel.Optimizer))
 
 # If the optimization worked well, we can nicely get out the position of the
 # closest point to the line that is in the elliptical area:
@@ -151,6 +149,6 @@ C.elems(st.line.point)
 
 # ...and, with a bit of extra math, the minimized distance -- originally we
 # maximized the negative squared error, thus the negation and square root:
-sqrt(-st.objective)
+sqrt(st.objective)
 
-@test isapprox(sqrt(-st.objective), 5.489928950781118, atol = 1e-3) #src
+@test isapprox(sqrt(st.objective), 5.489928950781118, atol = 1e-3) #src

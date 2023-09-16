@@ -145,7 +145,7 @@ matrix is force-symmetrized by calculating `x' + x`.
 """
 QValue(x::SparseMatrixCSC{Float64}) =
     let
-        rs, cs, vals = fndnz(x' + x)
+        rs, cs, vals = findnz(x' + x)
         # Note: Correctness of this now relies on (row,col) index pairs coming
         # from `findnz` in correct (co-lexicographical) order. Might be worth
         # testing.
