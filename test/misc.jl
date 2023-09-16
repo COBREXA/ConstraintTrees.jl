@@ -29,8 +29,7 @@ end
 @testset "Constraints" begin
     @test C.bound(C.variable(bound = 123.0)) == 123.0
     @test C.value(C.variable(bound = 123.0)).idxs == [1]
-    @test C.bound(2 * -convert(C.QConstraint, (C.variable(bound = 123.0))) / 2) ==
-          -123.0
+    @test C.bound(2 * -convert(C.QConstraint, (C.variable(bound = 123.0))) / 2) == -123.0
 
     x = C.variable().value
     s = :a^C.Constraint(value = x) + :b^C.QConstraint(qvalue = x * x - x)

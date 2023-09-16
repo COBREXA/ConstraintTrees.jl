@@ -85,8 +85,7 @@ constraint_tree(:a => some_constraint, :b => another_constraint)
 constraint_tree(c for c=constraints if !isnothing(c.bound))
 ```
 """
-constraint_tree(x...) =
-    ConstraintTree(elems = SortedDict{Symbol,ConstraintTreeElem}(x...))
+constraint_tree(x...) = ConstraintTree(elems = SortedDict{Symbol,ConstraintTreeElem}(x...))
 
 """
 $(TYPEDSIGNATURES)

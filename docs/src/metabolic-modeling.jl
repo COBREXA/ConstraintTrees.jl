@@ -273,11 +273,7 @@ c =
 
 # We can create additional variables that represent total community intake of
 # oxygen, and total community production of biomass:
-c +=
-    :exchanges^C.variables(
-        keys = [:oxygen, :biomass],
-        bounds = [(-10.0, 10.0), nothing],
-    )
+c += :exchanges^C.variables(keys = [:oxygen, :biomass], bounds = [(-10.0, 10.0), nothing])
 
 # These can be constrained so that the total influx (or outflux) of each of the
 # registered metabolites is in fact equal to total consumption or production by
