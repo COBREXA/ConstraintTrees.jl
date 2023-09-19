@@ -63,7 +63,7 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct ConstraintTree
     "Sorted dictionary of elements of the constraint tree."
-    elems::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}
+    elems::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}} = SortedDict()
 
     ConstraintTree(x::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}) =
         new(x)
@@ -108,11 +108,15 @@ function Base.getproperty(x::ConstraintTree, sym::Symbol)
     elems(x)[sym]
 end
 
-Base.keys(x::ConstraintTree) = keys(elems(x))
-
-Base.values(x::ConstraintTree) = values(elems(x))
+Base.isempty(x::ConstraintTree) = isempty(elems(x))
 
 Base.length(x::ConstraintTree) = length(elems(x))
+
+Base.keys(x::ConstraintTree) = keys(elems(x))
+
+Base.haskey(x::ConstraintTree, sym::Symbol) = haskey(elems(x), sym)
+
+Base.values(x::ConstraintTree) = values(elems(x))
 
 Base.iterate(x::ConstraintTree) = iterate(elems(x))
 Base.iterate(x::ConstraintTree, st) = iterate(elems(x), st)
@@ -120,6 +124,8 @@ Base.iterate(x::ConstraintTree, st) = iterate(elems(x), st)
 Base.eltype(x::ConstraintTree) = eltype(elems(x))
 
 Base.propertynames(x::ConstraintTree) = keys(x)
+
+Base.hasproperty(x::ConstraintTree, sym::Symbol) = haskey(x, sym)
 
 Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
 
