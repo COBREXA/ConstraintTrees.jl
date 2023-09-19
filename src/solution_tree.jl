@@ -26,7 +26,9 @@ SolutionTree(cs, vals)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct SolutionTree
-    elems::SortedDict{Symbol,Union{Float64,SolutionTree}}
+    elems::SortedDict{Symbol,Union{Float64,SolutionTree}} = SortedDict()
+
+    SolutionTree(x...) = new(x...)
     SolutionTree(x::Constraint, vars::AbstractVector{Float64}) =
         value_product(x.value, vars)
     SolutionTree(x::QConstraint, vars::AbstractVector{Float64}) =
@@ -58,11 +60,15 @@ function Base.getproperty(x::SolutionTree, sym::Symbol)
     elems(x)[sym]
 end
 
-Base.keys(x::SolutionTree) = keys(elems(x))
-
-Base.values(x::SolutionTree) = values(elems(x))
+Base.isempty(x::SolutionTree) = isempty(elems(x))
 
 Base.length(x::SolutionTree) = length(elems(x))
+
+Base.keys(x::SolutionTree) = keys(elems(x))
+
+Base.haskey(x::SolutionTree, sym::Symbol) = haskey(elems(x), sym)
+
+Base.values(x::SolutionTree) = values(elems(x))
 
 Base.iterate(x::SolutionTree) = iterate(elems(x))
 Base.iterate(x::SolutionTree, st) = iterate(elems(x), st)
@@ -70,5 +76,7 @@ Base.iterate(x::SolutionTree, st) = iterate(elems(x), st)
 Base.eltype(x::SolutionTree) = eltype(elems(x))
 
 Base.propertynames(x::SolutionTree) = keys(elems(x))
+
+Base.hasproperty(x::SolutionTree, sym::Symbol) = haskey(x, sym)
 
 Base.getindex(x::SolutionTree, sym::Symbol) = getindex(elems(x), sym)

@@ -41,6 +41,13 @@ end
     ct1 = C.variables(keys = [:a, :b])
     ct2 = C.variables(keys = [:c, :d])
 
+    @test isempty(C.ConstraintTree())
+    @test !isempty(ct1)
+    @test haskey(ct1, :a)
+    @test hasproperty(ct1, :a)
+    @test !haskey(ct1, :c)
+    @test !hasproperty(ct1, :c)
+
     @test collect(propertynames(ct1)) == [:a, :b]
     @test [k for (k, _) in ct2] == [:c, :d]
     @test eltype(ct2) == Pair{Symbol,C.ConstraintTreeElem}
@@ -54,6 +61,16 @@ end
     ct = C.variables(keys = [:a, :b])
     @test_throws BoundsError C.SolutionTree(ct, [1.0])
     st = C.SolutionTree(ct, [123.0, 321.0])
+
+    @test isempty(C.SolutionTree())
+    @test isempty(C.SolutionTree(C.ConstraintTree(), Float64[]))
+    @test !isempty(st)
+    @test haskey(st, :a)
+    @test hasproperty(st, :a)
+    @test !haskey(st, :c)
+    @test !hasproperty(st, :c)
+
+    @test length(ct) == length(st)
     @test st.a == 123.0
     @test st[:b] == 321.0
     @test collect(propertynames(st)) == [:a, :b]
