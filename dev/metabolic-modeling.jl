@@ -25,7 +25,7 @@ ecoli = SBML.readSBML("e_coli_core.xml")
 # Let's first build the constrained representation of the problem. First, we
 # will need a variable for each of the reactions in the model.
 
-c = C.allocate_variables(keys = Symbol.(keys(ecoli.reactions)))
+c = C.variables(keys = Symbol.(keys(ecoli.reactions)))
 
 @test length(C.elems(c)) == length(ecoli.reactions) #src
 
@@ -71,7 +71,7 @@ c[:fluxes][:R_PFK]
 # variables to their valid bounds as defined by the model:
 rxn_constraints =
     let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
-        C.make_constraint_tree(
+        C.ConstraintTree(
             r => C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
             (r, ((lb, _), (ub, _))) in rxn_bounds # SBML units are ignored for simplicity
         )
@@ -88,21 +88,50 @@ c = c * :constraints^rxn_constraints;
 # Our model representation now contains 2 "directories":
 collect(keys(c))
 
-@test 2 == length((keys(c)))#src
+@test 2 == length((keys(c))) #src
 
-# ## Adding combined constraints
+# ## Value and constraint arithmetics
 
 # Values may be combined additively and multiplied by real constants; which
 # allows us to easily create more complex linear combination of any values
 # already occurring in the model:
-c.fluxes.R_PFK.value - 2 * c.fluxes.R_ACALD.value
+3 * c.fluxes.R_PFK.value - c.fluxes.R_ACALD.value / 2
+
+# For simplicity, you can also scale whole constraints, but it is impossible to
+# add them together because the meaning of the bounds would get broken:
+(3 * c.fluxes.R_PFK, -c.fluxes.R_ACALD / 2)
+
+# To process constraints in bulk, you may use `C.value` for easier access to
+# values and making constraints.
+sum(C.value.(values(c.fluxes)))
+
+# ### Affine values
+#
+# To simplify various modeling goals (mainly calculation of various kinds of
+# "distances"), the values support inclusion of an affine element -- the
+# variable with index 0 is assumed to be the "affine unit", and its assigned
+# value is fixed at `1.0`.
+
+# To demonstrate, let's make a small system with 2 variables.
+system = C.variables(keys = [:x, :y])
+
+# To add an affine element to a `Value`, simply add it as a `Real`
+# number, as in the linear transformations below:
+system =
+    :original_coords^system *
+    :transformed_coords^C.ConstraintTree(
+        :xt => C.Constraint(1 + system.x.value + 4 + system.y.value),
+        :yt => C.Constraint(0.1 * (3 - system.y.value)),
+    )
+
+# ## Adding combined constraints
 
 # Metabolic modeling relies on the fact that the total rates of any metabolite
 # getting created and consumed by the reaction equals to zero (which
 # corresponds to conservation of mass). We can now add corresponding
 # "stoichiometric" network constraints by following the reactants and products
 # in the SBML structure:
-stoi_constraints = C.make_constraint_tree(
+stoi_constraints = C.ConstraintTree(
     Symbol(m) => C.Constraint(
         value = -sum(
             (
@@ -134,12 +163,41 @@ c = c * :stoichiometry^stoi_constraints;
 # We can save that information into the constraint system immediately:
 c *=
     :objective^C.Constraint(
-        value = sum(
+        sum(
             c.fluxes[Symbol(rid)].value * coeff for
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
             coeff != 0.0
         ),
     );
+
+# ## Solution trees
+#
+# To aid exploration of variable assignments in the constraint trees, we can
+# convert them to *solution trees*. These have the very same structure as
+# constraint trees, but carry only the "solved" constraint values instead of
+# full constraints.
+#
+# Let's demonstrate this quickly on the example of `system` with affine
+# variables from above. First, let's assume that someone solved the system (in
+# some way) and produced a solution of variables as follows:
+solution = [1.0, 5.0] # corresponds to :x and :y in order.
+
+# Solution tree is constructed in a straightforward manner:
+st = C.SolutionTree(system, solution)
+
+# We can now check the values of the original values
+(st.original_coords.x, st.original_coords.y)
+
+@test isapprox(st.original_coords.x, 1.0) #src
+@test isapprox(st.original_coords.y, 5.0) #src
+
+# The other constraints automatically get their values that correspond to the
+# overall variable assignment:
+st_ = st.transformed_coords;
+(st_.xt, st_.yt)
+
+@test isapprox(st_.xt, 11.0) #src
+@test isapprox(st_.yt, -0.2) #src
 
 # ## Solving the constraint system using JuMP
 #
@@ -176,7 +234,7 @@ optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimize
 
 # To explore the solution more easily, we can make a solution tree with values
 # that correspond to ones in our constraint tree:
-result = C.solution_tree(c, optimal_variable_assignment);
+result = C.SolutionTree(c, optimal_variable_assignment);
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
 #
@@ -188,11 +246,11 @@ result.fluxes.R_PFK
 result.objective
 
 # Sometimes it is unnecessary to recover the values for all constraints, so we are better off selecting just a subtree:
-C.elems(C.solution_tree(c.fluxes, optimal_variable_assignment))
+C.elems(C.SolutionTree(c.fluxes, optimal_variable_assignment))
 
 #
 
-C.solution_tree(c.objective, optimal_variable_assignment)
+C.SolutionTree(c.objective, optimal_variable_assignment)
 
 # ## Combining and extending constraint systems
 #
@@ -209,23 +267,19 @@ C.solution_tree(c.objective, optimal_variable_assignment)
 # organisms:
 c =
     :community^(
-        :species1^(c * :handicap^C.Constraint(value = c.fluxes.R_PFK.value, bound = 0.0)) +
-        :species2^(c * :handicap^C.Constraint(value = c.fluxes.R_ACALD.value, bound = 0.0))
+        :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0.0)) +
+        :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0.0))
     )
 
 # We can create additional variables that represent total community intake of
 # oxygen, and total community production of biomass:
-c +=
-    :exchanges^C.allocate_variables(
-        keys = [:oxygen, :biomass],
-        bounds = [(-10.0, 10.0), nothing],
-    )
+c += :exchanges^C.variables(keys = [:oxygen, :biomass], bounds = [(-10.0, 10.0), nothing])
 
 # These can be constrained so that the total influx (or outflux) of each of the
 # registered metabolites is in fact equal to total consumption or production by
 # each of the species:
 c *=
-    :exchange_constraints^C.make_constraint_tree(
+    :exchange_constraints^C.ConstraintTree(
         :oxygen => C.Constraint(
             value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
                     c.community.species2.fluxes.R_EX_o2_e.value,
@@ -240,7 +294,7 @@ c *=
     )
 
 # Let's see how much biomass are the two species capable of producing together:
-result = C.solution_tree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
+result = C.SolutionTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
 C.elems(result.exchanges)
 
 # Finally, we can iterate over all species in the small community and see how
