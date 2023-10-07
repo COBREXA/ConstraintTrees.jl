@@ -26,13 +26,10 @@ qv = system.x.value * (system.y.value + 2 * system.z.value)
 
 # As with `Value`s, the `QValue`s can be easily combined, giving a nice way to
 # specify e.g. weighted sums of squared errors with respect to various
-# directions. Let's make a tiny helper first:
-squared(x) = x * x
-
-# Now, we can play with common representations of error values:
+# directions. We can thus represent common formulas for error values:
 error_val =
-    squared(system.x.value + system.y.value - 1) +
-    squared(system.y.value + 5 * system.z.value - 3)
+    C.squared(system.x.value + system.y.value - 1) +
+    C.squared(system.y.value + 5 * system.z.value - 3)
 
 # This allows us to naturally express quadratic constraint (e.g., that an error
 # must not be too big); and directly observe the error values in the system.
@@ -61,7 +58,7 @@ point = C.variables(keys = [:x, :y])
 ellipse_system = C.ConstraintTree(
     :point => point,
     :in_area => C.Constraint(
-        squared(point.x.value) / 4 + squared(10.0 - point.y.value),
+        C.squared(point.x.value) / 4 + C.squared(10.0 - point.y.value),
         (-Inf, 1.0),
     ),
 );
@@ -85,8 +82,8 @@ s = :ellipse^ellipse_system + :line^line_system;
 
 s *=
     :objective^C.QConstraint(
-        squared(s.ellipse.point.x.value - s.line.point.x.value) +
-        squared(s.ellipse.point.y.value - s.line.point.y.value),
+        C.squared(s.ellipse.point.x.value - s.line.point.x.value) +
+        C.squared(s.ellipse.point.y.value - s.line.point.y.value),
     );
 # (Note that if we used `*` to connect the systems, the variables from the
 # definition of `point` would not be duplicated, and various non-interesting
@@ -95,33 +92,22 @@ s *=
 # ## Solving quadratic systems with JuMP
 #
 # To solve the above system, we need a matching solver that can work with
-# quadratic constraints. Also, we need to create the function that translates
-# the constraints into JuMP `Model`s to support the quadratic constraints.
+# quadratic constraints. Also, we need to slightly generalize the function that
+# translates the constraints into JuMP `Model`s to support the quadratic
+# constraints.
 import JuMP
 function optimized_vars(cs::C.ConstraintTree, objective::Union{C.Value,C.QValue}, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
-    if objective isa C.Value
-        JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
-    elseif objective isa C.QValue
-        JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
-    end
-    function add_constraint(c::C.Constraint)
-        if c.bound isa Float64
-            JuMP.@constraint(model, C.substitute(c.value, x) == c.bound)
-        elseif c.bound isa Tuple{Float64,Float64}
-            val = C.substitute(c.value, x)
-            isinf(c.bound[1]) || JuMP.@constraint(model, val >= c.bound[1])
-            isinf(c.bound[2]) || JuMP.@constraint(model, val <= c.bound[2])
-        end
-    end
-    function add_constraint(c::C.QConstraint)
-        if c.bound isa Float64
-            JuMP.@constraint(model, C.substitute(c.qvalue, x) == c.bound)
-        elseif c.bound isa Tuple{Float64,Float64}
-            val = C.substitute(c.qvalue, x)
-            isinf(c.bound[1]) || JuMP.@constraint(model, val >= c.bound[1])
-            isinf(c.bound[2]) || JuMP.@constraint(model, val <= c.bound[2])
+    JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
+    function add_constraint(c::CT) where {CT<:Union{C.Constraint,C.QConstraint}}
+        b = C.bound(c)
+        if b isa Float64
+            JuMP.@constraint(model, C.substitute(C.value(c), x) == b)
+        elseif b isa Tuple{Float64,Float64}
+            val = C.substitute(C.value(c), x)
+            isinf(b[1]) || JuMP.@constraint(model, val >= b[1])
+            isinf(b[2]) || JuMP.@constraint(model, val <= b[2])
         end
     end
     function add_constraint(c::C.ConstraintTree)
@@ -133,7 +119,8 @@ function optimized_vars(cs::C.ConstraintTree, objective::Union{C.Value,C.QValue}
     JuMP.value.(model[:x])
 end
 
-# We can now load a suitable optimizer and solve the system:
+# We can now load a suitable optimizer and solve the system by maximizing the
+# negative squared error:
 import Clarabel
 st = C.SolutionTree(s, optimized_vars(s, -s.objective.qvalue, Clarabel.Optimizer))
 
