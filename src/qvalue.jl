@@ -128,10 +128,10 @@ Base.:*(a::Value, b::Value) =
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for computing a product of the [`QValue`](@ref) and anything
-vector-like.
+Substitute anything vector-like as variable values into the [`QValue`](@ref)
+and return the result.
 """
-qvalue_product(x::QValue, y) = sum(
+substitute(x::QValue, y) = sum(
     let (idx1, idx2) = x.idxs[i]
         (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
     end for (i, w) in enumerate(x.weights)

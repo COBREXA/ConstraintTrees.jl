@@ -30,9 +30,9 @@ Base.@kwdef struct SolutionTree
 
     SolutionTree(x...) = new(x...)
     SolutionTree(x::Constraint, vars::AbstractVector{Float64}) =
-        value_product(x.value, vars)
+        substitute(x.value, vars)
     SolutionTree(x::QConstraint, vars::AbstractVector{Float64}) =
-        qvalue_product(x.qvalue, vars)
+        substitute(x.qvalue, vars)
     SolutionTree(x::ConstraintTree, vars::AbstractVector{Float64}) = new(
         SortedDict{Symbol,SolutionTreeElem}(
             keys(x) .=> SolutionTree.(values(x), Ref(vars)),

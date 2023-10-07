@@ -209,12 +209,12 @@ import JuMP
 function optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
-    JuMP.@objective(model, JuMP.MAX_SENSE, C.value_product(objective, x))
+    JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     function add_constraint(c::C.Constraint)
         if c.bound isa Float64
-            JuMP.@constraint(model, C.value_product(c.value, x) == c.bound)
+            JuMP.@constraint(model, C.substitute(c.value, x) == c.bound)
         elseif c.bound isa Tuple{Float64,Float64}
-            val = C.value_product(c.value, x)
+            val = C.substitute(c.value, x)
             isinf(c.bound[1]) || JuMP.@constraint(model, val >= c.bound[1])
             isinf(c.bound[2]) || JuMP.@constraint(model, val <= c.bound[2])
         end

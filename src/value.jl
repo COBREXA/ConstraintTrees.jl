@@ -82,10 +82,10 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for making a dot-product between a value and anything indexable by the
-value indexes.
+Substitute anything vector-like as variable values into a [`Value`](@ref) and
+return the result.
 """
-value_product(x::Value, y) =
+substitute(x::Value, y) =
     sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs))
 
 """

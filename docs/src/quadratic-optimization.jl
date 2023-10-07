@@ -102,24 +102,24 @@ function optimized_vars(cs::C.ConstraintTree, objective::Union{C.Value,C.QValue}
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     if objective isa C.Value
-        JuMP.@objective(model, JuMP.MAX_SENSE, C.value_product(objective, x))
+        JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     elseif objective isa C.QValue
-        JuMP.@objective(model, JuMP.MAX_SENSE, C.qvalue_product(objective, x))
+        JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     end
     function add_constraint(c::C.Constraint)
         if c.bound isa Float64
-            JuMP.@constraint(model, C.value_product(c.value, x) == c.bound)
+            JuMP.@constraint(model, C.substitute(c.value, x) == c.bound)
         elseif c.bound isa Tuple{Float64,Float64}
-            val = C.value_product(c.value, x)
+            val = C.substitute(c.value, x)
             isinf(c.bound[1]) || JuMP.@constraint(model, val >= c.bound[1])
             isinf(c.bound[2]) || JuMP.@constraint(model, val <= c.bound[2])
         end
     end
     function add_constraint(c::C.QConstraint)
         if c.bound isa Float64
-            JuMP.@constraint(model, C.qvalue_product(c.qvalue, x) == c.bound)
+            JuMP.@constraint(model, C.substitute(c.qvalue, x) == c.bound)
         elseif c.bound isa Tuple{Float64,Float64}
-            val = C.qvalue_product(c.qvalue, x)
+            val = C.substitute(c.qvalue, x)
             isinf(c.bound[1]) || JuMP.@constraint(model, val >= c.bound[1])
             isinf(c.bound[2]) || JuMP.@constraint(model, val <= c.bound[2])
         end
