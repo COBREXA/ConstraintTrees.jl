@@ -56,7 +56,7 @@ end
 
     @test collect(propertynames(ct1)) == [:a, :b]
     @test [k for (k, _) in ct2] == [:c, :d]
-    @test eltype(ct2) == Pair{Symbol,C.ConstraintTreeElem}
+    @test (keytype(ct2), valtype(ct2)) == (Symbol, C.ConstraintTreeElem)
     @test collect(keys((:x^ct1 * :x^ct2).x)) == [:a, :b, :c, :d]
     @test_throws ErrorException ct1 * ct1
     @test_throws ErrorException :a^ct1 * ct1
@@ -79,10 +79,11 @@ end
 
     @test length(ct) == length(st)
     @test st.a == 123.0
+    @test merge(+, st, st).a == 246.0
     @test st[:b] == 321.0
     @test collect(propertynames(st)) == [:a, :b]
     @test collect(keys(st)) == [:a, :b]
     @test sum([v for (_, v) in st]) == 444.0
     @test sum(values(st)) == 444.0
-    @test eltype(st) == Pair{Symbol,C.SolutionTreeElem}
+    @test eltype(st) == Pair{Symbol,C.ValueTreeElem}
 end

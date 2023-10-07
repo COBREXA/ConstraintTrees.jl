@@ -57,30 +57,8 @@ supposed to connect to variables in either of `t2` and `t3` will not connect
 properly because of renumbering of both `t2` and `t3`. If you need to construct
 a tree like that, do the addition first, and construct the `t1` after that,
 based on the result of the addition.
-
-# Fields
-$(TYPEDFIELDS)
 """
-Base.@kwdef struct ConstraintTree
-    "Sorted dictionary of elements of the constraint tree."
-    elems::SortedDict{Symbol,Union{Constraint,ConstraintTree}} = SortedDict()
-
-    ConstraintTree(x::SortedDict{Symbol,Union{Constraint,ConstraintTree}}) = new(x)
-
-    """
-    $(TYPEDSIGNATURES)
-
-    Create a properly typed [`ConstraintTree`](@ref) out of anything that can be
-    used to construct the inner dictionary.
-
-    # Example
-    ```julia
-    ConstraintTree(:a => some_constraint, :b => another_constraint)
-    ConstraintTree(c for c=constraints if !isnothing(c.bound))
-    ```
-    """
-    ConstraintTree(x...) = new(SortedDict{Symbol,Union{Constraint,ConstraintTree}}(x...))
-end
+const ConstraintTree = Tree{Constraint}
 
 """
 $(TYPEDEF)
@@ -88,44 +66,6 @@ $(TYPEDEF)
 A shortcut for elements of the [`ConstraintTree`](@ref).
 """
 const ConstraintTreeElem = Union{Constraint,ConstraintTree}
-
-
-"""
-$(TYPEDSIGNATURES)
-
-Get the elements dictionary out of the [`ConstraintTree`](@ref). This is useful
-for getting an iterable container for working with many constraints at once.
-
-Also, because of the overload of `getproperty` for `ConstraintTree`, this
-serves as a simpler way to get the elements without an explicit use of
-`getfield`.
-"""
-elems(x::ConstraintTree) = getfield(x, :elems)
-
-function Base.getproperty(x::ConstraintTree, sym::Symbol)
-    elems(x)[sym]
-end
-
-Base.isempty(x::ConstraintTree) = isempty(elems(x))
-
-Base.length(x::ConstraintTree) = length(elems(x))
-
-Base.keys(x::ConstraintTree) = keys(elems(x))
-
-Base.haskey(x::ConstraintTree, sym::Symbol) = haskey(elems(x), sym)
-
-Base.values(x::ConstraintTree) = values(elems(x))
-
-Base.iterate(x::ConstraintTree) = iterate(elems(x))
-Base.iterate(x::ConstraintTree, st) = iterate(elems(x), st)
-
-Base.eltype(x::ConstraintTree) = eltype(elems(x))
-
-Base.propertynames(x::ConstraintTree) = keys(x)
-
-Base.hasproperty(x::ConstraintTree, sym::Symbol) = haskey(x, sym)
-
-Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
 
 #
 # Tree-wide operations with variables
@@ -177,7 +117,7 @@ Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
 increment.
 """
 incr_var_idxs(x::ConstraintTree, incr::Int) =
-    ConstraintTree(elems = SortedDict(k => incr_var_idxs(v, incr) for (k, v) in elems(x)))
+    ConstraintTree(k => incr_var_idxs(v, incr) for (k, v) in elems(x))
 
 """
 $(TYPEDSIGNATURES)
@@ -210,41 +150,18 @@ incr_var_idxs(x::QuadraticValue, incr::Int) = QuadraticValue(
 # Algebraic construction
 #
 
-Base.:^(pfx::Symbol, x::ConstraintTreeElem) = ConstraintTree(elems = SortedDict(pfx => x))
+Base.:^(pfx::Symbol, x::Constraint) = ConstraintTree(elems = SortedDict(pfx => x))
 
 function Base.:+(a::ConstraintTree, b::ConstraintTree)
     offset = var_count(a)
     a * incr_var_idxs(b, offset)
 end
 
-function Base.:*(a_orig::ConstraintTree, b_orig::ConstraintTree)
-    # TODO this might be much better inplace with an accumulator, but the copy
-    # luckily isn't substantial in most cases
-    a = copy(elems(a_orig))
-    b = elems(b_orig)
-
-    for (k, v) in b
-        if haskey(a, k)
-            a[k] = a[k] * v
-        else
-            a[k] = v
-        end
-    end
-
-    ConstraintTree(elems = a)
-end
-
-function Base.:*(a::ConstraintTree, b::Constraint)
+Base.:*(a::ConstraintTree, b::Constraint) =
     error("Unable to merge a constraint directory with a constraint.")
-end
-
-function Base.:*(a::Constraint, b::ConstraintTree)
+Base.:*(a::Constraint, b::ConstraintTree) =
     error("Unable to merge a constraint with a constraint directory.")
-end
-
-function Base.:*(a::Constraint, b::Constraint)
-    error("Unable to merge two constraints.")
-end
+Base.:*(a::Constraint, b::Constraint) = error("Unable to merge two constraints.")
 
 #
 # Simple constraint trees
