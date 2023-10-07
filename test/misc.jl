@@ -3,36 +3,42 @@ import ConstraintTrees as C
 import SparseArrays as SP
 
 @testset "Values" begin
-    x = C.Value(SP.sparse([5.0, 0, 6.0, 0])) + C.Value(idxs = [2, 3], weights = [5.0, 4.0])
+    x =
+        C.LinearValue(SP.sparse([5.0, 0, 6.0, 0])) +
+        C.LinearValue(idxs = [2, 3], weights = [5.0, 4.0])
     @test x.idxs == [1, 2, 3]
     @test x.weights == [5.0, 5.0, 10.0]
-    x = convert(C.Value, 123.0)
+    x = convert(C.LinearValue, 123.0)
     @test x.idxs == [0]
     @test x.weights == [123.0]
 end
 
 @testset "QValues" begin
     @test (
-        1 - (1 * (1 + (zero(C.Value) - zero(C.QValue) + zero(C.Value)) + 1) * 1) +
-        convert(C.QValue, 123.0)
+        1 - (
+            1 *
+            (1 + (zero(C.LinearValue) - zero(C.QuadraticValue) + zero(C.LinearValue)) + 1) *
+            1
+        ) + convert(C.QuadraticValue, 123.0)
     ).idxs == [(0, 0)]
-    @test convert(C.QValue, C.variable().value).idxs == [(0, 1)]
+    @test convert(C.QuadraticValue, C.variable().value).idxs == [(0, 1)]
     x =
-        C.Value(SP.sparse(Float64[])) + C.QValue(SP.sparse([1.0 0 1; 0 0 3; 1 0 0])) -
-        C.Value(SP.sparse([1.0, 2.0])) - 1.0
+        C.LinearValue(SP.sparse(Float64[])) +
+        C.QuadraticValue(SP.sparse([1.0 0 1; 0 0 3; 1 0 0])) -
+        C.LinearValue(SP.sparse([1.0, 2.0])) - 1.0
     @test x.idxs == [(0, 0), (0, 1), (1, 1), (0, 2), (1, 3), (2, 3)]
     @test x.weights == [-1.0, -1.0, 2.0, -2.0, 2.0, 3.0]
-    @test C.QValue(1.0).idxs == [(0, 0)]
-    @test C.QValue(C.Value(1.0)).idxs == [(0, 0)]
+    @test C.QuadraticValue(1.0).idxs == [(0, 0)]
+    @test C.QuadraticValue(C.LinearValue(1.0)).idxs == [(0, 0)]
 end
 
 @testset "Constraints" begin
     @test C.bound(C.variable(bound = 123.0)) == 123.0
     @test C.value(C.variable(bound = 123.0)).idxs == [1]
-    @test C.bound(2 * -convert(C.QConstraint, (C.variable(bound = 123.0))) / 2) == -123.0
+    @test C.bound(2 * -convert(C.Constraint, (C.variable(bound = 123.0))) / 2) == -123.0
 
     x = C.variable().value
-    s = :a^C.Constraint(value = x) + :b^C.QConstraint(qvalue = x * x - x)
+    s = :a^C.Constraint(x) + :b^C.Constraint(x * x - x)
     @test C.value(s.a).idxs == [1]
     @test C.value(s.b).idxs == [(0, 2), (2, 2)]
 end
@@ -59,6 +65,7 @@ end
 
 @testset "Solution tree operations" begin
     ct = C.variables(keys = [:a, :b])
+
     @test_throws BoundsError C.SolutionTree(ct, [1.0])
     st = C.SolutionTree(ct, [123.0, 321.0])
 

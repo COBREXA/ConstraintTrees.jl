@@ -5,16 +5,16 @@ using SparseArrays
 $(TYPEDEF)
 
 A representation of a quadratic form in the constrained optimization problem.
-The `QValue` is an affine quadratic combination (i.e., a polynomial of maximum
+The `QuadraticValue` is an affine quadratic combination (i.e., a polynomial of maximum
 degree 2) over the variables.
 
-`QValue`s can be combined additively and multiplied by real-number constants.
-The cleanest way to construct a `QValue` is to multiply two [`Value`](@ref)s.
+`QuadraticValue`s can be combined additively and multiplied by real-number constants.
+The cleanest way to construct a `QuadraticValue` is to multiply two [`LinearValue`](@ref)s.
 
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct QValue
+Base.@kwdef struct QuadraticValue
     """
     Indexes of variable pairs used by the value. The indexes must always be
     sorted in strictly co-lexicographically increasing order, and the second
@@ -25,7 +25,7 @@ Base.@kwdef struct QValue
     As an outcome, the second index of the last index pair can be used as the
     upper bound of all variable indexes.
 
-    As with [`Value`](@ref), index `0` represents the
+    As with [`LinearValue`](@ref), index `0` represents the
     affine element.
     """
     idxs::Vector{Tuple{Int,Int}}
@@ -36,33 +36,36 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Construct a constant [`QValue`](@ref) with a single affine element.
+Construct a constant [`QuadraticValue`](@ref) with a single affine element.
 """
-QValue(x::Real) = QValue(idxs = [(0, 0)], weights = [x])
+QuadraticValue(x::Real) = QuadraticValue(idxs = [(0, 0)], weights = [x])
 
 """
 $(TYPEDSIGNATURES)
 
-Construct a [`QValue`](@ref) that is equivalent to a given [`Value`](@ref).
+Construct a [`QuadraticValue`](@ref) that is equivalent to a given [`LinearValue`](@ref).
 """
-QValue(x::Value) = QValue(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
+QuadraticValue(x::LinearValue) =
+    QuadraticValue(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
 
-Base.convert(::Type{QValue}, x::Real) = QValue(x)
-Base.convert(::Type{QValue}, x::Value) = QValue(x)
-Base.zero(::Type{QValue}) = QValue(idxs = [], weights = [])
-Base.:+(a::Real, b::QValue) = QValue(a) + b
-Base.:+(a::QValue, b::Real) = a + QValue(b)
-Base.:+(a::Value, b::QValue) = QValue(a) + b
-Base.:+(a::QValue, b::Value) = a + QValue(b)
-Base.:-(a::QValue) = -1 * a
-Base.:-(a::Real, b::QValue) = QValue(a) - b
-Base.:-(a::QValue, b::Real) = a - QValue(b)
-Base.:-(a::Value, b::QValue) = QValue(a) - b
-Base.:-(a::QValue, b::Value) = a - QValue(b)
-Base.:*(a::Real, b::QValue) = b * a
-Base.:*(a::QValue, b::Real) = QValue(idxs = a.idxs, weights = b .* a.weights)
-Base.:-(a::QValue, b::QValue) = a + (-1 * b)
-Base.:/(a::QValue, b::Real) = QValue(idxs = a.idxs, weights = a.weights ./ b)
+Base.convert(::Type{QuadraticValue}, x::Real) = QuadraticValue(x)
+Base.convert(::Type{QuadraticValue}, x::LinearValue) = QuadraticValue(x)
+Base.zero(::Type{QuadraticValue}) = QuadraticValue(idxs = [], weights = [])
+Base.:+(a::Real, b::QuadraticValue) = QuadraticValue(a) + b
+Base.:+(a::QuadraticValue, b::Real) = a + QuadraticValue(b)
+Base.:+(a::LinearValue, b::QuadraticValue) = QuadraticValue(a) + b
+Base.:+(a::QuadraticValue, b::LinearValue) = a + QuadraticValue(b)
+Base.:-(a::QuadraticValue) = -1 * a
+Base.:-(a::Real, b::QuadraticValue) = QuadraticValue(a) - b
+Base.:-(a::QuadraticValue, b::Real) = a - QuadraticValue(b)
+Base.:-(a::LinearValue, b::QuadraticValue) = QuadraticValue(a) - b
+Base.:-(a::QuadraticValue, b::LinearValue) = a - QuadraticValue(b)
+Base.:*(a::Real, b::QuadraticValue) = b * a
+Base.:*(a::QuadraticValue, b::Real) =
+    QuadraticValue(idxs = a.idxs, weights = b .* a.weights)
+Base.:-(a::QuadraticValue, b::QuadraticValue) = a + (-1 * b)
+Base.:/(a::QuadraticValue, b::Real) =
+    QuadraticValue(idxs = a.idxs, weights = a.weights ./ b)
 
 """
 $(TYPEDSIGNATURES)
@@ -71,7 +74,7 @@ Internal helper for co-lex ordering of indexes.
 """
 colex_le((a, b), (c, d)) = (b, a) < (d, c)
 
-function Base.:+(a::QValue, b::QValue)
+function Base.:+(a::QuadraticValue, b::QuadraticValue)
     r_idxs = Tuple{Int,Int}[]
     r_weights = Float64[]
     ai = 1
@@ -105,18 +108,18 @@ function Base.:+(a::QValue, b::QValue)
         push!(r_weights, b.weights[bi])
         bi += 1
     end
-    QValue(idxs = r_idxs, weights = r_weights)
+    QuadraticValue(idxs = r_idxs, weights = r_weights)
 end
 
-Base.:*(a::Value, b::Value) =
+Base.:*(a::LinearValue, b::LinearValue) =
     let vals = a.weights .* b.weights'
-        QValue(
+        QuadraticValue(
             idxs = [(aidx, bidx) for bidx in b.idxs for aidx in a.idxs if aidx <= bidx],
             weights = [
                 vals[ai, bi] for bi in eachindex(b.idxs) for
                 ai in eachindex(a.idxs) if a.idxs[ai] <= b.idxs[bi]
             ],
-        ) + QValue(
+        ) + QuadraticValue(
             idxs = [(bidx, aidx) for aidx in a.idxs for bidx in b.idxs if bidx < aidx],
             weights = [
                 vals[ai, bi] for ai in eachindex(a.idxs) for
@@ -128,18 +131,18 @@ Base.:*(a::Value, b::Value) =
 """
 $(TYPEDSIGNATURES)
 
-Broadcastable shortcut for multiplying a [`Value`](@ref) with itself.
-Produces a [`QValue`](@ref).
+Broadcastable shortcut for multiplying a [`LinearValue`](@ref) with itself.
+Produces a [`QuadraticValue`](@ref).
 """
-squared(a::Value) = a * a
+squared(a::LinearValue) = a * a
 
 """
 $(TYPEDSIGNATURES)
 
-Substitute anything vector-like as variable values into the [`QValue`](@ref)
+Substitute anything vector-like as variable values into the [`QuadraticValue`](@ref)
 and return the result.
 """
-substitute(x::QValue, y) = sum(
+substitute(x::QuadraticValue, y) = sum(
     let (idx1, idx2) = x.idxs[i]
         (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
     end for (i, w) in enumerate(x.weights)
@@ -148,16 +151,16 @@ substitute(x::QValue, y) = sum(
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for making a [`QValue`](@ref) out of a square sparse matrix. The
+Shortcut for making a [`QuadraticValue`](@ref) out of a square sparse matrix. The
 matrix is force-symmetrized by calculating `x' + x`.
 """
-QValue(x::SparseMatrixCSC{Float64}) =
+QuadraticValue(x::SparseMatrixCSC{Float64}) =
     let
         rs, cs, vals = findnz(x' + x)
         # Note: Correctness of this now relies on (row,col) index pairs coming
         # from `findnz` in correct (co-lexicographical) order. Might be worth
         # testing.
-        QValue(
+        QuadraticValue(
             idxs = [(rs[i], cs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
             weights = [vals[i] for i in eachindex(rs) if rs[i] <= cs[i]],
         )

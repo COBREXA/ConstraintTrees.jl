@@ -2,8 +2,8 @@
 """
 $(TYPEDEF)
 
-A representation of a single constraint that limits the [`Value`](@ref) by a
-specific [`Bound`](@ref).
+A representation of a single constraint that limits a given value by a specific
+[`Bound`](@ref).
 
 Constraints may be scaled linearly, i.e., multiplied by real-number constants.
 
@@ -14,14 +14,19 @@ becomes easily accessible for inspection and building other constraints.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Constraint
-    "A [`Value`](@ref) that describes what the constraint constraints."
+Base.@kwdef struct Constraint{Value}
+    "A value (typically a [`LinearValue`](@ref) or a [`QuadraticValue`](@ref))
+    that describes what the constraint constraints."
     value::Value
     "A bound that the `value` must satisfy."
     bound::Bound = nothing
 
-    Constraint(v::Value) = new(v, nothing)
-    Constraint(v::Value, b::Bound) = new(v, b)
+    function Constraint(
+        v::T,
+        b::Bound = nothing,
+    ) where {T<:Union{LinearValue,QuadraticValue}}
+        new{T}(v, b)
+    end
 end
 
 Base.:-(a::Constraint) = -1 * a

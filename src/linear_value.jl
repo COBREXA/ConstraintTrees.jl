@@ -7,14 +7,14 @@ $(TYPEDEF)
 A representation of a "value" in a linear constrained optimization problem. The
 value is an affine linear combination of several variables.
 
-`Value`s can be combined additively and multiplied by real-number constants.
+`LinearValue`s can be combined additively and multiplied by real-number constants.
 
-Multiplying two `Value`s yields a quadratic form (in a [`QValue`](@ref)).
+Multiplying two `LinearValue`s yields a quadratic form (in a [`QuadraticValue`](@ref)).
 
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Value
+Base.@kwdef struct LinearValue
     """
     Indexes of the variables used by the value. The indexes must always be
     sorted in strictly increasing order. The affine element has index 0.
@@ -27,23 +27,23 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Construct a constant [`Value`](@ref) with a single affine element.
+Construct a constant [`LinearValue`](@ref) with a single affine element.
 """
-Value(x::Real) = Value(idxs = [0], weights = [x])
+LinearValue(x::Real) = LinearValue(idxs = [0], weights = [x])
 
-Base.convert(::Type{Value}, x::Real) = Value(x)
-Base.zero(::Type{Value}) = Value(idxs = [], weights = [])
-Base.:+(a::Real, b::Value) = Value(a) + b
-Base.:+(a::Value, b::Real) = a + Value(b)
-Base.:-(a::Real, b::Value) = Value(a) - b
-Base.:-(a::Value, b::Real) = a - Value(b)
-Base.:-(a::Value, b::Value) = a + (-1 * b)
-Base.:-(a::Value) = -1 * a
-Base.:*(a::Real, b::Value) = b * a
-Base.:*(a::Value, b::Real) = Value(idxs = a.idxs, weights = b .* a.weights)
-Base.:/(a::Value, b::Real) = Value(idxs = a.idxs, weights = a.weights ./ b)
+Base.convert(::Type{LinearValue}, x::Real) = LinearValue(x)
+Base.zero(::Type{LinearValue}) = LinearValue(idxs = [], weights = [])
+Base.:+(a::Real, b::LinearValue) = LinearValue(a) + b
+Base.:+(a::LinearValue, b::Real) = a + LinearValue(b)
+Base.:-(a::Real, b::LinearValue) = LinearValue(a) - b
+Base.:-(a::LinearValue, b::Real) = a - LinearValue(b)
+Base.:-(a::LinearValue, b::LinearValue) = a + (-1 * b)
+Base.:-(a::LinearValue) = -1 * a
+Base.:*(a::Real, b::LinearValue) = b * a
+Base.:*(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = b .* a.weights)
+Base.:/(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = a.weights ./ b)
 
-function Base.:+(a::Value, b::Value)
+function Base.:+(a::LinearValue, b::LinearValue)
     r_idxs = Int[]
     r_weights = Float64[]
     ai = 1
@@ -76,25 +76,25 @@ function Base.:+(a::Value, b::Value)
         push!(r_weights, b.weights[bi])
         bi += 1
     end
-    Value(idxs = r_idxs, weights = r_weights)
+    LinearValue(idxs = r_idxs, weights = r_weights)
 end
 
 """
 $(TYPEDSIGNATURES)
 
-Substitute anything vector-like as variable values into a [`Value`](@ref) and
+Substitute anything vector-like as variable values into a [`LinearValue`](@ref) and
 return the result.
 """
-substitute(x::Value, y) =
+substitute(x::LinearValue, y) =
     sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs))
 
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for making a [`Value`](@ref) out of a linear combination defined by
+Shortcut for making a [`LinearValue`](@ref) out of a linear combination defined by
 the `SparseVector`.
 """
-Value(x::SparseVector{Float64}) =
+LinearValue(x::SparseVector{Float64}) =
     let (idxs, weights) = findnz(x)
-        Value(; idxs, weights)
+        LinearValue(; idxs, weights)
     end

@@ -6,7 +6,7 @@ $(TYPEDEF)
 
 A hierarchical tree of many constraints that together describe a constrained
 system. The tree may recursively contain other trees in a directory-like
-structure; and these contain [`Constraint`](@ref)s and [`QConstraint`](@ref)s.
+structure, which contain [`Constraint`](@ref)s as leaves.
 
 Members of the constraint tree are accessible via the record dot syntax as
 properties; e.g. a constraint labeled with `:abc` in a constraint tree `t` may
@@ -19,18 +19,18 @@ Use operator `^` to put a name on a constraint to convert it into a single
 element [`ConstraintTree`](@ref):
 
 ```julia
-x = :my_constraint ^ Constraint(Value(...), 1.0)
+x = :my_constraint ^ Constraint(LinearValue(...), 1.0)
 dir = :my_constraint_dir ^ x
 
 dir.my_constraint_dir.my_constraint.bound   # returns 1.0
 ```
 
 Use operator `*` to glue two constraint trees together while *sharing* the
-variable indexes specified by the contained [`Value`](@ref)s and
-[`QValue`](@ref)s.
+variable indexes specified by the contained [`LinearValue`](@ref)s and
+[`QuadraticValue`](@ref)s.
 
 ```julia
-my_constraints = :linear_limit ^ Constraint(...) * :quadratic_limit ^ QConstraint(...)
+my_constraints = :some_constraints ^ Constraint(...) * :more_constraints ^ Constraint(...)
 ```
 
 Use operator `+` to glue two constraint trees together *without sharing* of any
@@ -63,10 +63,9 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct ConstraintTree
     "Sorted dictionary of elements of the constraint tree."
-    elems::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}} = SortedDict()
+    elems::SortedDict{Symbol,Union{Constraint,ConstraintTree}} = SortedDict()
 
-    ConstraintTree(x::SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}) =
-        new(x)
+    ConstraintTree(x::SortedDict{Symbol,Union{Constraint,ConstraintTree}}) = new(x)
 
     """
     $(TYPEDSIGNATURES)
@@ -80,8 +79,7 @@ Base.@kwdef struct ConstraintTree
     ConstraintTree(c for c=constraints if !isnothing(c.bound))
     ```
     """
-    ConstraintTree(x...) =
-        new(SortedDict{Symbol,Union{Constraint,QConstraint,ConstraintTree}}(x...))
+    ConstraintTree(x...) = new(SortedDict{Symbol,Union{Constraint,ConstraintTree}}(x...))
 end
 
 """
@@ -89,7 +87,7 @@ $(TYPEDEF)
 
 A shortcut for elements of the [`ConstraintTree`](@ref).
 """
-const ConstraintTreeElem = Union{Constraint,QConstraint,ConstraintTree}
+const ConstraintTreeElem = Union{Constraint,ConstraintTree}
 
 
 """
@@ -137,23 +135,8 @@ Base.getindex(x::ConstraintTree, sym::Symbol) = getindex(elems(x), sym)
 $(TYPEDSIGNATURES)
 
 Find the expected count of variables in a [`Constraint`](@ref).
-
-(This is a O(1) operation, relying on the order of indexes in
-[`Value`](@ref)s.)
 """
-var_count(x::Constraint) = isempty(x.value.idxs) ? 0 : last(x.value.idxs)
-
-"""
-$(TYPEDSIGNATURES)
-
-Find the expected count of variables in a [`Constraint`](@ref).
-
-(This is a O(1) operation, relying on the co-lexicographical ordering of
-indexes in [`QValue`](@ref)s)
-"""
-var_count(x::QConstraint) = isempty(x.qvalue.idxs) ? 0 : let (_, max) = last(x.qvalue.idxs)
-    max
-end
+var_count(x::Constraint) = var_count(x.value)
 
 """
 $(TYPEDSIGNATURES)
@@ -165,32 +148,27 @@ var_count(x::ConstraintTree) = isempty(elems(x)) ? 0 : maximum(var_count.(values
 """
 $(TYPEDSIGNATURES)
 
+Find the expected count of variables in a [`LinearValue`](@ref). (This is a
+O(1) operation, relying on the ordering of the indexes.)
+"""
+var_count(x::LinearValue) = isempty(x.idxs) ? 0 : last(x.idxs)
+
+"""
+$(TYPEDSIGNATURES)
+
+Find the expected count of variables in a [`QuadraticValue`](@ref). (This is a
+O(1) operation, relying on the co-lexicographical ordering of indexes.)
+"""
+var_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : let (_, max) = last(x.idxs)
+    max
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Internal helper for manipulating variable indices.
 """
 incr_var_idx(x::Int, incr::Int) = x == 0 ? 0 : x + incr
-
-"""
-$(TYPEDSIGNATURES)
-
-Offset all variable indexes in a [`Constraint`](@ref) by the given increment.
-"""
-incr_var_idxs(x::Constraint, incr::Int) = Constraint(
-    value = Value(idxs = incr_var_idx.(x.value.idxs, incr), weights = x.value.weights),
-    bound = x.bound,
-)
-
-"""
-$(TYPEDSIGNATURES)
-
-Offset all variable indexes in a [`QConstraint`](@ref) by the given increment.
-"""
-incr_var_idxs(x::QConstraint, incr::Int) = QConstraint(
-    qvalue = QValue(
-        idxs = broadcast(ii -> incr_var_idx.(ii, incr), x.qvalue.idxs),
-        weights = x.qvalue.weights,
-    ),
-    bound = x.bound,
-)
 
 """
 $(TYPEDSIGNATURES)
@@ -200,6 +178,33 @@ increment.
 """
 incr_var_idxs(x::ConstraintTree, incr::Int) =
     ConstraintTree(elems = SortedDict(k => incr_var_idxs(v, incr) for (k, v) in elems(x)))
+
+"""
+$(TYPEDSIGNATURES)
+
+Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
+increment.
+"""
+incr_var_idxs(x::Constraint, incr::Int) =
+    Constraint(value = incr_var_idxs(x.value, incr), bound = x.bound)
+
+"""
+$(TYPEDSIGNATURES)
+
+Offset all variable indexes in a [`LinearValue`](@ref) by the given increment.
+"""
+incr_var_idxs(x::LinearValue, incr::Int) =
+    LinearValue(idxs = incr_var_idx.(x.idxs, incr), weights = x.weights)
+
+"""
+$(TYPEDSIGNATURES)
+
+Offset all variable indexes in a [`QuadraticValue`](@ref) by the given increment.
+"""
+incr_var_idxs(x::QuadraticValue, incr::Int) = QuadraticValue(
+    idxs = broadcast(ii -> incr_var_idx.(ii, incr), x.idxs),
+    weights = x.weights,
+)
 
 #
 # Algebraic construction
@@ -251,7 +256,7 @@ $(TYPEDSIGNATURES)
 Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
-variable(; bound = nothing) = Constraint(value = Value([1], [1.0]); bound)
+variable(; bound = nothing) = Constraint(value = LinearValue([1], [1.0]); bound)
 
 """
 $(TYPEDSIGNATURES)
@@ -276,7 +281,7 @@ function variables(; keys::Vector{Symbol}, bounds = nothing)
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
     ConstraintTree(
-        k => Constraint(value = Value(Int[i], Float64[1.0]), bound = b) for
+        k => Constraint(value = LinearValue(Int[i], Float64[1.0]), bound = b) for
         ((i, k), b) in zip(enumerate(keys), bs)
     )
 end

@@ -7,14 +7,13 @@
 # of the documentation first.
 #
 # In short, quadratic values and constraints are expressed similarly as other
-# contents of the constraint trees using types `QValue` and
-# `QConstraint`, which are quadratic alikes of the linear
-# `Value` and `Constraint`.
+# contents of the constraint trees using type `QuadraticValue`, which is
+# basically an affine-quadratic alike of the affine-linear `LinearValue`.
 #
 # ## Working with quadratic values and constraints
 #
-# Algebraically, you can construct `QValue`s simply by multiplying the linear
-# `Value`s:
+# Algebraically, you can construct `QuadraticValue`s simply by multiplying the linear
+# `LinearValue`s:
 
 import ConstraintTrees as C
 
@@ -24,7 +23,7 @@ qv = system.x.value * (system.y.value + 2 * system.z.value)
 @test qv.idxs == [(1, 2), (1, 3)] #src
 @test qv.weights == [1.0, 2.0] #src
 
-# As with `Value`s, the `QValue`s can be easily combined, giving a nice way to
+# As with `LinearValue`s, the `QuadraticValue`s can be easily combined, giving a nice way to
 # specify e.g. weighted sums of squared errors with respect to various
 # directions. We can thus represent common formulas for error values:
 error_val =
@@ -33,15 +32,15 @@ error_val =
 
 # This allows us to naturally express quadratic constraint (e.g., that an error
 # must not be too big); and directly observe the error values in the system.
-system = :vars^system * :error^C.QConstraint(qvalue = error_val, bound = (0.0, 100.0))
+system = :vars^system * :error^C.Constraint(value = error_val, bound = (0.0, 100.0))
 
 # (For simplicity, you can also use the `Constraint` constructor to make
-# quadratic constraints out of `QValue`s -- it will overload properly.)
+# quadratic constraints out of `QuadraticValue`s -- it will overload properly.)
 
 # Let's pretend someone has solved the system, and see how much "error" the
 # solution has:
 solution = [1.0, 2.0, -1.0];
-st = C.SolutionTree(system, solution);
+st = C.ValueTree(system, solution);
 st.error
 
 # ...not bad for a first guess.
@@ -81,7 +80,7 @@ line_system =
 s = :ellipse^ellipse_system + :line^line_system;
 
 s *=
-    :objective^C.QConstraint(
+    :objective^C.Constraint(
         C.squared(s.ellipse.point.x.value - s.line.point.x.value) +
         C.squared(s.ellipse.point.y.value - s.line.point.y.value),
     );
@@ -96,16 +95,20 @@ s *=
 # translates the constraints into JuMP `Model`s to support the quadratic
 # constraints.
 import JuMP
-function optimized_vars(cs::C.ConstraintTree, objective::Union{C.Value,C.QValue}, optimizer)
+function optimized_vars(
+    cs::C.ConstraintTree,
+    objective::Union{C.LinearValue,C.QuadraticValue},
+    optimizer,
+)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
-    function add_constraint(c::CT) where {CT<:Union{C.Constraint,C.QConstraint}}
-        b = C.bound(c)
+    function add_constraint(c::C.Constraint)
+        b = c.bound
         if b isa Float64
-            JuMP.@constraint(model, C.substitute(C.value(c), x) == b)
+            JuMP.@constraint(model, C.substitute(c.value, x) == b)
         elseif b isa Tuple{Float64,Float64}
-            val = C.substitute(C.value(c), x)
+            val = C.substitute(c.value, x)
             isinf(b[1]) || JuMP.@constraint(model, val >= b[1])
             isinf(b[2]) || JuMP.@constraint(model, val <= b[2])
         end
@@ -122,7 +125,7 @@ end
 # We can now load a suitable optimizer and solve the system by maximizing the
 # negative squared error:
 import Clarabel
-st = C.SolutionTree(s, optimized_vars(s, -s.objective.qvalue, Clarabel.Optimizer))
+st = C.ValueTree(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 
 # If the optimization worked well, we can nicely get out the position of the
 # closest point to the line that is in the elliptical area:
