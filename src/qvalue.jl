@@ -128,6 +128,14 @@ Base.:*(a::Value, b::Value) =
 """
 $(TYPEDSIGNATURES)
 
+Broadcastable shortcut for multiplying a [`Value`](@ref) with itself.
+Produces a [`QValue`](@ref).
+"""
+squared(a::Value) = a * a
+
+"""
+$(TYPEDSIGNATURES)
+
 Substitute anything vector-like as variable values into the [`QValue`](@ref)
 and return the result.
 """
