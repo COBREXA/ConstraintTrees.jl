@@ -66,11 +66,11 @@ end
 @testset "Solution tree operations" begin
     ct = C.variables(keys = [:a, :b])
 
-    @test_throws BoundsError C.SolutionTree(ct, [1.0])
-    st = C.SolutionTree(ct, [123.0, 321.0])
+    @test_throws BoundsError C.ValueTree(ct, [1.0])
+    st = C.ValueTree(ct, [123.0, 321.0])
 
-    @test isempty(C.SolutionTree())
-    @test isempty(C.SolutionTree(C.ConstraintTree(), Float64[]))
+    @test isempty(C.ValueTree())
+    @test isempty(C.ValueTree(C.ConstraintTree(), Float64[]))
     @test !isempty(st)
     @test haskey(st, :a)
     @test hasproperty(st, :a)

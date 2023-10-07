@@ -18,6 +18,10 @@ Base.@kwdef struct Tree{X}
     construct the inner dictionary.
     """
     Tree{X}(x...) where {X} = new{X}(SortedDict{Symbol,Union{X,Tree{X}}}(x...))
+
+    # TODO Tree could be a proper subtype of AbstractDict, but currently that
+    # fails due to circular use of the type in its own parameter. Might be hard
+    # to do that properly.
 end
 
 """
@@ -31,28 +35,32 @@ simpler way to get the elements without an explicit use of `getfield`.
 """
 elems(x::Tree) = getfield(x, :elems)
 
-function Base.getproperty(x::Tree, sym::Symbol)
-    elems(x)[sym]
-end
-
-Base.keys(x::Tree) = keys(elems(x))
-
-Base.values(x::Tree) = values(elems(x))
+Base.isempty(x::Tree) = isempty(elems(x))
 
 Base.length(x::Tree) = length(elems(x))
 
 Base.iterate(x::Tree) = iterate(elems(x))
 Base.iterate(x::Tree, st) = iterate(elems(x), st)
 
+Base.eltype(x::Tree) = eltype(elems(x))
+
 Base.keytype(x::Tree) = keytype(elems(x))
+
+Base.keys(x::Tree) = keys(elems(x))
+
+Base.haskey(x::Tree, sym::Symbol) = haskey(elems(x), sym)
 
 Base.valtype(x::Tree) = valtype(elems(x))
 
-Base.eltype(x::Tree) = eltype(elems(x))
+Base.values(x::Tree) = values(elems(x))
+
+Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
 
 Base.propertynames(x::Tree) = keys(x)
 
-Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
+Base.hasproperty(x::Tree, sym::Symbol) = haskey(x, sym)
+
+Base.getproperty(x::Tree, sym::Symbol) = elems(x)[sym]
 
 #
 # Algebraic construction
