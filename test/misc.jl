@@ -87,3 +87,23 @@ end
     @test sum(values(st)) == 444.0
     @test eltype(st) == Pair{Symbol,C.ValueTreeElem}
 end
+
+@testset "Pretty-printing" begin
+    ct = C.variables(keys = [:a, :b])
+    ct = :x^ct + :y^ct
+
+    s(x) = begin
+        iob = IOBuffer()
+        show(iob, MIME"text/plain"(), x)
+        String(take!(iob))
+    end
+
+    @test length(C.ADWrap(ct)) == length(ct)
+    @test occursin(":x", s(ct))
+    @test occursin(":y", s(ct))
+    @test occursin(r"Tree{[a-zA-Z.]*Constraint}", s(ct))
+    @test occursin("2 elements", s(ct.x))
+    @test occursin(":a", s(ct.x))
+    @test occursin("[2]", s(ct.x.b))
+    @test occursin("[1.0]", s(ct.x.a))
+end
