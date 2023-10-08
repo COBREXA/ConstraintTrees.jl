@@ -17,7 +17,7 @@
 
 import ConstraintTrees as C
 
-system = C.variables(keys = [:x, :y, :z]);
+system = C.variables(keys = [:x, :y, :z])
 qv = system.x.value * (system.y.value + 2 * system.z.value)
 
 @test qv.idxs == [(1, 2), (1, 3)] #src
@@ -39,8 +39,8 @@ system = :vars^system * :error^C.Constraint(value = error_val, bound = (0.0, 100
 
 # Let's pretend someone has solved the system, and see how much "error" the
 # solution has:
-solution = [1.0, 2.0, -1.0];
-st = C.ValueTree(system, solution);
+solution = [1.0, 2.0, -1.0]
+st = C.ValueTree(system, solution)
 st.error
 
 # ...not bad for a first guess.
@@ -60,7 +60,7 @@ ellipse_system = C.ConstraintTree(
         C.squared(point.x.value) / 4 + C.squared(10.0 - point.y.value),
         (-Inf, 1.0),
     ),
-);
+)
 
 # We now create another small system that constraints another point to stay on
 # a line that crosses `(0, 0)` and `(2, 1)`. We could do this using a
@@ -68,22 +68,22 @@ ellipse_system = C.ConstraintTree(
 # (mainly, the solver that we are planning to use only supports positive
 # definite quadratic forms as constraints). Instead, let's use a
 # single-variable-parametrized line equation.
-line_param = C.variable().value;
+line_param = C.variable().value
 line_system =
     :point^C.ConstraintTree(
         :x => C.Constraint(0 + 2 * line_param),
         :y => C.Constraint(0 + 1 * line_param),
-    );
+    )
 
 # Finally, let's connect the systems using `+` operator and add the objective
 # that would minimize the distance of the points:
-s = :ellipse^ellipse_system + :line^line_system;
+s = :ellipse^ellipse_system + :line^line_system
 
 s *=
     :objective^C.Constraint(
         C.squared(s.ellipse.point.x.value - s.line.point.x.value) +
         C.squared(s.ellipse.point.y.value - s.line.point.y.value),
-    );
+    )
 # (Note that if we used `*` to connect the systems, the variables from the
 # definition of `point` would not be duplicated, and various non-interesting
 # logic errors would follow.)
@@ -135,12 +135,12 @@ st = C.ValueTree(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 @test isapprox(st.ellipse.point.y, 9.293, atol = 1e-2) #src
 
 # ...as well as the position on the line that is closest to the ellipse:
-C.elems(st.line.point)
+st.line.point
 
-@test isapprox(st.line.point.x, 2*st.line.point.y, atol = 1e-3) #src
+@test isapprox(st.line.point.x, 2 * st.line.point.y, atol = 1e-3) #src
 @test isapprox(st.line.point.x, 4.849, atol = 1e-2) #src
 
-# ...and, with a bit of extra math, the minimized distance:
+# ...and, with a little bit of extra math, the minimized distance:
 sqrt(st.objective)
 
 @test isapprox(sqrt(st.objective), 7.679, atol = 1e-2) #src
