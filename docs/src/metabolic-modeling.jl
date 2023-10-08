@@ -197,7 +197,7 @@ c *=
 # some way) and produced a solution of variables as follows:
 solution = [1.0, 5.0] # corresponds to :x and :y in order given in `variables`
 
-# Solution tree is constructed in a straightforward manner:
+# A value tree for this solution is constructed in a straightforward manner:
 st = C.ValueTree(system, solution)
 
 # We can now check the values of the original coordinates
