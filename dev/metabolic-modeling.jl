@@ -3,7 +3,7 @@
 #
 # In this example we demonstrate the use of `ConstraintTree` structure for
 # solving the metabolic modeling tasks. At the same time, we show how to export
-# the structure to JuMP, and use `SolutionTree` to find useful information
+# the structure to JuMP, and use `ValueTree` to find useful information
 # about the result.
 #
 # First, let's import some packages:
@@ -36,7 +36,7 @@ C.elems(c)
 # ...or much more conveniently using the record dot syntax as properties:
 c.R_PFK
 
-# The individual `Value`s in constraint behave like sparse vectors that refer
+# The individual `LinearValue`s in constraint behave like sparse vectors that refer
 # to variables: The first field represents the referenced variable indexes, and
 # the second field represents the coefficients. Compared to the sparse vectors,
 # information about the total number of variables is not stored explicitly.
@@ -77,6 +77,12 @@ rxn_constraints =
         )
     end
 
+# Note that in the example we use a simplified `Dict`-like construction of the
+# `ConstraintTree`. You might equivalently write the code as a product (using
+# `prod()`) of constraints that are individually labeled using the `^`
+# operator, but the direct dictionary construction is faster because it skips
+# many intermediate steps, and looks much more like idiomatic Julia code.
+
 # To combine the constraint trees, we can make a nice directory for the
 # constraints and add them to the tree using operator `*`. Making "products" of
 # constraint trees combines the trees in a way that they _share_ their
@@ -115,7 +121,7 @@ sum(C.value.(values(c.fluxes)))
 # To demonstrate, let's make a small system with 2 variables.
 system = C.variables(keys = [:x, :y])
 
-# To add an affine element to a `Value`, simply add it as a `Real`
+# To add an affine element to a `LinearValue`, simply add it as a `Real`
 # number, as in the linear transformations below:
 system =
     :original_coords^system *
@@ -138,13 +144,13 @@ stoi_constraints = C.ConstraintTree(
                 sr.stoichiometry * c.fluxes[Symbol(rid)].value for
                 (rid, r) in ecoli.reactions for sr in r.reactants if sr.species == m
             ),
-            init = zero(C.Value), # sometimes the sums are empty
+            init = zero(C.LinearValue), # sometimes the sums are empty
         ) + sum(
             (
                 sr.stoichiometry * c.fluxes[Symbol(rid)].value for
                 (rid, r) in ecoli.reactions for sr in r.products if sr.species == m
             ),
-            init = zero(C.Value),
+            init = zero(C.LinearValue),
         ),
         bound = 0.0,
     ) for m in keys(ecoli.species)
@@ -183,7 +189,7 @@ c *=
 solution = [1.0, 5.0] # corresponds to :x and :y in order.
 
 # Solution tree is constructed in a straightforward manner:
-st = C.SolutionTree(system, solution)
+st = C.ValueTree(system, solution)
 
 # We can now check the values of the original values
 (st.original_coords.x, st.original_coords.y)
@@ -204,19 +210,20 @@ st_ = st.transformed_coords;
 # We can make a small function that throws our model into JuMP, optimizes it,
 # and gives us back a variable assignment vector. This vector can then be used
 # to determine and browse the values of constraints and variables using
-# `SolutionTree`.
+# `ValueTree`.
 import JuMP
-function optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
+function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
-    JuMP.@objective(model, JuMP.MAX_SENSE, C.value_product(objective, x))
+    JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     function add_constraint(c::C.Constraint)
-        if c.bound isa Float64
-            JuMP.@constraint(model, C.value_product(c.value, x) == c.bound)
-        elseif c.bound isa Tuple{Float64,Float64}
-            val = C.value_product(c.value, x)
-            isinf(c.bound[1]) || JuMP.@constraint(model, val >= c.bound[1])
-            isinf(c.bound[2]) || JuMP.@constraint(model, val <= c.bound[2])
+        b = c.bound
+        if b isa Float64
+            JuMP.@constraint(model, C.substitute(c.value, x) == b)
+        elseif b isa Tuple{Float64,Float64}
+            val = C.substitute(c.value, x)
+            isinf(b[1]) || JuMP.@constraint(model, val >= b[1])
+            isinf(b[2]) || JuMP.@constraint(model, val <= b[2])
         end
     end
     function add_constraint(c::C.ConstraintTree)
@@ -234,7 +241,7 @@ optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimize
 
 # To explore the solution more easily, we can make a solution tree with values
 # that correspond to ones in our constraint tree:
-result = C.SolutionTree(c, optimal_variable_assignment);
+result = C.ValueTree(c, optimal_variable_assignment);
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
 #
@@ -245,12 +252,13 @@ result.fluxes.R_PFK
 
 result.objective
 
-# Sometimes it is unnecessary to recover the values for all constraints, so we are better off selecting just a subtree:
-C.elems(C.SolutionTree(c.fluxes, optimal_variable_assignment))
+# Sometimes it is unnecessary to recover the values for all constraints, so we
+# are better off selecting just a subtree:
+C.elems(C.ValueTree(c.fluxes, optimal_variable_assignment))
 
 #
 
-C.SolutionTree(c.objective, optimal_variable_assignment)
+C.ValueTree(c.objective, optimal_variable_assignment)
 
 # ## Combining and extending constraint systems
 #
@@ -294,7 +302,7 @@ c *=
     )
 
 # Let's see how much biomass are the two species capable of producing together:
-result = C.SolutionTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
+result = C.ValueTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
 C.elems(result.exchanges)
 
 # Finally, we can iterate over all species in the small community and see how
