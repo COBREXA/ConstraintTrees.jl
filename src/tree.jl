@@ -70,7 +70,7 @@ function Base.:^(pfx::Symbol, x::Tree{X}) where {X}
     Tree{X}(elems = SortedDict(pfx => x))
 end
 
-Base.:*(a::Tree, b::Tree) = merge(a, b)
+Base.:*(a::Tree, b::Tree...) = merge(a, b...)
 
 Base.merge(d::Tree, others::Tree...) = mergewith(*, d, others...)
 Base.merge(a::Base.Callable, d::Tree, others::Tree...) = mergewith(a, d, others...)
