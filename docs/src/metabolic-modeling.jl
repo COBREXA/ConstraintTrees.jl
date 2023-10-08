@@ -45,7 +45,7 @@ c.R_PFK
 # hierarchy. Let us name our constraints as "fluxes" (which is a common name in
 # metabolic modeling) and explore the result:
 
-c = :fluxes^c;
+c = :fluxes^c
 
 # We can see that there is now only a single "top-level directory" in the
 # constraint system:
@@ -89,7 +89,7 @@ rxn_constraints =
 # variables. In particular, using the values from `c.fluxes` in the constraints
 # within `rxn_constraints` here will constraint precisely the same variables
 # (and thus values) as the ones in the original system.
-c = c * :constraints^rxn_constraints;
+c = c * :constraints^rxn_constraints
 
 # Our model representation now contains 2 "directories":
 collect(keys(c))
@@ -154,11 +154,11 @@ stoi_constraints = C.ConstraintTree(
         ),
         bound = 0.0,
     ) for m in keys(ecoli.species)
-);
+)
 
 # Again, we can label the stoichiometry properly and add it to the bigger model
 # representation:
-c = c * :stoichiometry^stoi_constraints;
+c = c * :stoichiometry^stoi_constraints
 
 # ## Saving the objective
 #
@@ -174,7 +174,7 @@ c *=
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
             coeff != 0.0
         ),
-    );
+    )
 
 # ## Solution trees
 #
@@ -199,7 +199,7 @@ st = C.ValueTree(system, solution)
 
 # The other constraints automatically get their values that correspond to the
 # overall variable assignment:
-st_ = st.transformed_coords;
+st_ = st.transformed_coords
 (st_.xt, st_.yt)
 
 @test isapprox(st_.xt, 11.0) #src
@@ -241,7 +241,7 @@ optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimize
 
 # To explore the solution more easily, we can make a solution tree with values
 # that correspond to ones in our constraint tree:
-result = C.ValueTree(c, optimal_variable_assignment);
+result = C.ValueTree(c, optimal_variable_assignment)
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
 #
@@ -302,7 +302,7 @@ c *=
     )
 
 # Let's see how much biomass are the two species capable of producing together:
-result = C.ValueTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer));
+result = C.ValueTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 C.elems(result.exchanges)
 
 # Finally, we can iterate over all species in the small community and see how
