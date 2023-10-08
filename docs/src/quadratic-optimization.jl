@@ -135,12 +135,12 @@ st = C.ValueTree(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 @test isapprox(st.ellipse.point.y, 9.293, atol = 1e-2) #src
 
 # ...as well as the position on the line that is closest to the ellipse:
-C.elems(st.line.point)
+st.line.point
 
 @test isapprox(st.line.point.x, 2 * st.line.point.y, atol = 1e-3) #src
 @test isapprox(st.line.point.x, 4.849, atol = 1e-2) #src
 
-# ...and, with a bit of extra math, the minimized distance:
+# ...and, with a little bit of extra math, the minimized distance:
 sqrt(st.objective)
 
 @test isapprox(sqrt(st.objective), 7.679, atol = 1e-2) #src

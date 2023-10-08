@@ -13,18 +13,20 @@ end
 
 example_mds = first.(splitext.(basename.(examples))) .* ".md"
 
-makedocs(
-    modules = [ConstraintTrees],
-    clean = false,
-    format = Documenter.HTML(
-        ansicolor = true,
-        canonical = "https://cobrexa.github.io/ConstraintTrees.jl/stable/",
-    ),
-    sitename = "ConstraintTrees.jl",
-    linkcheck = false,
-    pages = ["README" => "index.md"; example_mds; "Reference" => "reference.md"],
-    strict = [:missing_docs, :cross_references, :example_block],
-)
+withenv("COLUMNS" => 150) do
+    makedocs(
+        modules = [ConstraintTrees],
+        clean = false,
+        format = Documenter.HTML(
+            ansicolor = true,
+            canonical = "https://cobrexa.github.io/ConstraintTrees.jl/stable/",
+        ),
+        sitename = "ConstraintTrees.jl",
+        linkcheck = false,
+        pages = ["README" => "index.md"; example_mds; "Reference" => "reference.md"],
+        strict = [:missing_docs, :cross_references, :example_block],
+    )
+end
 
 deploydocs(
     repo = "github.com/COBREXA/ConstraintTrees.jl.git",

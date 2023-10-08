@@ -15,11 +15,17 @@ Base.summary(io::IO, x::Tree{X}) where {X} =
     print(io, "$(Tree{X}) with ", length(x), length(x) == 1 ? " element" : " elements")
 
 function Base.show(io::IO, mime::MIME"text/plain", x::Tree{X}) where {X}
-    return show(io, mime, ADWrap(x))
+    show(io, mime, ADWrap(x))
 end
 
 function Base.show(io::IO, x::Tree{X}) where {X}
-    return show(io, ADWrap(x))
+    print(
+        io,
+        "$(Tree{X})(#= ",
+        length(x),
+        length(x) == 1 ? " element" : " elements",
+        " =#)",
+    )
 end
 
 function Base.show(io::IO, x::Constraint)
@@ -27,7 +33,7 @@ function Base.show(io::IO, x::Constraint)
         print(
             io,
             "$Constraint(",
-            typeof(x.value),
+            "$(typeof(x.value))",
             "(#= ... =#)",
             isnothing(x.bound) ? "" : ", $(x.bound)",
             ")",

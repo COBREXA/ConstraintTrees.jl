@@ -27,19 +27,27 @@ ecoli = SBML.readSBML("e_coli_core.xml")
 
 c = C.variables(keys = Symbol.(keys(ecoli.reactions)))
 
+#md # !!! info "Pretty-printing"
+#md #     By default, Julia shows relatively long namespace prefixes before all
+#md #     identifiers, which clutters the output. You can import individual
+#md #     names form `ConstraintTrees` package to improve the pretty-printing,
+#md #     using e.g.:
+#md #     `import ConstraintTrees: Constraint, Tree, LinearValue`.
+
 @test length(C.elems(c)) == length(ecoli.reactions) #src
 
 # The above operation returns a `ConstraintTree`. You can browse these as a
 # dictionary:
-C.elems(c)
+c[:R_PFK]
 
 # ...or much more conveniently using the record dot syntax as properties:
 c.R_PFK
 
-# The individual `LinearValue`s in constraint behave like sparse vectors that refer
-# to variables: The first field represents the referenced variable indexes, and
-# the second field represents the coefficients. Compared to the sparse vectors,
-# information about the total number of variables is not stored explicitly.
+# The individual `LinearValue`s in constraints behave like sparse vectors that
+# refer to variables: The first field represents the referenced variable
+# indexes, and the second field represents the coefficients. Compared to the
+# sparse vectors, information about the total number of variables is not stored
+# explicitly.
 
 # Operator `^` is used to name individual constraints and directories in the
 # hierarchy. Let us name our constraints as "fluxes" (which is a common name in
@@ -47,18 +55,15 @@ c.R_PFK
 
 c = :fluxes^c
 
-# We can see that there is now only a single "top-level directory" in the
-# constraint system:
-collect(keys(C.elems(c)))
-
 @test collect(keys(c)) == [:fluxes] #src
 @test issetequal(collect(keys(c.fluxes)), sort(Symbol.(collect(keys(ecoli.reactions))))) #src
 
-# ...which can be explored with the dot access again:
+# We can see that there is now only a single "top-level directory" in the
+# constraint system, which can be explored with the dot access again:
 c.fluxes.R_PFK
 
-# Indexing via values is possible via the usual bracket notation, and can be
-# freely combined with the dot notation:
+# Indexing via values is again possible via the usual bracket notation, and can
+# be freely combined with the dot notation:
 c[:fluxes][:R_PFK]
 
 @test c[:fluxes].R_PFK === c.fluxes[:R_PFK] #src
@@ -108,7 +113,7 @@ collect(keys(c))
 (3 * c.fluxes.R_PFK, -c.fluxes.R_ACALD / 2)
 
 # To process constraints in bulk, you may use `C.value` for easier access to
-# values and making constraints.
+# values when making new constraints:
 sum(C.value.(values(c.fluxes)))
 
 # ### Affine values
@@ -154,7 +159,11 @@ stoi_constraints = C.ConstraintTree(
         ),
         bound = 0.0,
     ) for m in keys(ecoli.species)
-)
+);
+
+# Let's have a closer look at one of the constraints:
+
+stoi_constraints.M_acald_c
 
 # Again, we can label the stoichiometry properly and add it to the bigger model
 # representation:
@@ -176,34 +185,33 @@ c *=
         ),
     )
 
-# ## Solution trees
+# ## Constrained system solutions and value trees
 #
 # To aid exploration of variable assignments in the constraint trees, we can
-# convert them to *solution trees*. These have the very same structure as
+# convert them to *value trees*. These have the very same structure as
 # constraint trees, but carry only the "solved" constraint values instead of
 # full constraints.
 #
 # Let's demonstrate this quickly on the example of `system` with affine
 # variables from above. First, let's assume that someone solved the system (in
 # some way) and produced a solution of variables as follows:
-solution = [1.0, 5.0] # corresponds to :x and :y in order.
+solution = [1.0, 5.0] # corresponds to :x and :y in order given in `variables`
 
 # Solution tree is constructed in a straightforward manner:
 st = C.ValueTree(system, solution)
 
-# We can now check the values of the original values
-(st.original_coords.x, st.original_coords.y)
+# We can now check the values of the original coordinates
+st.original_coords
 
 @test isapprox(st.original_coords.x, 1.0) #src
 @test isapprox(st.original_coords.y, 5.0) #src
 
 # The other constraints automatically get their values that correspond to the
 # overall variable assignment:
-st_ = st.transformed_coords
-(st_.xt, st_.yt)
+st.transformed_coords
 
-@test isapprox(st_.xt, 11.0) #src
-@test isapprox(st_.yt, -0.2) #src
+@test isapprox(st.transformed_coords.xt, 11.0) #src
+@test isapprox(st.transformed_coords.yt, -0.2) #src
 
 # ## Solving the constraint system using JuMP
 #
@@ -239,22 +247,19 @@ end
 import GLPK
 optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimizer)
 
-# To explore the solution more easily, we can make a solution tree with values
-# that correspond to ones in our constraint tree:
+# To explore the solution more easily, we can make a tree with values that
+# correspond to ones in our constraint tree:
 result = C.ValueTree(c, optimal_variable_assignment)
+
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
 #
 
 result.fluxes.R_PFK
 
-#
-
-result.objective
-
 # Sometimes it is unnecessary to recover the values for all constraints, so we
-# are better off selecting just a subtree:
-C.elems(C.ValueTree(c.fluxes, optimal_variable_assignment))
+# are better off selecting just the right subtree:
+C.ValueTree(c.fluxes, optimal_variable_assignment)
 
 #
 
@@ -303,8 +308,8 @@ c *=
 
 # Let's see how much biomass are the two species capable of producing together:
 result = C.ValueTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
-C.elems(result.exchanges)
+result.exchanges
 
 # Finally, we can iterate over all species in the small community and see how
 # much biomass was actually contributed by each:
-[k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community]
+Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
