@@ -13,8 +13,16 @@ constraint systems. The primary purpose is to support constraint-based
 metabolic modeling within
 [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl).
 
-`ConstraintTrees.jl` is new and under active development. Feel free to discuss
-the changes and ideas.
+ConstraintTrees are intended to be used with
+[JuMP](https://github.com/jump-dev/JuMP.jl), but the package does not depend on
+JuMP -- instead it is completely generic and lightweight, and may be used with
+any other constraint-solving framework. The documentation describes a typical
+use of ConstraintTrees for solving constrained linear systems (in metabolic
+modeling) and constrained quadratic systems (for geometry) using JuMP, together
+with copy-pasteable code snippets that provide the integration.
+
+ConstraintTrees package is maintained and open for extensions. Feel free to
+discuss changes and ideas via issues and pull requests.
 
 #### Acknowledgements
 
