@@ -9,6 +9,7 @@ DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
+Clarabel = "0.6"
 DataStructures = "0.18"
 DocStringExtensions = "0.8, 0.9"
 SBML = "1"

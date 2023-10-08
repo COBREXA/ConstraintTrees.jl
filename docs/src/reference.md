@@ -7,35 +7,36 @@
 
 ```@autodocs
 Modules = [ConstraintTrees]
-Pages = ["src/value.jl"]
+Pages = ["src/linear_value.jl"]
 ```
 
 ### Quadratic values
 
 ```@autodocs
 Modules = [ConstraintTrees]
-Pages = ["src/qvalue.jl"]
+Pages = ["src/quadratic_value.jl"]
 ```
 
 ## Constraints
 
+### Bounds
 ```@autodocs
 Modules = [ConstraintTrees]
 Pages = ["src/bound.jl"]
 ```
 
-### Linear and affine constraints
+### Constrained values
 
 ```@autodocs
 Modules = [ConstraintTrees]
 Pages = ["src/constraint.jl"]
 ```
 
-### Quadratic constraints
+## Labeled trees
 
 ```@autodocs
 Modules = [ConstraintTrees]
-Pages = ["src/qconstraint.jl"]
+Pages = ["src/tree.jl"]
 ```
 
 ## Constraint trees
@@ -44,10 +45,9 @@ Pages = ["src/qconstraint.jl"]
 Modules = [ConstraintTrees]
 Pages = ["src/constraint_tree.jl"]
 ```
-
-## Solution trees
+## Trees for storing solved values
 
 ```@autodocs
 Modules = [ConstraintTrees]
-Pages = ["src/solution_tree.jl"]
+Pages = ["src/value_tree.jl"]
 ```

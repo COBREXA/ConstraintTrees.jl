@@ -63,7 +63,7 @@ ellipse_system = C.ConstraintTree(
 );
 
 # We now create another small system that constraints another point to stay on
-# a line that crosses `(0, 0)` and `(1, 1)`. We could do this using a
+# a line that crosses `(0, 0)` and `(2, 1)`. We could do this using a
 # dot-product representation of line, but that would lead to issues later
 # (mainly, the solver that we are planning to use only supports positive
 # definite quadratic forms as constraints). Instead, let's use a
@@ -71,7 +71,7 @@ ellipse_system = C.ConstraintTree(
 line_param = C.variable().value;
 line_system =
     :point^C.ConstraintTree(
-        :x => C.Constraint(0 + 1 * line_param),
+        :x => C.Constraint(0 + 2 * line_param),
         :y => C.Constraint(0 + 1 * line_param),
     );
 
@@ -131,16 +131,16 @@ st = C.ValueTree(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 # closest point to the line that is in the elliptical area:
 (st.ellipse.point.x, st.ellipse.point.y)
 
-@test isapprox(st.ellipse.point.x, 1.7888553691812248, atol = 1e-3) #src
-@test isapprox(st.ellipse.point.y, 9.552787347840578, atol = 1e-3) #src
+@test isapprox(st.ellipse.point.x, 1.414, atol = 1e-2) #src
+@test isapprox(st.ellipse.point.y, 9.293, atol = 1e-2) #src
 
 # ...as well as the position on the line that is closest to the ellipse:
 C.elems(st.line.point)
 
-@test isapprox(st.line.point.x, st.line.point.y, atol = 1e-3) #src
-@test isapprox(st.line.point.x, 5.670821358510901, atol = 1e-3) #src
+@test isapprox(st.line.point.x, 2*st.line.point.y, atol = 1e-3) #src
+@test isapprox(st.line.point.x, 4.849, atol = 1e-2) #src
 
 # ...and, with a bit of extra math, the minimized distance:
 sqrt(st.objective)
 
-@test isapprox(sqrt(st.objective), 5.489928950781118, atol = 1e-3) #src
+@test isapprox(sqrt(st.objective), 7.679, atol = 1e-2) #src

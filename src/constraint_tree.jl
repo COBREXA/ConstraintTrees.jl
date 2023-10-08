@@ -63,7 +63,7 @@ const ConstraintTree = Tree{Constraint}
 """
 $(TYPEDEF)
 
-A shortcut for elements of the [`ConstraintTree`](@ref).
+A shortcut for the type of the values in [`ConstraintTree`](@ref).
 """
 const ConstraintTreeElem = Union{Constraint,ConstraintTree}
 

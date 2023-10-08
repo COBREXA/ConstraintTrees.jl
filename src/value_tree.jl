@@ -25,8 +25,24 @@ ValueTree(cs, vals)
 """
 const ValueTree = Tree{Float64}
 
+"""
+$(TYPEDEF)
+
+A shortcut for the type of the values in [`ValueTree`](@ref).
+"""
 const ValueTreeElem = Union{Float64,ValueTree}
 
+"""
+$(TYPEDSIGNATURES)
+
+Create a [`ValueTree`](@ref) by substituing the variable values into a given [`ConstraintTree`](@ref).
+"""
 ValueTree(x::ConstraintTree, vars::Vector{Float64}) =
     ValueTree(keys(x) .=> ValueTree.(values(x), Ref(vars)))
+
+"""
+$(TYPEDSIGNATURES)
+
+Create a "degenerate" [`ValueTree`](@ref) (actually a single number) by substituing the variable values into a given [`Constraint`](@ref).
+"""
 ValueTree(x::Constraint, vars::Vector{Float64}) = substitute(value(x), vars)
