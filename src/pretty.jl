@@ -42,3 +42,34 @@ function Base.show(io::IO, x::Constraint)
         Base.show_default(io, x)
     end
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Recursively export any kind of [`Tree`](@ref) to a "simple Julia" data structure.
+
+As the main benefit, the result can be easily converted to various data
+interchange formats, such as JSON or YAML.
+"""
+dictify(x::Tree) = Dict("tree" => Dict(String(k) => dictify(v) for (k,v) = elems(x)))
+
+"""
+$(TYPEDSIGNATURES)
+
+Convert a [`Constraint`](@ref) to "simple Julia" data structure.
+"""
+dictify(x::Constraint) = Dict("value" => dictify(x.value), "bound" => x.bound)
+
+"""
+$(TYPEDSIGNATURES)
+
+Convert a [`LinearValue`](@ref) to "simple Julia" data structure.
+"""
+dictify(x::LinearValue) = Dict("lin" => collect(zip(x.idxs, x.weights)))
+
+"""
+$(TYPEDSIGNATURES)
+
+Convert a [`QuadraticValue`](@ref) to a "simple Julia" data structure.
+"""
+dictify(x::QuadraticValue) = Dict("quad" => collect(zip(x.idxs, x.weights)))
