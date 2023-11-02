@@ -1,0 +1,208 @@
+<!doctype html>
+<html>
+<head>
+<title>ConstraintTree browser</title>
+<script type="module">
+  import {h, Component, render, createContext } from 'https://esm.sh/preact';
+  import { useContext, useState } from 'https://esm.sh/preact/hooks';
+  import htm from 'https://esm.sh/htm';
+  const html = htm.bind(h);
+
+  const CTGlobal = createContext(null);
+
+  function VarRef(props) {
+    const {r} = props;
+    if(r==0)
+      return html`<span class="var" style="background-color: hsl(0, 0%, 55%);">${props.children}</span>`;
+    else
+      return html`<span class="var" style="background-color: hsl(${360*r}, 100%, 66%);">${props.children}</span>`;
+  }
+
+  function Variables(props) {
+    const [gs, sets] = useContext(CTGlobal);
+    const {maxvar} = gs.data;
+    const {type, vars} = props;
+
+    var res = [];
+    for(var i=0; i<=maxvar; ++i)
+      if(vars.has(i))
+        res.push(html`
+          <td key=${i}><${VarRef} r=${i/maxvar}>v${i}</></td>
+        `);
+      else
+        res.push(html`<td key=${i}></td>`)
+    //return res;
+    return html`${res}`;
+  }
+
+  function Bound(props) {
+    const {type, bound} = props;
+    const sym = type == 'tree' ? "🗀" : type == 'lin' ? "⟋" : type == 'quad' ? "○" : "?";
+    if(!bound) return sym;
+    else if(bound.length == 1) return `${sym} = ${bound[0]}`;
+    else if(bound.length == 2) return `${bound[0] == null ? "-∞" : bound[0]} ≤ ${sym} ≤ ${bound[1] == null ? "∞" : bound[1]}`;
+    else return `?${sym}?`;
+  }
+  
+  function Browser(props) {
+    const [gs, setgs] = useContext(CTGlobal);
+    function tableRow(item) {
+      return html`<tr key=${item.id}>
+        <td>
+          <span style="padding-left: ${item.lvl}em">
+            ${item.name}
+          </span>
+        </td>
+        <td>
+          <${Bound} type=${item.type} bound=${'bound' in item ? item.bound : null} />
+        </td>
+        <${Variables} type=${item.type} vars=${item.vars} />
+      </tr>`;
+    }
+    return html`<table>${gs.data.rows.map(tableRow)}</table>`;
+  }
+
+  function processInput(json) {
+    var max_var = 0;
+    var items = [];
+
+    function lin_vals(arr, pset) {
+      var res=new Map();
+      arr.map(x => {
+        res.set(x[0], x[1]);
+        pset.add(x[0]);
+      });
+      return res;
+    }
+
+    function quad_vals(arr, pset) {
+      var res=new Map();
+      arr.map(x => {
+        const v1=x[0][0], v2=x[0][1], w=x[1];
+        if(res.has(v1)) res.get(v1).set(v2, w);
+        else res.set(v1, new Map([[v2,w]]));
+        if(res.has(v2)) res.get(v2).set(v1, w);
+        else res.set(v2, new Map([[v1,w]]));
+        pset.add(v1);
+        pset.add(v2);
+      });
+      return res;
+    }
+
+    function walkTree(js, lvl, pid, id, name, pset) {
+      if('tree' in js) {
+        var vs = new Set();
+        items.push({type: "tree",
+          lvl:lvl, pid: pid, id: id, name: name,
+          vars: vs
+        });
+        Object.keys(js.tree).sort().map(cid => walkTree(js.tree[cid], lvl+1, id, id+'/'+cid, cid, vs));
+        for(var v of vs) pset.add(v);
+      } else {
+        if('lin' in js.value)
+          items.push({
+            type: "lin",
+            lvl:lvl, pid: pid, id: id, name: name,
+            bound: js.bound,
+            value: js.value.lin,
+            vars: lin_vals(js.value.lin, pset)
+          });
+        else
+          items.push({
+            type: "quad",
+            lvl:lvl, pid: pid, id: id, name: name,
+            bound: js.bound,
+            value: js.value.quad,
+            vars: quad_vals(js.value.quad, pset)
+          });
+      }
+    }
+
+    var s = new Set();
+    walkTree(json, 0, '', '', '/', s);
+
+    return {rows: items, maxvar: Math.max(...s)};
+  }
+  
+  function App(props) {
+    const [gs, setgs] = useState(null);
+
+    const loadState = function(event) {
+      var input = event.target;
+      var reader = new FileReader();
+      reader.onload = function() {
+        setgs({
+          filename: input.files[0].name,
+          data: processInput(JSON.parse(reader.result))
+        });
+      };
+      reader.readAsText(input.files[0]);
+    }
+
+    if(gs)
+      return html`<${CTGlobal.Provider} value=${[gs, setgs]}><h1>ConstraintTree ${gs.filename}</h1><${Browser}/></>`;
+    else
+      return html`<>
+        <h1>ConstraintTree browser</h1>
+        <p>Open a constraint tree as exported from <a href="https://github.com/COBREXA/ConstraintTrees.jl">ConstraintTrees.jl</a> package below:</p>
+        <div><input type="file" onChange=${loadState}></div>
+        <pre># reference export code:
+import ConstraintTrees, JSON
+open("<strong>YOUR FILE NAME</strong>.json", "w") do f
+  write(f, JSON.json(ConstraintTrees.dictify(<strong>YOUR TREE VARIABLE</strong>)))
+end</pre>
+      </>`;
+  }
+
+  const app_elem = document.getElementById("ctb-app");
+  app_elem.innerHTML = "";
+  render(html`<${App}/>`, app_elem);
+</script>
+<style type="text/css">
+body {
+  background: #222;
+  color: #ddd;
+  font-family: 'sans-serif';
+}
+
+a {
+  color: inherit;
+}
+
+a:visited {
+  color: inherit;
+}
+
+a:hover {
+  color: #fff;
+}
+
+strong {
+  color: #fc4;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  padding: 0.5em;
+  white-space: nowrap;
+}
+
+tr:nth-child(odd) {
+  background: #2a2a2a;
+}
+
+span.var {
+  display: inline-block;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  font-size: 66%;
+  font-weight: bold;
+  color: black;
+}
+</style>
+</head>
+<body><div id="ctb-app">This needs javascript.</div></body>
+</html>
