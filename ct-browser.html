@@ -10,63 +10,62 @@
 
   const GlobalState = createContext(null);
 
-  function TreeVarRef(props) {
-    const {r} = props;
-    if(r==0)
-      return html`<span class="var treevar" style="background-color: hsl(0, 0%, 33%);">${props.children}</span>`;
-    else
-      return html`<span class="var treevar" style="background-color: hsl(${360*r}, 33%, 33%);">${props.children}</span>`;
+  function VarRef(props) {
+    const {type, v} = props;
+    const { visibleVarOrder, nVisibleVars, constantVarDisplayed } = useContext(GlobalState);
+    const cwd = constantVarDisplayed ? 1 : 0;
+    const r = (visibleVarOrder.get(v) - cwd) / (nVisibleVars - cwd);
+
+    const color =
+      v == 0 ? (
+        type == 'tree'
+        ? "hsl(0, 0%, 33%)"
+        : "hsl(0, 0%, 55%)"
+      ) : (
+        type == 'tree'
+        ? `hsl(${360*r}, 33%, 33%)`
+        : `hsl(${360*r}, 80%, 66%)`
+      );
+
+    const cls = type == 'tree' ? "var treevar" : type == 'sub' ? "var qvar" : "var";
+
+    return html`<span class="${cls}" style="background-color: ${color};">${props.children}</span>`;
   }
 
-  function ValRef(props) {
-    const {r} = props;
-    if(r==0)
-      return html`<span class="var" style="background-color: hsl(0, 0%, 55%);">${props.children}</span>`;
-    else
-      return html`<span class="var" style="background-color: hsl(${360*r}, 80%, 66%);">${props.children}</span>`;
-  }
-
-  function SubRef(props) {
-    const {r} = props;
-    if(r==0)
-      return html`<span class="var qvar" style="background-color: hsl(0, 0%, 55%);">${props.children}</span>`;
-    else
-      return html`<span class="var qvar" style="background-color: hsl(${360*r}, 80%, 66%);">${props.children}</span>`;
+  function VisibleVariable(props) {
+    const {visibleVars, activeVars, triggerActiveVar} = useContext(GlobalState);
+    const {type, v, vars} = props;
+    if(!vars.has(v)) return html`<td key=${v}></td>`;
+    if(type=='tree')
+      return html`<td onClick=${() => triggerActiveVar(v)}
+                      class="${activeVars.has(v) ? "triggered" : ""} trigger">
+        <${VarRef} type=${type} v=${v}></>
+      </td>`;
+    if(type=='lin')
+      return html`<td onClick=${() => triggerActiveVar(v)}
+                      class="${activeVars.has(v) ? "triggered" : ""} trigger">
+        <${VarRef} type=${type} v=${v}>${vars.get(v)}</>
+      </td>`;
+    if(type == 'quad') {
+      var sub=[];
+      vars.get(v).forEach((v,k) => {
+        if(visibleVars.has(k)) sub.push(html`<${VarRef} type="sub" v=${k}>${v}</>`);
+      });
+      return html`<td onClick=${() => triggerActiveVar(v)}
+                      class="${activeVars.has(v) ? "triggered" : ""} trigger">
+        <${VarRef} type=${type} v=${v}>${sub}</>
+      </td>`;
+    }
+    return html`<td>?</td>`;
   }
 
   function Variables(props) {
-    const {tree, visibleVars, activeVars, triggerActiveVar} = useContext(GlobalState);
-    const {maxvar} = tree.data;
+    const {sortedVisibleVars} = useContext(GlobalState);
     const {type, vars} = props;
 
-    const vv = Array.from(visibleVars).sort((a, b) => a - b);
-    console.log(vv);
-
-    const res = type=='tree' ?
-      vv.map(i => {
-        if(vars.has(i))
-          return html`<td key=${i} onClick=${() => triggerActiveVar(i)} class="${activeVars.has(i) ? "triggered" : ""} trigger"><${TreeVarRef} r=${i/maxvar}></></td>`;
-        else
-          return html`<td key=${i}></td>`;
-      }) : type=='lin' ?
-      vv.map(i => {
-        if(vars.has(i))
-          return html`<td key=${i} onClick=${() => triggerActiveVar(i)} class="${activeVars.has(i) ? "triggered" : ""} trigger"><${ValRef} r=${i/maxvar}>${vars.get(i)}</></td>`;
-        else
-          return html`<td key=${i}></td>`;
-      }) : type=='quad' ?
-      vv.map(i => {
-        if(vars.has(i)) {
-          var sub=[];
-          vars.get(i).forEach((v,k) => {
-            if(visibleVars.has(k)) sub.push(html`<${SubRef} r=${k/maxvar}>${v}</>`);
-          });
-          return html`<td key=${i} onClick=${() => triggerActiveVar(i)} class="${activeVars.has(i) ? "triggered" : ""} trigger"><${ValRef} r=${i/maxvar}>${sub}</></td>`;
-        } else
-          return html`<td key=${i}></td>`;
-      }) : html``;
-
-    return html`${res}`;
+    return sortedVisibleVars.map(v =>
+      html`<${VisibleVariable} key=${v} type=${type} v=${v} vars=${vars} />`
+    );
   }
 
   function Bound(props) {
@@ -187,7 +186,6 @@
     var visibleRows = new Set([0]);
     function add(i) {
       while(true) {
-        console.log(i);
         if(visibleRows.has(i)) break;
         visibleRows.add(i);
         i = tree.data.rows[i].pidx;
@@ -235,6 +233,26 @@
       },
       [tree, activeRows, activeVars]
     );
+    const constantVarDisplayed = useMemo(
+      () => visibleVars.has(0),
+      [visibleVars]
+    );
+    const sortedVisibleVars = useMemo(
+      () => Array.from(visibleVars).sort((a,b) => a-b),
+      [visibleVars]
+    );
+    const nVisibleVars = useMemo(
+      () => sortedVisibleVars.length,
+      [sortedVisibleVars]
+    );
+    const visibleVarOrder = useMemo(
+      () => {
+        var m = new Map();
+        sortedVisibleVars.forEach((v,k) => m.set(v, k));
+        return m;
+      },
+      [sortedVisibleVars]
+    );
 
     const loadState = function(event) {
       var input = event.target;
@@ -252,7 +270,10 @@
       tree: tree, setTree: setTree,
       activeRows: activeRows, triggerActiveRow: triggerActiveRow,
       activeVars: activeVars, triggerActiveVar: triggerActiveVar,
-      visibleRows: visibleRows, visibleVars: visibleVars
+      visibleRows: visibleRows, visibleVars: visibleVars,
+      constantVarDisplayed: constantVarDisplayed,
+      sortedVisibleVars: sortedVisibleVars, nVisibleVars: nVisibleVars,
+      visibleVarOrder: visibleVarOrder
     };
 
     if(tree)
