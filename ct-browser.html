@@ -4,7 +4,7 @@
 <title>ConstraintTree browser</title>
 <script type="module">
   import {h, Component, render, createContext } from 'https://esm.sh/preact';
-  import { useContext, useState } from 'https://esm.sh/preact/hooks';
+  import { useContext, useState, useMemo, useReducer } from 'https://esm.sh/preact/hooks';
   import htm from 'https://esm.sh/htm';
   const html = htm.bind(h);
 
@@ -35,7 +35,7 @@
   }
 
   function Variables(props) {
-    const {tree} = useContext(GlobalState);
+    const {tree, visibleVars} = useContext(GlobalState);
     const {maxvar} = tree.data;
     const {type, vars} = props;
 
@@ -43,28 +43,34 @@
 
     if(type=='tree') {
       for(var i=0; i<=maxvar; ++i)
-        if(vars.has(i))
-          res.push(html`
-            <td key=${i}><${TreeVarRef} r=${i/maxvar}></></td>
-          `);
-        else
-          res.push(html`<td key=${i}></td>`);
+        if(visibleVars.has(i)) {
+          if(vars.has(i))
+            res.push(html`
+              <td key=${i}><${TreeVarRef} r=${i/maxvar}></></td>
+            `);
+          else
+            res.push(html`<td key=${i}></td>`);
+        }
     } else if(type=='lin') {
       for(var i=0; i<=maxvar; ++i)
-        if(vars.has(i))
-          res.push(html`
-            <td key=${i}><${ValRef} r=${i/maxvar}>${vars.get(i)}</></td>
-          `);
-        else
-          res.push(html`<td key=${i}></td>`);
+        if(visibleVars.has(i)) {
+          if(vars.has(i))
+            res.push(html`
+              <td key=${i}><${ValRef} r=${i/maxvar}>${vars.get(i)}</></td>
+            `);
+          else
+            res.push(html`<td key=${i}></td>`);
+        }
     } else if(type=='quad') {
       for(var i=0; i<=maxvar; ++i)
-        if(vars.has(i)) {
-          var sub=[];
-          vars.get(i).forEach((v,k) => sub.push(html`<${SubRef} r=${k/maxvar}>${v}</>`));
-          res.push(html`<td key=${i}><${ValRef} r=${i/maxvar}>${sub}</></td>`);
-        } else
-          res.push(html`<td key=${i}></td>`);
+        if(visibleVars.has(i)) {
+          if(vars.has(i)) {
+            var sub=[];
+            vars.get(i).forEach((v,k) => sub.push(html`<${SubRef} r=${k/maxvar}>${v}</>`));
+            res.push(html`<td key=${i}><${ValRef} r=${i/maxvar}>${sub}</></td>`);
+          } else
+            res.push(html`<td key=${i}></td>`);
+        }
     }
     //return res;
     return html`${res}`;
@@ -73,18 +79,20 @@
   function Bound(props) {
     const {type, bound} = props;
     const sym = type == 'tree' ? "🗀" : type == 'lin' ? "⟋" : type == 'quad' ? "○" : "?";
-    if(!bound) return sym;
-    else if(bound.length == 1) return `${sym} = ${bound[0]}`;
-    else if(bound.length == 2) return `${bound[0] == null ? "-∞" : bound[0]} ≤ ${sym} ≤ ${bound[1] == null ? "∞" : bound[1]}`;
+    if(bound === null) return sym;
+    else if(typeof(bound) === 'number') return `${sym} = ${bound}`;
+    else if(typeof(bound) === 'object' && bound.length == 2) return `${bound[0] == null ? "-∞" : bound[0]} ≤ ${sym} ≤ ${bound[1] == null ? "∞" : bound[1]}`;
     else return `?${sym}?`;
   }
 
   function Browser(props) {
-    const {tree} = useContext(GlobalState);
+    const {tree, activeRows, triggerActiveRow} = useContext(GlobalState);
     function tableRow(item) {
+      /* TODO all parents of anything that is shown? */
+      if(!(activeRows.has(item.id) || activeRows.has(item.pid) || item.id == "")) return html``;
       return html`<tr key=${item.id}>
         <td>
-          <span style="padding-left: ${item.lvl}em">
+          <span onClick=${() => triggerActiveRow(item.id)} style="padding-left: ${item.lvl}em">
             ${item.name}
           </span>
         </td>
@@ -97,7 +105,7 @@
     return html`<table>${tree.data.rows.map(tableRow)}</table>`;
   }
 
-  function processInput(json) {
+  function processTree(json) {
     var max_var = 0;
     var items = [];
 
@@ -131,7 +139,9 @@
           lvl:lvl, pid: pid, id: id, name: name,
           vars: vs
         });
-        Object.keys(js.tree).sort().map(cid => walkTree(js.tree[cid], lvl+1, id, id+'/'+cid, cid, vs));
+        Object.keys(js.tree).sort().map(
+          cid => walkTree(js.tree[cid], lvl+1, id, id+'/'+cid, cid, vs)
+        );
         for(var v of vs) pset.add(v);
       } else {
         if('lin' in js.value)
@@ -156,12 +166,46 @@
     var s = new Set();
     walkTree(json, 0, '', '', '/', s);
 
-    console.log(items);
     return {rows: items, maxvar: Math.max(...s)};
+  }
+
+  function collectVisibleVars(tree, activeRows, activeVars) {
+    var visibleVars = new Set();
+    if(!tree) return visibleVars;
+    activeVars.forEach(v => visibleVars.add(v));
+    tree.data.rows.forEach(t => {
+      if(activeRows.has(t.id) && (t.type == 'lin' || t.type == 'quad')) {
+        t.vars.forEach((v,k) => visibleVars.add(k));
+      }
+    });
+    return visibleVars;
   }
 
   function App(props) {
     const [tree, setTree] = useState(null);
+    const [activeRows, triggerActiveRow] = useReducer((state, id) => {
+      var ns = new Set(Array.from(state));
+      if(ns.has(id))
+        ns.delete(id);
+      else
+        ns.add(id);
+      return ns;
+    }, new Set());
+    const [activeVars, triggerActiveVar] = useReducer((state, v) => {
+      var ns = new Set(Array.from(state));
+      if(ns.has(v))
+        ns.delete(v);
+      else
+        ns.add(v);
+      return ns;
+    }, new Set());
+
+    const visibleVars = useMemo(
+      () => {
+        return collectVisibleVars(tree, activeRows, activeVars);
+      },
+      [tree, activeRows, activeVars]
+    );
 
     const loadState = function(event) {
       var input = event.target;
@@ -169,14 +213,21 @@
       reader.onload = function() {
         setTree({
           filename: input.files[0].name,
-          data: processInput(JSON.parse(reader.result))
+          data: processTree(JSON.parse(reader.result))
         });
       };
       reader.readAsText(input.files[0]);
     }
 
+    const contextVal = {
+      tree: tree, setTree: setTree,
+      activeRows: activeRows, triggerActiveRow: triggerActiveRow,
+      activeVars: activeVars, triggerActiveVar: triggerActiveVar,
+      visibleVars: visibleVars
+    };
+
     if(tree)
-      return html`<${GlobalState.Provider} value=${{tree:tree, setTree:setTree,}}><h1>ConstraintTree ${tree.filename}</h1><${Browser}/></>`;
+      return html`<${GlobalState.Provider} value=${contextVal}><h1>ConstraintTree ${tree.filename}</h1><${Browser}/></>`;
     else
       return html`<>
         <h1>ConstraintTree browser</h1>
@@ -225,6 +276,14 @@ td {
   padding: 0.5em;
   white-space: nowrap;
   border-left: 1px solid #333;
+}
+
+td.triggered {
+  background: #333;
+}
+
+tr.triggered {
+  background: #333;
 }
 
 tr:nth-child(odd) {
