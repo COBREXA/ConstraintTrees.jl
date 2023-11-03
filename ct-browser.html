@@ -10,12 +10,28 @@
 
   const CTGlobal = createContext(null);
 
-  function VarRef(props) {
+  function TreeVarRef(props) {
+    const {r} = props;
+    if(r==0)
+      return html`<span class="var treevar" style="background-color: hsl(0, 0%, 20%);">${props.children}</span>`;
+    else
+      return html`<span class="var treevar" style="background-color: hsl(${360*r}, 20%, 25%);">${props.children}</span>`;
+  }
+
+  function ValRef(props) {
     const {r} = props;
     if(r==0)
       return html`<span class="var" style="background-color: hsl(0, 0%, 55%);">${props.children}</span>`;
     else
-      return html`<span class="var" style="background-color: hsl(${360*r}, 100%, 66%);">${props.children}</span>`;
+      return html`<span class="var" style="background-color: hsl(${360*r}, 80%, 66%);">${props.children}</span>`;
+  }
+
+  function SubRef(props) {
+    const {r} = props;
+    if(r==0)
+      return html`<span class="var qvar" style="background-color: hsl(0, 0%, 55%);">${props.children}</span>`;
+    else
+      return html`<span class="var qvar" style="background-color: hsl(${360*r}, 80%, 66%);">${props.children}</span>`;
   }
 
   function Variables(props) {
@@ -24,13 +40,32 @@
     const {type, vars} = props;
 
     var res = [];
-    for(var i=0; i<=maxvar; ++i)
-      if(vars.has(i))
-        res.push(html`
-          <td key=${i}><${VarRef} r=${i/maxvar}>v${i}</></td>
-        `);
-      else
-        res.push(html`<td key=${i}></td>`)
+
+    if(type=='tree') {
+      for(var i=0; i<=maxvar; ++i)
+        if(vars.has(i))
+          res.push(html`
+            <td key=${i}><${TreeVarRef} r=${i/maxvar}></></td>
+          `);
+        else
+          res.push(html`<td key=${i}></td>`);
+    } else if(type=='lin') {
+      for(var i=0; i<=maxvar; ++i)
+        if(vars.has(i))
+          res.push(html`
+            <td key=${i}><${ValRef} r=${i/maxvar}>${vars.get(i)}</></td>
+          `);
+        else
+          res.push(html`<td key=${i}></td>`);
+    } else if(type=='quad') {
+      for(var i=0; i<=maxvar; ++i)
+        if(vars.has(i)) {
+          var sub=[];
+          vars.get(i).forEach((v,k) => sub.push(html`<${SubRef} r=${k/maxvar}>${v}</>`));
+          res.push(html`<td key=${i}><${ValRef} r=${i/maxvar}>${sub}</></td>`);
+        } else
+          res.push(html`<td key=${i}></td>`);
+    }
     //return res;
     return html`${res}`;
   }
@@ -43,7 +78,7 @@
     else if(bound.length == 2) return `${bound[0] == null ? "-∞" : bound[0]} ≤ ${sym} ≤ ${bound[1] == null ? "∞" : bound[1]}`;
     else return `?${sym}?`;
   }
-  
+
   function Browser(props) {
     const [gs, setgs] = useContext(CTGlobal);
     function tableRow(item) {
@@ -121,9 +156,10 @@
     var s = new Set();
     walkTree(json, 0, '', '', '/', s);
 
+    console.log(items);
     return {rows: items, maxvar: Math.max(...s)};
   }
-  
+
   function App(props) {
     const [gs, setgs] = useState(null);
 
@@ -162,7 +198,7 @@ end</pre>
 body {
   background: #222;
   color: #ddd;
-  font-family: 'sans-serif';
+  font-family: 'sans', 'sans-serif';
 }
 
 a {
@@ -188,6 +224,7 @@ table {
 td {
   padding: 0.5em;
   white-space: nowrap;
+  border-left: 1px solid #333;
 }
 
 tr:nth-child(odd) {
@@ -195,13 +232,25 @@ tr:nth-child(odd) {
 }
 
 span.var {
-  display: inline-block;
+  min-width: 1em;
+  min-height: 1em;
+  display: block;
   padding: 0.5em;
+  margin: 0.25em;
   border-radius: 0.5em;
-  font-size: 66%;
+  font-size: 80%;
   font-weight: bold;
   color: black;
+  text-align: center;
 }
+
+span.treevar {
+}
+
+span.qvar {
+  border: 0.25em solid black;
+}
+
 </style>
 </head>
 <body><div id="ctb-app">This needs javascript.</div></body>
