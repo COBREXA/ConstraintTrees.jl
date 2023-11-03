@@ -13,9 +13,9 @@
   function TreeVarRef(props) {
     const {r} = props;
     if(r==0)
-      return html`<span class="var treevar" style="background-color: hsl(0, 0%, 20%);">${props.children}</span>`;
+      return html`<span class="var treevar" style="background-color: hsl(0, 0%, 33%);">${props.children}</span>`;
     else
-      return html`<span class="var treevar" style="background-color: hsl(${360*r}, 20%, 25%);">${props.children}</span>`;
+      return html`<span class="var treevar" style="background-color: hsl(${360*r}, 33%, 33%);">${props.children}</span>`;
   }
 
   function ValRef(props) {
@@ -35,44 +35,37 @@
   }
 
   function Variables(props) {
-    const {tree, visibleVars} = useContext(GlobalState);
+    const {tree, visibleVars, activeVars, triggerActiveVar} = useContext(GlobalState);
     const {maxvar} = tree.data;
     const {type, vars} = props;
 
-    var res = [];
+    const vv = Array.from(visibleVars).sort((a, b) => a - b);
+    console.log(vv);
 
-    if(type=='tree') {
-      for(var i=0; i<=maxvar; ++i)
-        if(visibleVars.has(i)) {
-          if(vars.has(i))
-            res.push(html`
-              <td key=${i}><${TreeVarRef} r=${i/maxvar}></></td>
-            `);
-          else
-            res.push(html`<td key=${i}></td>`);
-        }
-    } else if(type=='lin') {
-      for(var i=0; i<=maxvar; ++i)
-        if(visibleVars.has(i)) {
-          if(vars.has(i))
-            res.push(html`
-              <td key=${i}><${ValRef} r=${i/maxvar}>${vars.get(i)}</></td>
-            `);
-          else
-            res.push(html`<td key=${i}></td>`);
-        }
-    } else if(type=='quad') {
-      for(var i=0; i<=maxvar; ++i)
-        if(visibleVars.has(i)) {
-          if(vars.has(i)) {
-            var sub=[];
-            vars.get(i).forEach((v,k) => sub.push(html`<${SubRef} r=${k/maxvar}>${v}</>`));
-            res.push(html`<td key=${i}><${ValRef} r=${i/maxvar}>${sub}</></td>`);
-          } else
-            res.push(html`<td key=${i}></td>`);
-        }
-    }
-    //return res;
+    const res = type=='tree' ?
+      vv.map(i => {
+        if(vars.has(i))
+          return html`<td key=${i} onClick=${() => triggerActiveVar(i)} class="${activeVars.has(i) ? "triggered" : ""} trigger"><${TreeVarRef} r=${i/maxvar}></></td>`;
+        else
+          return html`<td key=${i}></td>`;
+      }) : type=='lin' ?
+      vv.map(i => {
+        if(vars.has(i))
+          return html`<td key=${i} onClick=${() => triggerActiveVar(i)} class="${activeVars.has(i) ? "triggered" : ""} trigger"><${ValRef} r=${i/maxvar}>${vars.get(i)}</></td>`;
+        else
+          return html`<td key=${i}></td>`;
+      }) : type=='quad' ?
+      vv.map(i => {
+        if(vars.has(i)) {
+          var sub=[];
+          vars.get(i).forEach((v,k) => {
+            if(visibleVars.has(k)) sub.push(html`<${SubRef} r=${k/maxvar}>${v}</>`);
+          });
+          return html`<td key=${i} onClick=${() => triggerActiveVar(i)} class="${activeVars.has(i) ? "triggered" : ""} trigger"><${ValRef} r=${i/maxvar}>${sub}</></td>`;
+        } else
+          return html`<td key=${i}></td>`;
+      }) : html``;
+
     return html`${res}`;
   }
 
@@ -85,22 +78,29 @@
     else return `?${sym}?`;
   }
 
-  function Browser(props) {
+  function BrowserRow(props) {
+    const {idx, item} = props;
     const {tree, activeRows, triggerActiveRow} = useContext(GlobalState);
-    function tableRow(item) {
-      /* TODO all parents of anything that is shown? */
-      if(!(activeRows.has(item.id) || activeRows.has(item.pid) || item.id == "")) return html``;
-      return html`<tr key=${item.id}>
-        <td>
-          <span onClick=${() => triggerActiveRow(item.id)} style="padding-left: ${item.lvl}em">
-            ${item.name}
-          </span>
-        </td>
-        <td>
-          <${Bound} type=${item.type} bound=${'bound' in item ? item.bound : null} />
-        </td>
-        <${Variables} type=${item.type} vars=${item.vars} />
-      </tr>`;
+
+    return html`<tr key=${idx}>
+      <td onClick=${() => triggerActiveRow(idx)} class="${activeRows.has(idx) ? "triggered" : ""} trigger dirname">
+        ${[...Array(item.lvl)].map(i => html`<span key=${i} class="dir-padding">·</span>`)}
+        ${item.name}
+      </td>
+      <td>
+        <${Bound} type=${item.type} bound=${'bound' in item ? item.bound : null} />
+      </td>
+      <${Variables} type=${item.type} vars=${item.vars} />
+    </tr>`;
+  }
+
+  function Browser(props) {
+    const {tree, visibleRows} = useContext(GlobalState);
+    function tableRow(item, index) {
+      if(visibleRows.has(index))
+        return html`<${BrowserRow} idx=${index} item=${item} />`;
+      else
+        return html``;
     }
     return html`<table>${tree.data.rows.map(tableRow)}</table>`;
   }
@@ -132,22 +132,23 @@
       return res;
     }
 
-    function walkTree(js, lvl, pid, id, name, pset) {
+    function walkTree(js, lvl, pid, id, name, pset, pidx) {
       if('tree' in js) {
         var vs = new Set();
+        const idx = items.length;
         items.push({type: "tree",
-          lvl:lvl, pid: pid, id: id, name: name,
+          lvl:lvl, pid: pid, id: id, name: name, pidx: pidx,
           vars: vs
         });
         Object.keys(js.tree).sort().map(
-          cid => walkTree(js.tree[cid], lvl+1, id, id+'/'+cid, cid, vs)
+          cid => walkTree(js.tree[cid], lvl+1, id, id+'/'+cid, cid, vs, idx)
         );
         for(var v of vs) pset.add(v);
       } else {
         if('lin' in js.value)
           items.push({
             type: "lin",
-            lvl:lvl, pid: pid, id: id, name: name,
+            lvl:lvl, pid: pid, id: id, name: name, pidx: pidx,
             bound: js.bound,
             value: js.value.lin,
             vars: lin_vals(js.value.lin, pset)
@@ -155,7 +156,7 @@
         else
           items.push({
             type: "quad",
-            lvl:lvl, pid: pid, id: id, name: name,
+            lvl:lvl, pid: pid, id: id, name: name, pidx: pidx,
             bound: js.bound,
             value: js.value.quad,
             vars: quad_vals(js.value.quad, pset)
@@ -164,7 +165,7 @@
     }
 
     var s = new Set();
-    walkTree(json, 0, '', '', '/', s);
+    walkTree(json, 0, '', '', '/', s, -1);
 
     return {rows: items, maxvar: Math.max(...s)};
   }
@@ -173,12 +174,34 @@
     var visibleVars = new Set();
     if(!tree) return visibleVars;
     activeVars.forEach(v => visibleVars.add(v));
-    tree.data.rows.forEach(t => {
-      if(activeRows.has(t.id) && (t.type == 'lin' || t.type == 'quad')) {
+    tree.data.rows.forEach((t, idx) => {
+      if(activeRows.has(idx) && (t.type == 'lin' || t.type == 'quad')) {
         t.vars.forEach((v,k) => visibleVars.add(k));
       }
     });
     return visibleVars;
+  }
+
+  function collectVisibleRows(tree, activeRows, activeVars) {
+    /* TODO all parents of anything that is shown? */
+    var visibleRows = new Set([0]);
+    function add(i) {
+      while(true) {
+        console.log(i);
+        if(visibleRows.has(i)) break;
+        visibleRows.add(i);
+        i = tree.data.rows[i].pidx;
+      }
+    }
+    if(!tree) return visibleRows;
+    activeRows.forEach(add);
+    tree.data.rows.forEach((t, i) => {
+      if(activeRows.has(t.pidx)) add(i);
+      t.vars.forEach((v,k) => {
+        if(activeVars.has(k)) add(i);
+      });
+    });
+    return visibleRows;
   }
 
   function App(props) {
@@ -200,6 +223,12 @@
       return ns;
     }, new Set());
 
+    const visibleRows = useMemo(
+      () => {
+        return collectVisibleRows(tree, activeRows, activeVars);
+      },
+      [tree, activeRows, activeVars]
+    );
     const visibleVars = useMemo(
       () => {
         return collectVisibleVars(tree, activeRows, activeVars);
@@ -223,7 +252,7 @@
       tree: tree, setTree: setTree,
       activeRows: activeRows, triggerActiveRow: triggerActiveRow,
       activeVars: activeVars, triggerActiveVar: triggerActiveVar,
-      visibleVars: visibleVars
+      visibleRows: visibleRows, visibleVars: visibleVars
     };
 
     if(tree)
@@ -278,16 +307,28 @@ td {
   border-left: 1px solid #333;
 }
 
-td.triggered {
-  background: #333;
+td.dirname {
+  min-width: 5em;
 }
 
-tr.triggered {
-  background: #333;
+span.dir-padding {
+  margin-right: 1em;
+}
+
+td.trigger {
+  cursor: pointer;
+}
+
+td.trigger:hover {
+  background-color: #666;
 }
 
 tr:nth-child(odd) {
-  background: #2a2a2a;
+  background-color: #2a2a2a;
+}
+
+td.triggered {
+  background-color: #444;
 }
 
 span.var {
