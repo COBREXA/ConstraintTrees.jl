@@ -8,7 +8,7 @@
   import htm from 'https://esm.sh/htm';
   const html = htm.bind(h);
 
-  const CTGlobal = createContext(null);
+  const GlobalState = createContext(null);
 
   function TreeVarRef(props) {
     const {r} = props;
@@ -35,8 +35,8 @@
   }
 
   function Variables(props) {
-    const [gs, sets] = useContext(CTGlobal);
-    const {maxvar} = gs.data;
+    const {tree} = useContext(GlobalState);
+    const {maxvar} = tree.data;
     const {type, vars} = props;
 
     var res = [];
@@ -80,7 +80,7 @@
   }
 
   function Browser(props) {
-    const [gs, setgs] = useContext(CTGlobal);
+    const {tree} = useContext(GlobalState);
     function tableRow(item) {
       return html`<tr key=${item.id}>
         <td>
@@ -94,7 +94,7 @@
         <${Variables} type=${item.type} vars=${item.vars} />
       </tr>`;
     }
-    return html`<table>${gs.data.rows.map(tableRow)}</table>`;
+    return html`<table>${tree.data.rows.map(tableRow)}</table>`;
   }
 
   function processInput(json) {
@@ -161,13 +161,13 @@
   }
 
   function App(props) {
-    const [gs, setgs] = useState(null);
+    const [tree, setTree] = useState(null);
 
     const loadState = function(event) {
       var input = event.target;
       var reader = new FileReader();
       reader.onload = function() {
-        setgs({
+        setTree({
           filename: input.files[0].name,
           data: processInput(JSON.parse(reader.result))
         });
@@ -175,8 +175,8 @@
       reader.readAsText(input.files[0]);
     }
 
-    if(gs)
-      return html`<${CTGlobal.Provider} value=${[gs, setgs]}><h1>ConstraintTree ${gs.filename}</h1><${Browser}/></>`;
+    if(tree)
+      return html`<${GlobalState.Provider} value=${{tree:tree, setTree:setTree,}}><h1>ConstraintTree ${tree.filename}</h1><${Browser}/></>`;
     else
       return html`<>
         <h1>ConstraintTree browser</h1>
