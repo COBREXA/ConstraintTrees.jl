@@ -360,3 +360,5 @@ delete!(c.exchanges, :production_is_zero)
 # In the end, the flux optimization yields an expectably different result:
 result = C.ValueTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
+
+@test result.exchanges.oxygen < -19.0 #src
