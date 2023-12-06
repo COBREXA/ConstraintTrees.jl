@@ -313,3 +313,50 @@ result.exchanges
 # Finally, we can iterate over all species in the small community and see how
 # much biomass was actually contributed by each:
 Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
+
+# ## Modifying constraint systems in-place
+#
+# Constraint trees can be modified in-place in a way that allows you to easily
+# change small values in the trees without reconstructing them from the ground
+# up.
+#
+# Although in-place modification is extremely convenient and looks much easier
+# than rebuilding the tree, it may be very detrimental to the robustness and
+# efficiency of the programs, for several reasons:
+#
+# - changing any data breaks assumptions on anything that was already derived
+#   from the data
+# - for efficiency, the tree structures are _not copied_ by default if there's
+#   no need to do it, and only shared by references; which means that a naive
+#   change at a single place of the tree may easily change values also in other
+#   parts of any trees, including completely different trees
+# - the "convenient way" of making sure that the above problem never happens is
+#   to deep-copy the whole tree structure, which is typically quite detrimental
+#   to memory use and program efficiency
+#
+#md # !!! danger "Rules of thumb for safe use of in-place modification"
+#md #     Only use the in-place modifications if:
+#md #     - there is code that explicitly makes sure there is no false sharing via references, e.g. using a deep copy
+#md #     - the in-place modifications are the last thing happening to the constraint tree before it is used by the solver
+#md #     - the in-place modification code is not a part of a re-usable library
+#
+# Now, if you are completely sure that ignoring the robustness guidelines will
+# help your code, you can do the in-place tree modifications quite easily using
+# both dot-access and array-index syntax.
+
+# You can thus, e.g., set a single bound:
+c.exchanges.oxygen.bound = (-20.0, 20.0)
+
+# ...or rebuild a whole constraint:
+c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20.0, 20.0))
+
+# ...or even add new constraints, here using the index syntax for demonstration:
+c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0.0)
+
+# ...or remove some constraints (this erases the constraint that was added just
+# above):
+delete!(c.exchanges, :production_is_zero)
+
+# In the end, the flux optimization yields an expectably different result:
+result = C.ValueTree(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+result.exchanges
