@@ -14,7 +14,7 @@ becomes easily accessible for inspection and building other constraints.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Constraint{Value}
+Base.@kwdef mutable struct Constraint{Value}
     "A value (typically a [`LinearValue`](@ref) or a [`QuadraticValue`](@ref))
     that describes what the constraint constraints."
     value::Value

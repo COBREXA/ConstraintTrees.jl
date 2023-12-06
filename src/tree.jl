@@ -56,11 +56,19 @@ Base.values(x::Tree) = values(elems(x))
 
 Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
 
+Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X,E<:X} =
+    setindex!(elems(x), val, sym)
+
+Base.delete!(x::Tree, sym::Symbol) = delete!(elems(x), sym)
+
 Base.propertynames(x::Tree) = keys(x)
 
 Base.hasproperty(x::Tree, sym::Symbol) = haskey(x, sym)
 
 Base.getproperty(x::Tree, sym::Symbol) = elems(x)[sym]
+
+Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X,E<:X} =
+    setindex!(elems(x), val, sym)
 
 #
 # Algebraic construction
