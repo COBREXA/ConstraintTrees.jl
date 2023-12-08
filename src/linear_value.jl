@@ -82,8 +82,8 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Substitute anything vector-like as variable values into a [`LinearValue`](@ref) and
-return the result.
+Substitute anything vector-like as variable values into a [`LinearValue`](@ref)
+and return the result.
 """
 substitute(x::LinearValue, y) =
     sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs))
@@ -91,8 +91,8 @@ substitute(x::LinearValue, y) =
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for making a [`LinearValue`](@ref) out of a linear combination defined by
-the `SparseVector`.
+Shortcut for making a [`LinearValue`](@ref) out of a linear combination defined
+by the `SparseVector`.
 """
 LinearValue(x::SparseVector{Float64}) =
     let (idxs, weights) = findnz(x)

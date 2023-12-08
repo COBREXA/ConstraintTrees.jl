@@ -38,9 +38,16 @@ end
     @test C.bound(2 * -convert(C.Constraint, (C.variable(bound = 123.0))) / 2) == -123.0
 
     x = C.variable().value
-    s = :a^C.Constraint(x) + :b^C.Constraint(x * x - x)
+    s = :a^C.Constraint(x, 5.0) + :b^C.Constraint(x * x - x, (4.0, 6.0))
     @test C.value(s.a).idxs == [1]
     @test C.value(s.b).idxs == [(0, 2), (2, 2)]
+    vars = [C.LinearValue([1], [1.0]), C.LinearValue([2], [1.0])]
+    @test C.substitute(s.a, vars).bound == s.a.bound
+    @test C.substitute(s.a, vars).value.idxs == s.a.value.idxs
+    @test C.substitute(s.a, vars).value.weights == s.a.value.weights
+    @test C.substitute(s.b, vars).bound == s.b.bound
+    @test C.substitute(s.b, vars).value.idxs == s.b.value.idxs
+    @test C.substitute(s.b, vars).value.weights == s.b.value.weights
 end
 
 @testset "Constraint tree operations" begin
