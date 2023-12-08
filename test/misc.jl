@@ -66,11 +66,10 @@ end
 @testset "Solution tree operations" begin
     ct = C.variables(keys = [:a, :b])
 
-    @test_throws BoundsError C.ValueTree(ct, [1.0])
-    st = C.ValueTree(ct, [123.0, 321.0])
+    @test_throws BoundsError C.constraint_values(ct, [1.0])
+    st = C.constraint_values(ct, [123.0, 321.0])
 
-    @test isempty(C.ValueTree())
-    @test isempty(C.ValueTree(C.ConstraintTree(), Float64[]))
+    @test isempty(C.constraint_values(C.ConstraintTree(), Float64[]))
     @test !isempty(st)
     @test haskey(st, :a)
     @test hasproperty(st, :a)
@@ -85,7 +84,7 @@ end
     @test collect(keys(st)) == [:a, :b]
     @test sum([v for (_, v) in st]) == 444.0
     @test sum(values(st)) == 444.0
-    @test eltype(st) == Pair{Symbol,C.ValueTreeElem}
+    @test eltype(st) == Pair{Symbol,Union{C.Tree{Float64},Float64}}
 end
 
 @testset "Pretty-printing" begin

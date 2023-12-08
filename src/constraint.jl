@@ -54,3 +54,11 @@ Simple accessor for getting out the bound from the constraint that can be used
 for broadcasting (as opposed to the dot-field access).
 """
 bound(x::Constraint) = x.bound
+
+"""
+$(TYPEDSIGNATURES)
+
+Substitute anything vector-like as variables into the constraint's value,
+producing a constraint with the new value.
+"""
+substitute(x::Constraint, y) = Constraint(substitute(x.value, y), x.bound)

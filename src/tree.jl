@@ -86,3 +86,18 @@ Base.merge(a::Base.Callable, d::Tree, others::Tree...) = mergewith(a, d, others.
 function Base.mergewith(a::Base.Callable, d::Tree{X}, others::Tree...) where {X}
     Tree{X}(elems = mergewith(a, elems(d), elems.(others)...))
 end
+
+#
+# Transforming trees
+#
+
+"""
+$(TYPEDSIGNATURES)
+
+Run a function over everything in the tree. The resulting tree will contain
+elements of type `output_type`. (This needs to be specified explicitly, because
+the typesystem generally cannot guess the type correctly.)
+"""
+tree_map(x::Tree, f, output_type::DataType) = Tree{output_type}(
+    k => (v isa Tree ? tree_map(v, f, output_type) : f(v)) for (k, v) in x
+)
