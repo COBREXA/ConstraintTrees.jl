@@ -42,6 +42,7 @@ module ConstraintTrees
 
 using DocStringExtensions
 
+include("value.jl")
 include("linear_value.jl")
 include("quadratic_value.jl")
 include("bound.jl")

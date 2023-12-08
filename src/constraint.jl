@@ -14,17 +14,14 @@ becomes easily accessible for inspection and building other constraints.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct Constraint{Value}
+Base.@kwdef mutable struct Constraint{V}
     "A value (typically a [`LinearValue`](@ref) or a [`QuadraticValue`](@ref))
     that describes what the constraint constraints."
-    value::Value
+    value::V
     "A bound that the `value` must satisfy."
     bound::Bound = nothing
 
-    function Constraint(
-        v::T,
-        b::Bound = nothing,
-    ) where {T<:Union{LinearValue,QuadraticValue}}
+    function Constraint(v::T, b::Bound = nothing) where {T<:Value}
         new{T}(v, b)
     end
 end

@@ -14,7 +14,7 @@ The cleanest way to construct a `QuadraticValue` is to multiply two [`LinearValu
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct QuadraticValue
+Base.@kwdef struct QuadraticValue <: Value
     """
     Indexes of variable pairs used by the value. The indexes must always be
     sorted in strictly co-lexicographically increasing order, and the second

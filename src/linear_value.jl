@@ -14,7 +14,7 @@ Multiplying two `LinearValue`s yields a quadratic form (in a [`QuadraticValue`](
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct LinearValue
+Base.@kwdef struct LinearValue <: Value
     """
     Indexes of the variables used by the value. The indexes must always be
     sorted in strictly increasing order. The affine element has index 0.
