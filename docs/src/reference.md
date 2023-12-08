@@ -3,6 +3,11 @@
 
 ## Values
 
+```@autodocs
+Modules = [ConstraintTrees]
+Pages = ["src/value.jl"]
+```
+
 ### Linear and affine values
 
 ```@autodocs
