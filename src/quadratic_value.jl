@@ -38,7 +38,9 @@ $(TYPEDSIGNATURES)
 
 Construct a constant [`QuadraticValue`](@ref) with a single affine element.
 """
-QuadraticValue(x::Real) = QuadraticValue(idxs = [(0, 0)], weights = [x])
+QuadraticValue(x::Real) =
+    iszero(x) ? QuadraticValue(idxs = [], weights = []) :
+    QuadraticValue(idxs = [(0, 0)], weights = [x])
 
 """
 $(TYPEDSIGNATURES)
@@ -143,9 +145,12 @@ Substitute anything vector-like as variable values into the [`QuadraticValue`](@
 and return the result.
 """
 substitute(x::QuadraticValue, y) = sum(
-    let (idx1, idx2) = x.idxs[i]
-        (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
-    end for (i, w) in enumerate(x.weights)
+    (
+        let (idx1, idx2) = x.idxs[i]
+            (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
+        end for (i, w) in enumerate(x.weights)
+    ),
+    init = 0.0,
 )
 
 """

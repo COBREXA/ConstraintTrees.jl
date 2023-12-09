@@ -29,7 +29,9 @@ $(TYPEDSIGNATURES)
 
 Construct a constant [`LinearValue`](@ref) with a single affine element.
 """
-LinearValue(x::Real) = LinearValue(idxs = [0], weights = [x])
+LinearValue(x::Real) =
+    iszero(x) ? LinearValue(idxs = [], weights = []) :
+    LinearValue(idxs = [0], weights = [x])
 
 Base.convert(::Type{LinearValue}, x::Real) = LinearValue(x)
 Base.zero(::Type{LinearValue}) = LinearValue(idxs = [], weights = [])
@@ -85,8 +87,10 @@ $(TYPEDSIGNATURES)
 Substitute anything vector-like as variable values into a [`LinearValue`](@ref)
 and return the result.
 """
-substitute(x::LinearValue, y) =
-    sum(idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs))
+substitute(x::LinearValue, y) = sum(
+    (idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs)),
+    init = 0.0,
+)
 
 """
 $(TYPEDSIGNATURES)
