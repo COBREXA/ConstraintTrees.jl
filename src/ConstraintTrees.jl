@@ -32,8 +32,9 @@ The package is structured as follows:
   -- this forms the basis of the "tidy" algebra of constraints.
 - A variable assignment, which is typically the "solution" for a given
   constraint tree, can be combined with a [`ConstraintTree`](@ref) to create a
-  [`ValueTree`](@ref), which enables browsing of the optimization results in
-  the very same structure as the input [`ConstraintTree`](@ref).
+  "value tree" via [`constraint_values`](@ref), which enables browsing of the
+  optimization results in the very same structure as the input
+  [`ConstraintTree`](@ref).
 
 You can follow the examples in documentation and the docstrings of package
 contents for more details.
@@ -42,13 +43,13 @@ module ConstraintTrees
 
 using DocStringExtensions
 
+include("value.jl")
 include("linear_value.jl")
 include("quadratic_value.jl")
 include("bound.jl")
 include("constraint.jl")
 include("tree.jl")
 include("constraint_tree.jl")
-include("value_tree.jl")
 include("pretty.jl")
 
 end # module ConstraintTrees

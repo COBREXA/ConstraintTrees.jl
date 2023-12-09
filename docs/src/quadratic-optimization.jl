@@ -12,8 +12,8 @@
 #
 # ## Working with quadratic values and constraints
 #
-# Algebraically, you can construct `QuadraticValue`s simply by multiplying the linear
-# `LinearValue`s:
+# Algebraically, you can construct `QuadraticValue`s simply by multiplying the
+# linear `LinearValue`s:
 
 import ConstraintTrees as C
 
@@ -23,9 +23,9 @@ qv = system.x.value * (system.y.value + 2 * system.z.value)
 @test qv.idxs == [(1, 2), (1, 3)] #src
 @test qv.weights == [1.0, 2.0] #src
 
-# As with `LinearValue`s, the `QuadraticValue`s can be easily combined, giving a nice way to
-# specify e.g. weighted sums of squared errors with respect to various
-# directions. We can thus represent common formulas for error values:
+# As with `LinearValue`s, the `QuadraticValue`s can be easily combined, giving
+# a nice way to specify e.g. weighted sums of squared errors with respect to
+# various directions. We can thus represent common formulas for error values:
 error_val =
     C.squared(system.x.value + system.y.value - 1) +
     C.squared(system.y.value + 5 * system.z.value - 3)
@@ -40,7 +40,7 @@ system = :vars^system * :error^C.Constraint(value = error_val, bound = (0.0, 100
 # Let's pretend someone has solved the system, and see how much "error" the
 # solution has:
 solution = [1.0, 2.0, -1.0]
-st = C.ValueTree(system, solution)
+st = C.constraint_values(system, solution)
 st.error
 
 # ...not bad for a first guess.
@@ -125,7 +125,7 @@ end
 # We can now load a suitable optimizer and solve the system by maximizing the
 # negative squared error:
 import Clarabel
-st = C.ValueTree(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
+st = C.constraint_values(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 
 # If the optimization worked well, we can nicely get out the position of the
 # closest point to the line that is in the elliptical area:

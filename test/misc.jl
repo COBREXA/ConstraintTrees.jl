@@ -38,9 +38,16 @@ end
     @test C.bound(2 * -convert(C.Constraint, (C.variable(bound = 123.0))) / 2) == -123.0
 
     x = C.variable().value
-    s = :a^C.Constraint(x) + :b^C.Constraint(x * x - x)
+    s = :a^C.Constraint(x, 5.0) + :b^C.Constraint(x * x - x, (4.0, 6.0))
     @test C.value(s.a).idxs == [1]
     @test C.value(s.b).idxs == [(0, 2), (2, 2)]
+    vars = [C.LinearValue([1], [1.0]), C.LinearValue([2], [1.0])]
+    @test C.substitute(s.a, vars).bound == s.a.bound
+    @test C.substitute(s.a, vars).value.idxs == s.a.value.idxs
+    @test C.substitute(s.a, vars).value.weights == s.a.value.weights
+    @test C.substitute(s.b, vars).bound == s.b.bound
+    @test C.substitute(s.b, vars).value.idxs == s.b.value.idxs
+    @test C.substitute(s.b, vars).value.weights == s.b.value.weights
 end
 
 @testset "Constraint tree operations" begin
@@ -66,11 +73,10 @@ end
 @testset "Solution tree operations" begin
     ct = C.variables(keys = [:a, :b])
 
-    @test_throws BoundsError C.ValueTree(ct, [1.0])
-    st = C.ValueTree(ct, [123.0, 321.0])
+    @test_throws BoundsError C.constraint_values(ct, [1.0])
+    st = C.constraint_values(ct, [123.0, 321.0])
 
-    @test isempty(C.ValueTree())
-    @test isempty(C.ValueTree(C.ConstraintTree(), Float64[]))
+    @test isempty(C.constraint_values(C.ConstraintTree(), Float64[]))
     @test !isempty(st)
     @test haskey(st, :a)
     @test hasproperty(st, :a)
@@ -85,7 +91,7 @@ end
     @test collect(keys(st)) == [:a, :b]
     @test sum([v for (_, v) in st]) == 444.0
     @test sum(values(st)) == 444.0
-    @test eltype(st) == Pair{Symbol,C.ValueTreeElem}
+    @test eltype(st) == Pair{Symbol,Union{C.Tree{Float64},Float64}}
 end
 
 @testset "Pretty-printing" begin
