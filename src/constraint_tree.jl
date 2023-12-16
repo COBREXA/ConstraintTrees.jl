@@ -191,7 +191,7 @@ interval bound for all variables, it is impossible to use a tuple (since its
 length is 2); in such case use `bound = Ref((minimum, maximum))`, which has the
 correct length.
 """
-function variables(; keys::Vector{Symbol}, bounds = nothing)
+function variables(; keys::Union{Vector{Symbol}, Set{Symbol}}, bounds = nothing)
     bs =
         isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
         length(bounds) == 1 ? Base.Iterators.cycle(bounds) :
