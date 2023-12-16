@@ -280,8 +280,8 @@ C.constraint_values(c.objective, optimal_variable_assignment)
 # organisms:
 c =
     :community^(
-        :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0.0)) +
-        :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0.0))
+        :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0)) +
+        :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0))
     )
 
 # We can create additional variables that represent total community intake of
@@ -349,10 +349,10 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 c.exchanges.oxygen.bound = (-20.0, 20.0)
 
 # ...or rebuild a whole constraint:
-c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20.0, 20.0))
+c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))
 
 # ...or even add new constraints, here using the index syntax for demonstration:
-c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0.0)
+c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0)
 
 # ...or remove some constraints (this erases the constraint that was added just
 # above):
