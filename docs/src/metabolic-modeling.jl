@@ -346,7 +346,7 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 # both dot-access and array-index syntax.
 
 # You can thus, e.g., set a single bound:
-c.exchanges.oxygen.bound = (-20, 20)
+c.exchanges.oxygen.bound = (-20.0, 20.0)
 
 # ...or rebuild a whole constraint:
 c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))
