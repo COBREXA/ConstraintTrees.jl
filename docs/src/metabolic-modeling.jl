@@ -346,13 +346,13 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 # both dot-access and array-index syntax.
 
 # You can thus, e.g., set a single bound:
-c.exchanges.oxygen.bound = (-20.0, 20.0) # typed as Tuple{Float64, Float64}
+c.exchanges.oxygen.bound = (-20, 20)
 
 # ...or rebuild a whole constraint:
-c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20)) # construct automatically converts bounds to floats
+c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))
 
 # ...or even add new constraints, here using the index syntax for demonstration:
-c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0.0)
+c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0)
 
 # ...or remove some constraints (this erases the constraint that was added just
 # above):
