@@ -32,7 +32,7 @@ error_val =
 
 # This allows us to naturally express quadratic constraint (e.g., that an error
 # must not be too big); and directly observe the error values in the system.
-system = :vars^system * :error^C.Constraint(value = error_val, bound = (0.0, 100.0))
+system = :vars^system * :error^C.Constraint(error_val, (0, 100))
 
 # (For simplicity, you can also use the `Constraint` constructor to make
 # quadratic constraints out of `QuadraticValue`s -- it will overload properly.)
