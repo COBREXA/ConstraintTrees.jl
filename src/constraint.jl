@@ -27,9 +27,9 @@ Base.@kwdef mutable struct Constraint{V}
 end
 
 Constraint(v::T, b::Int) where {T<:Value} = Constraint{T}(v, float(b))
-Constraint(v::T, b::Tuple{Int, Int}) where {T<:Value} = Constraint{T}(v, float.(b))
-Constraint(v::T, b::Tuple{Int, Float64}) where {T<:Value} = Constraint{T}(v, float.(b))
-Constraint(v::T, b::Tuple{Float64, Int}) where {T<:Value} = Constraint{T}(v, float.(b))
+Constraint(v::T, b::Tuple{Int,Int}) where {T<:Value} = Constraint{T}(v, float.(b))
+Constraint(v::T, b::Tuple{Int,Float64}) where {T<:Value} = Constraint{T}(v, float.(b))
+Constraint(v::T, b::Tuple{Float64,Int}) where {T<:Value} = Constraint{T}(v, float.(b))
 
 Base.:-(a::Constraint) = -1 * a
 Base.:*(a::Real, b::Constraint) = b * a
