@@ -16,14 +16,19 @@
 
 import ConstraintTrees as C
 
-system = C.variables(keys = [:x, :y, :z], bounds=[C.Binary,C.Binary,C.Integers])
+system = C.variables(keys = [:x, :y, :z], bounds = [C.Binary, C.Binary, C.Integers])
 
-system *= :objective^C.Constraint(system[:x].value + system[:y].value + 3 * system[:z].value)
+system *=
+    :objective^C.Constraint(system[:x].value + system[:y].value + 3 * system[:z].value)
 
-system *= :binary_constraints^C.ConstraintTree(
-    :constraint1 => C.Constraint(system[:x].value + 2 * system[:y].value + system[:z].value, (0, 5)),
-    :constraint2 => C.Constraint(system[:x].value + system[:y].value, (1, Inf))
-)
+system *=
+    :binary_constraints^C.ConstraintTree(
+        :constraint1 => C.Constraint(
+            system[:x].value + 2 * system[:y].value + system[:z].value,
+            (0, 5),
+        ),
+        :constraint2 => C.Constraint(system[:x].value + system[:y].value, (1, Inf)),
+    )
 
 # ## Solving MILP systems with JuMP
 #
@@ -33,11 +38,7 @@ system *= :binary_constraints^C.ConstraintTree(
 # constraints.
 
 import JuMP
-function optimized_vars(
-    cs::C.ConstraintTree,
-    objective::C.LinearValue,
-    optimizer,
-)
+function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
@@ -51,7 +52,7 @@ function optimized_vars(
             # val = C.substitute(c.value, x) # TODO, returns a AffExpr which is incompatible with set_binary
             JuMP.set_binary.(x[c.value.idxs])
         elseif b isa C.IntegerBound
-            JuMP.set_integer.(x[c.value.idxs])    
+            JuMP.set_integer.(x[c.value.idxs])
         end
     end
     function add_constraint(c::C.ConstraintTree)
@@ -66,7 +67,10 @@ end
 # We can now load a suitable optimizer (MILP solver) and solve the system by
 # maximizing the objective:
 import GLPK
-solution = C.constraint_values(system, optimized_vars(system, system.objective.value, GLPK.Optimizer))
+solution = C.constraint_values(
+    system,
+    optimized_vars(system, system.objective.value, GLPK.Optimizer),
+)
 
 # Thus, we can see that the optimal objective is:
 solution.objective
