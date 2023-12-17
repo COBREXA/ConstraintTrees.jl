@@ -1,10 +1,10 @@
 
 # # Example: Mixed integer optimization
 #
-# In this example we demonstrate the use of binary constraints and values.
-# We assume that the reader is already familiar with the construction of
-# `ConstraintTree`s; if not, it is advisable to read the previous part
-# of the documentation first.
+# In this example we demonstrate the use of binary, and integer valued
+# variables. We assume that the reader is already familiar with the construction
+# of `ConstraintTree`s; if not, it is advisable to read the previous part of the
+# documentation first.
 
 # The simple problem we will solve is:
 # max    x + y + 3 z
