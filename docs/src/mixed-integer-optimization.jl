@@ -7,29 +7,30 @@
 # of the documentation first.
 
 # The simple problem we will solve is:
-# max    x + y + 2 z
+# max    x + y + 3 z
 # s. t.
-#        x + 2 y + 3 z <= 4
+#        x + 2 y + z   <= 5
 #        x +   y       >= 1
-#        x, y, z binary
+#        x, y binary
+#        z integer
 
 import ConstraintTrees as C
 
-system = C.variables(keys = [:x, :y, :z], bounds=[C.Binary,C.Binary,C.Binary])
+system = C.variables(keys = [:x, :y, :z], bounds=[C.Binary,C.Binary,C.Integers])
 
-system *= :objective^C.Constraint(system[:x].value + system[:y].value + 2 * system[:z].value)
+system *= :objective^C.Constraint(system[:x].value + system[:y].value + 3 * system[:z].value)
 
 system *= :binary_constraints^C.ConstraintTree(
-    :constraint1 => C.Constraint(system[:x].value + 2 * system[:y].value + 3 * system[:z].value, (0, 4)),
+    :constraint1 => C.Constraint(system[:x].value + 2 * system[:y].value + system[:z].value, (0, 5)),
     :constraint2 => C.Constraint(system[:x].value + system[:y].value, (1, Inf))
 )
 
-
-# ## Solving quadratic systems with JuMP
+# ## Solving MILP systems with JuMP
 #
 # To solve the above system, we need a matching solver that can work with binary
-# constraints. Also, we need to slightly generalize the function that translates
-# the constraints into JuMP `Model`s to support the integer constraints.
+# and integer constraints. Also, we need to slightly modify the function that
+# translates the constraints into JuMP `Model`s to support the integer
+# constraints.
 
 import JuMP
 function optimized_vars(
@@ -49,6 +50,8 @@ function optimized_vars(
         elseif b isa C.BinaryBound
             # val = C.substitute(c.value, x) # TODO, returns a AffExpr which is incompatible with set_binary
             JuMP.set_binary.(x[c.value.idxs])
+        elseif b isa C.IntegerBound
+            JuMP.set_integer.(x[c.value.idxs])    
         end
     end
     function add_constraint(c::C.ConstraintTree)
@@ -73,4 +76,4 @@ solution.objective
 
 @test isapprox(solution.x, 1, atol = 1e-2) #src
 @test isapprox(solution.y, 0, atol = 1e-2) #src
-@test isapprox(solution.z, 1, atol = 1e-2) #src
+@test isapprox(solution.z, 4, atol = 1e-2) #src

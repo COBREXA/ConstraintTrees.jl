@@ -20,8 +20,21 @@ const Binary = BinaryBound()
 """
 $(TYPEDEF)
 
-Shortcut for possible bounds: either no bound is present (`nothing`), or a
-single number is interpreted as an exact equality bound, or a tuple of 2
-numbers is interpreted as an interval bound.
+A special type of bound where the variable may only take on integer values.
 """
-const Bound = Union{Nothing,Float64,IntervalBound,BinaryBound}
+struct IntegerBound end
+
+const Integers = IntegerBound()
+
+"""
+$(TYPEDEF)
+
+Shortcuts for possible bounds:
+
+- either no bound is present (`nothing`),
+- a single number is interpreted as an exact equality bound,
+- a tuple of 2 numbers is interpreted as an interval bound,
+- setting `BinaryBound()` or its alias, `Binary` creates an integer valued variable, that can only take on 0 or 1,
+- setting `IntegerBound()` or its alias, `Integers` creates an integer valued variable.
+"""
+const Bound = Union{Nothing,Float64,IntervalBound,BinaryBound,IntegerBound}
