@@ -32,7 +32,7 @@ error_val =
 
 # This allows us to naturally express quadratic constraint (e.g., that an error
 # must not be too big); and directly observe the error values in the system.
-system = :vars^system * :error^C.Constraint(error_val, (0, 100))
+system = :vars^system * :error^C.Constraint(error_val, C.Between(0, 100))
 
 # (For simplicity, you can also use the `Constraint` constructor to make
 # quadratic constraints out of `QuadraticValue`s -- it will overload properly.)
@@ -58,7 +58,7 @@ ellipse_system = C.ConstraintTree(
     :point => point,
     :in_area => C.Constraint(
         C.squared(point.x.value) / 4 + C.squared(10.0 - point.y.value),
-        (-Inf, 1.0),
+        C.Between(-Inf, 1.0),
     ),
 )
 
@@ -95,22 +95,18 @@ s *=
 # translates the constraints into JuMP `Model`s to support the quadratic
 # constraints.
 import JuMP
-function optimized_vars(
-    cs::C.ConstraintTree,
-    objective::Union{C.LinearValue,C.QuadraticValue},
-    optimizer,
-)
+function optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     function add_constraint(c::C.Constraint)
         b = c.bound
-        if b isa Float64
-            JuMP.@constraint(model, C.substitute(c.value, x) == b)
-        elseif b isa Tuple{Float64,Float64}
+        if b isa C.EqualTo
+            JuMP.@constraint(model, C.substitute(c.value, x) == b.equal_to)
+        elseif b isa C.Between
             val = C.substitute(c.value, x)
-            isinf(b[1]) || JuMP.@constraint(model, val >= b[1])
-            isinf(b[2]) || JuMP.@constraint(model, val <= b[2])
+            isinf(b.lower) || JuMP.@constraint(model, val >= b.lower)
+            isinf(b.upper) || JuMP.@constraint(model, val <= b.upper)
         end
     end
     function add_constraint(c::C.ConstraintTree)

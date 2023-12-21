@@ -186,10 +186,10 @@ single bound (of precise length 1) for creating all variables of the same
 constraint, or an iterable object of same length as `keys` with individual
 bounds for each variable in the same order as `keys`.
 
-The individual bounds should be of type [`Bound`](@ref). To pass a single
-interval bound for all variables, it is impossible to use a tuple (since its
-length is 2); in such case use `bound = Ref((minimum, maximum))`, which has the
-correct length.
+The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To
+pass a single interval bound for all variables, it is impossible to use a tuple
+(since its length is measured as 2); in such case use `bound = Ref((minimum,
+maximum))`, which has the correct length.
 """
 function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
     bs =
