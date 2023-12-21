@@ -2,10 +2,8 @@
 """
 $(TYPEDEF)
 
-A representation of a single constraint that limits a given value by a specific
-[`Bound`](@ref).
-
-Constraints may be scaled linearly, i.e., multiplied by real-number constants.
+A representation of a single constraint that may limit the given value by a
+specific [`Bound`](@ref).
 
 Constraints without a bound (`nothing` in the `bound` field) are possible;
 these have no impact on the optimization problem but the associated `value`
@@ -14,34 +12,32 @@ becomes easily accessible for inspection and building other constraints.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct Constraint{V}
+Base.@kwdef mutable struct Constraint{V,B}
     "A value (typically a [`LinearValue`](@ref) or a [`QuadraticValue`](@ref))
     that describes what the constraint constraints."
     value::V
-    "A bound that the `value` must satisfy."
-    bound::Bound = nothing
+    "A bound that the `value` must satisfy. Should be a subtype of
+    [`MaybeBound`](@ref): Either `nothing` if there's no bound, or e.g.
+    [`EqualTo`](@ref), [`Between`](@ref) or similar structs."
+    bound::B = nothing
 
-    function Constraint(v::T, b::Bound = nothing) where {T<:Value}
-        new{T}(v, b)
+    function Constraint(v::T, b::U = nothing) where {T<:Value,U<:MaybeBound}
+        new{T,U}(v, b)
     end
 end
 
-Constraint(v::T, b::Int) where {T<:Value} = Constraint(v, Float64(b))
+Constraint(v::T, b::Real) where {T<:Value} = Constraint(v, EqualTo(b))
 Constraint(v::T, b::Tuple{X,Y}) where {T<:Value,X<:Real,Y<:Real} =
-    Constraint(v, Float64.(b))
+    Constraint(v, Between(Float64.(b)...))
 
-Base.:-(a::Constraint) = -1 * a
-Base.:*(a::Real, b::Constraint) = b * a
-Base.:*(a::Constraint, b::Real) = Constraint(
-    value = a.value * b,
-    bound = a.bound isa Float64 ? a.bound * b :
-            a.bound isa Tuple{Float64,Float64} ? a.bound .* b : nothing,
-)
-Base.:/(a::Constraint, b::Real) = Constraint(
-    value = a.value / b,
-    bound = a.bound isa Float64 ? a.bound / b :
-            a.bound isa Tuple{Float64,Float64} ? a.bound ./ b : nothing,
-)
+Base.:-(a::Constraint) =
+    Constraint(value = -a.value, bound = isnothing(a.bound) ? nothing : -a.bound)
+Base.:*(a::Real, b::Constraint) =
+    Constraint(value = a * b.value, bound = isnothing(b.bound) ? nothing : a * b.bound)
+Base.:*(a::Constraint, b::Real) =
+    Constraint(value = a.value * b, bound = isnothing(a.bound) ? nothing : a.bound * b)
+Base.:/(a::Constraint, b::Real) =
+    Constraint(value = a.value / b, bound = isnothing(a.bound) ? nothing : a.bound / b)
 
 """
 $(TYPEDSIGNATURES)
