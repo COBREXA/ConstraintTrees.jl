@@ -95,7 +95,7 @@ s *=
 # translates the constraints into JuMP `Model`s to support the quadratic
 # constraints.
 import JuMP
-function optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
+function quad_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
@@ -121,7 +121,7 @@ end
 # We can now load a suitable optimizer and solve the system by maximizing the
 # negative squared error:
 import Clarabel
-st = C.constraint_values(s, optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
+st = C.constraint_values(s, quad_optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 
 # If the optimization worked well, we can nicely get out the position of the
 # closest point to the line that is in the elliptical area:

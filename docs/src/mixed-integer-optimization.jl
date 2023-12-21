@@ -59,7 +59,7 @@ function jump_constraint(m, x, v::C.Value, b::IntegerFromTo)
     JuMP.@constraint(m, C.substitute(v, x) == var)
 end
 
-function optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
+function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
@@ -88,7 +88,7 @@ dice_system *=
 import GLPK
 dices_thrown = C.constraint_values(
     dice_system,
-    optimized_vars(
+    milp_optimized_vars(
         dice_system,
         dice_system.first_dice.value + dice_system.second_dice.value,
         GLPK.Optimizer,
@@ -121,7 +121,7 @@ import SCIP
 triangle_sides =
     C.constraint_values(
         triangle_system,
-        optimized_vars(
+        milp_optimized_vars(
             triangle_system,
             -triangle_system.circumference.value,
             SCIP.Optimizer,
