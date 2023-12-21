@@ -226,12 +226,12 @@ function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimize
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     function add_constraint(c::C.Constraint)
         b = c.bound
-        if b isa Float64
-            JuMP.@constraint(model, C.substitute(c.value, x) == b)
-        elseif b isa Tuple{Float64,Float64}
+        if b isa C.EqualTo
+            JuMP.@constraint(model, C.substitute(c.value, x) == b.equal_to)
+        elseif b isa C.Between
             val = C.substitute(c.value, x)
-            isinf(b[1]) || JuMP.@constraint(model, val >= b[1])
-            isinf(b[2]) || JuMP.@constraint(model, val <= b[2])
+            isinf(b.lower) || JuMP.@constraint(model, val >= b.lower)
+            isinf(b.upper) || JuMP.@constraint(model, val <= b.upper)
         end
     end
     function add_constraint(c::C.ConstraintTree)
@@ -346,9 +346,10 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 # both dot-access and array-index syntax.
 
 # You can thus, e.g., set a single bound:
-c.exchanges.oxygen.bound = (-20.0, 20.0)
+c.exchanges.oxygen.bound = C.Between(-20.0, 20.0)
 
-# ...or rebuild a whole constraint:
+# ...or rebuild a whole constraint (using a tuple shortcut for
+# [`ConstraintTrees.Between`](@ref)):
 c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))
 
 # ...or even add new constraints, here using the index syntax for demonstration:
