@@ -33,9 +33,13 @@ end
 end
 
 @testset "Constraints" begin
-    @test C.bound(C.variable(bound = 123.0)) == 123.0
+    @test C.bound(C.variable(bound = 123.0)).equal_to == 123.0
     @test C.value(C.variable(bound = 123.0)).idxs == [1]
-    @test C.bound(2 * -convert(C.Constraint, (C.variable(bound = 123.0))) / 2) == -123.0
+    @test C.bound(-convert(C.Constraint, (C.variable(bound = 123.0))) * 2 / 2).equal_to ==
+          -123.0
+    @test let x = C.bound(-convert(C.Constraint, (C.variable(bound = (-1, 2))) * 2 / 2))
+        (x.lower, x.upper) == (1.0, -2.0)
+    end
 
     x = C.variable().value
     s = :a^C.Constraint(x, 5.0) + :b^C.Constraint(x * x - x, (4.0, 6.0))

@@ -2,39 +2,59 @@
 """
 $(TYPEDEF)
 
-Convenience shortcut for "interval" bound; consisting of lower and upper bound
+Abstract type of all bounds usable in constraints, including [`Between`](@ref)
+and [`EqualTo`](@ref).
+"""
+abstract type Bound end
+
+"""
+$(TYPEDEF)
+
+Representation of an "equality" bound; contains the single "equal to this"
 value.
+
+# Fields
+$(TYPEDFIELDS)
 """
-const IntervalBound = Tuple{Float64,Float64}
+Base.@kwdef mutable struct EqualTo <: Bound
+    "Equality bound value"
+    equal_to::Float64
 
-"""
-$(TYPEDEF)
+    EqualTo(x::Real) = new(Float64(x))
+end
 
-A special type of bound where the variable may only take on the values 0 or 1
-exclusively.
-"""
-struct BinaryBound end
-
-const Binary = BinaryBound()
-
-"""
-$(TYPEDEF)
-
-A special type of bound where the variable may only take on integer values.
-"""
-struct IntegerBound end
-
-const Integers = IntegerBound()
+Base.:-(x::EqualTo) = -1 * x
+Base.:*(a::EqualTo, b::Real) = b * a
+Base.:/(a::EqualTo, b::Real) = EqualTo(a.equal_to / b)
+Base.:*(a::Real, b::EqualTo) = EqualTo(a * b.equal_to)
 
 """
 $(TYPEDEF)
 
-Shortcuts for possible bounds:
+Representation of an "interval" bound; consisting of lower and upper bound
+value.
 
-- either no bound is present (`nothing`),
-- a single number is interpreted as an exact equality bound,
-- a tuple of 2 numbers is interpreted as an interval bound,
-- setting `BinaryBound()` or its alias, `Binary` creates an integer valued variable, that can only take on 0 or 1,
-- setting `IntegerBound()` or its alias, `Integers` creates an integer valued variable.
+# Fields
+$(TYPEDFIELDS)
 """
-const Bound = Union{Nothing,Float64,IntervalBound,BinaryBound,IntegerBound}
+Base.@kwdef mutable struct Between <: Bound
+    "Lower bound"
+    lower::Float64 = -Inf
+    "Upper bound"
+    upper::Float64 = Inf
+
+    Between(x::Real, y::Real) = new(Float64(x), Float64(y))
+end
+
+Base.:-(x::Between) = -1 * x
+Base.:*(a::Between, b::Real) = b * a
+Base.:/(a::Between, b::Real) = Between(a.lower / b, a.upper / b)
+Base.:*(a::Real, b::Between) = Between(a * b.lower, a * b.upper)
+
+"""
+$(TYPEDEF)
+
+Shortcut for all possible [`Bound`](@ref)s including the "empty" bound that
+does not constraint anything (represented by `nothing`).
+"""
+const MaybeBound = Union{Nothing,Bound}
