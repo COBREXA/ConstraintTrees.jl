@@ -11,6 +11,10 @@ using Test
         include("../docs/src/quadratic-optimization.jl")
     end
 
+    @testset "Mixed-integer optimization" begin
+        include("../docs/src/mixed-integer-optimization.jl")
+    end
+
     @testset "Miscellaneous methods" begin
         include("misc.jl")
     end

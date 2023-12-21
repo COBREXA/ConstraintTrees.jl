@@ -1,59 +1,70 @@
 
-# # Example: Mixed integer optimization
+# # Example: Mixed integer optimization (MILP)
 #
-# In this example we demonstrate the use of binary, and integer valued
-# variables. We assume that the reader is already familiar with the construction
-# of `ConstraintTree`s; if not, it is advisable to read the previous part of the
-# documentation first.
+# This example demonstrates the extension of `ConstraintTree` bounds structures
+# to accomodate new kinds of problems. In particular, we create a new kind of
+# `Bound` that is restricting the value to be a full integer, and then solve a
+# geometric problem with that.
 
-# The simple problem we will solve is:
-# max    x + y + 3 z
-# s. t.
-#        x + 2 y + z   <= 5
-#        x +   y       >= 1
-#        x, y binary
-#        z integer
+# ## Creating a custom bound
+#
+# All bounds contained in constraints are subtypes of the abstract
+# [`ConstraintTrees.Bound`](@ref). These include
+# [`ConstraintTrees.EqualTo`](@ref) and [`ConstraintTrees.Between`](@ref), but
+# the types can be extended as necessary, given the final rewriting of the
+# constraint system to JuMP can handle the new bounds.
+#
+# Let's make a small "marker" bound for something that needs to be integer-ish,
+# between 2 integers:
 
 import ConstraintTrees as C
 
-system = C.variables(keys = [:x, :y, :z], bounds = [C.Binary, C.Binary, C.Integers])
+mutable struct IntegerFromTo <: C.Bound
+    from::Int
+    to::Int
+end
 
-system *=
-    :objective^C.Constraint(system[:x].value + system[:y].value + 3 * system[:z].value)
+# We can now write e.g. a bound on the number on a thrown six-sided die as
+# follows:
 
-system *=
-    :binary_constraints^C.ConstraintTree(
-        :constraint1 => C.Constraint(
-            system[:x].value + 2 * system[:y].value + system[:z].value,
-            (0, 5),
-        ),
-        :constraint2 => C.Constraint(system[:x].value + system[:y].value, (1, Inf)),
-    )
+IntegerFromTo(1, 6)
 
-# ## Solving MILP systems with JuMP
-#
-# To solve the above system, we need a matching solver that can work with binary
-# and integer constraints. Also, we need to slightly modify the function that
-# translates the constraints into JuMP `Model`s to support the integer
-# constraints.
+# ...and include this bound in constraints and variables:
+
+dice_system =
+    C.variables(keys = [:first_dice, :second_dice], bounds = [IntegerFromTo(1, 6)])
+
+# Now the main thing that is left is to be able to translate this bound to JuMP
+# for solving. We can slightly generalize our constraint-translation system
+# from the previous examples for this purpose, by separating out the functions
+# that create the constraints:
 
 import JuMP
-function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimizer)
+
+function jump_constraint(m, x, v::C.Value, b::C.EqualTo)
+    JuMP.@constraint(m, C.substitute(v, x) == b.equal_to)
+end
+
+function jump_constraint(m, x, v::C.Value, b::C.Between)
+    isinf(b.lower) || JuMP.@constraint(m, C.substitute(v, x) >= b.lower)
+    isinf(b.upper) || JuMP.@constraint(m, C.substitute(v, x) <= b.upper)
+end
+
+# JuMP does not support direct integrality constraints, so we need to make a
+# small disgression with a slack variable:
+function jump_constraint(m, x, v::C.Value, b::IntegerFromTo)
+    var = JuMP.@variable(m, integer = true)
+    JuMP.@constraint(m, var >= b.from)
+    JuMP.@constraint(m, var <= b.to)
+    JuMP.@constraint(m, C.substitute(v, x) == var)
+end
+
+function optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     function add_constraint(c::C.Constraint)
-        b = c.bound
-        if b isa Tuple{Float64,Float64}
-            val = C.substitute(c.value, x)
-            isinf(b[1]) || JuMP.@constraint(model, val >= b[1])
-            isinf(b[2]) || JuMP.@constraint(model, val <= b[2])
-        elseif b isa C.BinaryBound
-            # val = C.substitute(c.value, x) # TODO, returns a AffExpr which is incompatible with set_binary
-            JuMP.set_binary.(x[c.value.idxs])
-        elseif b isa C.IntegerBound
-            JuMP.set_integer.(x[c.value.idxs])
-        end
+        isnothing(c.bound) || jump_constraint(model, x, c.value, c.bound)
     end
     function add_constraint(c::C.ConstraintTree)
         add_constraint.(values(c))
@@ -64,20 +75,59 @@ function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimize
     JuMP.value.(model[:x])
 end
 
-# We can now load a suitable optimizer (MILP solver) and solve the system by
-# maximizing the objective:
+# Let's try to solve a tiny system with the dice first. What's the best value
+# we can throw if the dice are thrown at least 1.5 points apart?
+
+dice_system *=
+    :points_distance^C.Constraint(
+        dice_system.first_dice.value - dice_system.second_dice.value,
+        C.Between(1.5, Inf),
+    )
+
+# For solving, we use GLPK (it has MILP capabilities).
 import GLPK
-solution = C.constraint_values(
-    system,
-    optimized_vars(system, system.objective.value, GLPK.Optimizer),
+dices_thrown = C.constraint_values(
+    dice_system,
+    optimized_vars(
+        dice_system,
+        dice_system.first_dice.value + dice_system.second_dice.value,
+        GLPK.Optimizer,
+    ),
 )
 
-# Thus, we can see that the optimal objective is:
-solution.objective
+@test isapprox(dices_thrown.first_dice, 6.0) #src
+@test isapprox(dices_thrown.second_dice, 4.0) #src
 
-# With values for the variables:
-(solution.x, solution.y, solution.z)
+# ## A more realistic example with geometry
+#
+# Let's find the size of the smallest right-angled triangle with integer side
+# sizes (aka a Pythagorean triple).
 
-@test isapprox(solution.x, 1, atol = 1e-2) #src
-@test isapprox(solution.y, 0, atol = 1e-2) #src
-@test isapprox(solution.z, 4, atol = 1e-2) #src
+vars = C.variables(keys = [:a, :b, :c], bounds = (IntegerFromTo(1, 100),))
+
+# For simpliclty, we make a shortcut for "values" in all variables:
+v = C.tree_map(vars, C.value, C.Value)
+
+# With that shortcut, the constraint tree constructs quite easily:
+triangle_system =
+    :sides^vars *
+    :circumference^C.Constraint(sum(values(v))) *
+    :a_less_than_b^C.Constraint(v.b - v.a, (0, Inf)) *
+    :b_less_than_c^C.Constraint(v.c - v.b, (0, Inf)) *
+    :right_angled^C.Constraint(C.squared(v.a) + C.squared(v.b) - C.squared(v.c), 0.0)
+
+# We will need a solver that supports both quadratic and integer optimization:
+import SCIP
+triangle_sides =
+    C.constraint_values(
+        triangle_system,
+        optimized_vars(
+            triangle_system,
+            -triangle_system.circumference.value,
+            SCIP.Optimizer,
+        ),
+    ).sides
+
+@test isapprox(triangle_sides.a, 3.0) #src
+@test isapprox(triangle_sides.b, 4.0) #src
+@test isapprox(triangle_sides.c, 5.0) #src
