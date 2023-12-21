@@ -348,7 +348,8 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 # You can thus, e.g., set a single bound:
 c.exchanges.oxygen.bound = C.Between(-20.0, 20.0)
 
-# ...or rebuild a whole constraint (using a tuple shortcut for [`Between`](@ref)):
+# ...or rebuild a whole constraint (using a tuple shortcut for
+# [`ConstraintTrees.Between`](@ref)):
 c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))
 
 # ...or even add new constraints, here using the index syntax for demonstration:
