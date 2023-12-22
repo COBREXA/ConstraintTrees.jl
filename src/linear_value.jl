@@ -14,14 +14,14 @@ Multiplying two `LinearValue`s yields a quadratic form (in a [`QuadraticValue`](
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct LinearValue <: Value
+Base.@kwdef struct LinearValue{T<:Real} <: Value
     """
     Indexes of the variables used by the value. The indexes must always be
     sorted in strictly increasing order. The affine element has index 0.
     """
     idxs::Vector{Int}
     "Coefficients of the variables selected by `idxs`."
-    weights::Vector{Float64}
+    weights::Vector{T}
 end
 
 """
@@ -47,7 +47,7 @@ Base.:/(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = a.weight
 
 function Base.:+(a::LinearValue, b::LinearValue)
     r_idxs = Int[]
-    r_weights = Float64[]
+    r_weights = Real[] # contains all possibilities of weight types
     ai = 1
     ae = length(a.idxs)
     bi = 1
@@ -78,7 +78,7 @@ function Base.:+(a::LinearValue, b::LinearValue)
         push!(r_weights, b.weights[bi])
         bi += 1
     end
-    LinearValue(idxs = r_idxs, weights = r_weights)
+    LinearValue(idxs = r_idxs, weights = [x for x in r_weights]) # reinterpret type of weights in case it is narrower than Vector{Real}
 end
 
 """
