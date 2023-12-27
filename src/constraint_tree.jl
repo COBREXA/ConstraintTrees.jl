@@ -178,18 +178,16 @@ variable(; bound = nothing) = Constraint(value = LinearValue([1], [1.0]); bound)
 """
 $(TYPEDSIGNATURES)
 
-Make a trivial constraint system that creates variables with indexes in
-range `1:length(keys)` named in order as given by `keys`.
+Make a trivial constraint system that creates variables with indexes in range
+`1:length(keys)` named in order as given by `keys`.
 
 Parameter `bounds` is either `nothing` for creating unconstrained variables, a
-single bound (of precise length 1) for creating all variables of the same
-constraint, or an iterable object of same length as `keys` with individual
-bounds for each variable in the same order as `keys`.
+single bound for creating all variables of the same constraint, or an iterable
+object of same length as `keys` with individual bounds for each variable in the
+same order as `keys`.
 
-The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To
-pass a single interval bound for all variables, it is impossible to use a tuple
-(since its length is measured as 2); in such case use `bound = Ref((minimum,
-maximum))`, which has the correct length.
+The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To pass
+a single bound for all variables, use e.g. `bounds = Ref(EqualTo(0))`.
 """
 function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
     bs =
