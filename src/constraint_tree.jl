@@ -181,10 +181,10 @@ $(TYPEDSIGNATURES)
 Make a trivial constraint system that creates variables with indexes in range
 `1:length(keys)` named in order as given by `keys`.
 
-Parameter `bounds` is either `nothing` for creating unconstrained variables, a
-single bound for creating all variables of the same constraint, or an iterable
-object of same length as `keys` with individual bounds for each variable in the
-same order as `keys`.
+Parameter `bounds` is either `nothing` for creating variables without bounds
+assigned to them, a single bound for creating all variables of the same
+constraint, or an iterable object of same length as `keys` with individual
+bounds for each variable in the same order as `keys`.
 
 The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To pass
 a single bound for all variables, use e.g. `bounds = Ref(EqualTo(0))`.
