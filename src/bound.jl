@@ -4,8 +4,14 @@ $(TYPEDEF)
 
 Abstract type of all bounds usable in constraints, including [`Between`](@ref)
 and [`EqualTo`](@ref).
+
+To make broadcasting work, `length(::Bound) = 1` has been extended. This allows
+functions like [`variables`](@ref) to broadcast a single supplied bound across
+all constraints.
 """
 abstract type Bound end
+
+Base.length(x::Bound) = 1
 
 """
 $(TYPEDEF)
