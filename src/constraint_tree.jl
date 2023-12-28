@@ -192,7 +192,7 @@ a single bound for all variables, use e.g. `bounds = Ref(EqualTo(0))`.
 function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
     bs =
         isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
-        typeof(bounds) <: Bound ? Base.Iterators.cycle(tuple(bounds)) :
+        length(bounds) == 1 ? Base.Iterators.cycle(tuple(bounds)) :
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
     ConstraintTree(

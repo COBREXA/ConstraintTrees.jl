@@ -7,6 +7,8 @@ and [`EqualTo`](@ref).
 """
 abstract type Bound end
 
+Base.length(x::Bound) = 1 # primarily for convenience in variables(...)
+
 """
 $(TYPEDEF)
 
