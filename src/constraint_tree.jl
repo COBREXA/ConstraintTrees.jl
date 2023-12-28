@@ -182,12 +182,12 @@ Make a trivial constraint system that creates variables with indexes in range
 `1:length(keys)` named in order as given by `keys`.
 
 Parameter `bounds` is either `nothing` for creating variables without bounds
-assigned to them, a single bound for creating all variables of the same
-constraint, or an iterable object of same length as `keys` with individual
-bounds for each variable in the same order as `keys`.
+assigned to them, a single bound for creating variables with the same constraint
+assigned to them all, or an iterable object of same length as `keys` with
+individual bounds for each variable in the same order as `keys`.
 
 The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To pass
-a single bound for all variables, use e.g. `bounds = Ref(EqualTo(0))`.
+a single bound for all variables, use e.g. `bounds = EqualTo(0)`.
 """
 function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
     bs =
