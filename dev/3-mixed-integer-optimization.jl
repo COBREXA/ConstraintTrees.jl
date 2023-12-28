@@ -31,8 +31,7 @@ IntegerFromTo(1, 6)
 
 # ...and include this bound in constraints and variables:
 
-dice_system =
-    C.variables(keys = [:first_dice, :second_dice], bounds = [IntegerFromTo(1, 6)])
+dice_system = C.variables(keys = [:first_dice, :second_dice], bounds = IntegerFromTo(1, 6))
 
 # Now the main thing that is left is to be able to translate this bound to JuMP
 # for solving. We can slightly generalize our constraint-translation system
@@ -103,7 +102,7 @@ dices_thrown = C.constraint_values(
 # Let's find the size of the smallest right-angled triangle with integer side
 # sizes (aka a Pythagorean triple).
 
-vars = C.variables(keys = [:a, :b, :c], bounds = (IntegerFromTo(1, 100),))
+vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))
 
 # For simpliclty, we make a shortcut for "values" in all variables:
 v = C.tree_map(vars, C.value, C.Value)
