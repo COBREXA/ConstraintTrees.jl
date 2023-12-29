@@ -95,9 +95,10 @@ end
 $(TYPEDSIGNATURES)
 
 Run a function over everything in the tree. The resulting tree will contain
-elements of type `output_type`. (This needs to be specified explicitly, because
-the typesystem generally cannot guess the type correctly.)
+elements of type specified by the 3rd argument. (This needs to be specified
+explicitly, because the typesystem generally cannot guess the universal type
+correctly.)
 """
-tree_map(x::Tree, f, output_type::DataType) = Tree{output_type}(
-    k => (v isa Tree ? tree_map(v, f, output_type) : f(v)) for (k, v) in x
-)
+tree_map(x::Tree, f, ::Type{T}) where {T} = Tree{T}(k => tree_map(v, f, T) for (k, v) in x)
+
+tree_map(x, f, ::Type) = f(x)
