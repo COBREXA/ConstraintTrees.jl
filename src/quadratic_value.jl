@@ -90,58 +90,96 @@ Internal helper for co-lex ordering of indexes.
 """
 colex_le((a, b), (c, d)) = (b, a) < (d, c)
 
-function Base.:+(a::QuadraticValue, b::QuadraticValue)
+"""
+$(TYPEDSIGNATURES)
+
+Helper function for implementing [`QuadraticValue`](@ref)-like objects. Given 2
+sparse representations of quadratic combinations, it computes a "merged" one
+with the values of both added together.
+
+Zeroes are not filtered out.
+"""
+function add_sparse_quadratic_combination(
+    a_idxs::Vector{Tuple{Int,Int}},
+    a_weights::Vector{T},
+    b_idxs::Vector{Tuple{Int,Int}},
+    b_weights::Vector{T},
+)::Tuple{Vector{Tuple{Int,Int}},Vector{T}} where {T}
     r_idxs = Tuple{Int,Int}[]
     r_weights = Float64[]
     ai = 1
-    ae = length(a.idxs)
+    ae = length(a_idxs)
     bi = 1
-    be = length(b.idxs)
+    be = length(b_idxs)
 
     while ai <= ae && bi <= be
-        if colex_le(a.idxs[ai], b.idxs[bi])
-            push!(r_idxs, a.idxs[ai])
-            push!(r_weights, a.weights[ai])
+        if colex_le(a_idxs[ai], b_idxs[bi])
+            push!(r_idxs, a_idxs[ai])
+            push!(r_weights, a_weights[ai])
             ai += 1
-        elseif colex_le(b.idxs[bi], a.idxs[ai])
-            push!(r_idxs, b.idxs[bi])
-            push!(r_weights, b.weights[bi])
+        elseif colex_le(b_idxs[bi], a_idxs[ai])
+            push!(r_idxs, b_idxs[bi])
+            push!(r_weights, b_weights[bi])
             bi += 1
         else # index pairs are equal; merge case
-            push!(r_idxs, a.idxs[ai])
-            push!(r_weights, a.weights[ai] + b.weights[bi])
+            push!(r_idxs, a_idxs[ai])
+            push!(r_weights, a_weights[ai] + b_weights[bi])
             ai += 1
             bi += 1
         end
     end
     while ai <= ae
-        push!(r_idxs, a.idxs[ai])
-        push!(r_weights, a.weights[ai])
+        push!(r_idxs, a_idxs[ai])
+        push!(r_weights, a_weights[ai])
         ai += 1
     end
     while bi <= be
-        push!(r_idxs, b.idxs[bi])
-        push!(r_weights, b.weights[bi])
+        push!(r_idxs, b_idxs[bi])
+        push!(r_weights, b_weights[bi])
         bi += 1
     end
-    QuadraticValue(idxs = r_idxs, weights = r_weights)
+    return (r_idxs, r_weights)
+end
+
+Base.:+(a::QuadraticValue, b::QuadraticValue) =
+    let (idxs, weights) =
+            add_sparse_quadratic_combination(a.idxs, a.weights, b.idxs, b.weights)
+        QuadraticValue(; idxs, weights)
+    end
+
+"""
+$(TYPEDSIGNATURES)
+
+Helper function for multiplying two [`LinearValue`](@ref)-like objects to make
+a [`QuadraticValue`](@ref)-like object. This computes and merges the product.
+
+Zeroes are not filtered out.
+"""
+function multiply_sparse_linear_combination(
+    a_idxs::Vector{Int},
+    a_weights::Vector{T},
+    b_idxs::Vector{Int},
+    b_weights::Vector{T},
+)::Tuple{Vector{Tuple{Int,Int}},Vector{T}} where {T}
+    vals = a_weights .* b_weights'
+    add_sparse_quadratic_combination(
+        [(aidx, bidx) for bidx in b_idxs for aidx in a_idxs if aidx <= bidx],
+        [
+            vals[ai, bi] for bi in eachindex(b_idxs) for
+            ai in eachindex(a_idxs) if a_idxs[ai] <= b_idxs[bi]
+        ],
+        [(bidx, aidx) for aidx in a_idxs for bidx in b_idxs if bidx < aidx],
+        [
+            vals[ai, bi] for ai in eachindex(a_idxs) for
+            bi in eachindex(b_idxs) if b_idxs[bi] < a_idxs[ai]
+        ],
+    )
 end
 
 Base.:*(a::LinearValue, b::LinearValue) =
-    let vals = a.weights .* b.weights'
-        QuadraticValue(
-            idxs = [(aidx, bidx) for bidx in b.idxs for aidx in a.idxs if aidx <= bidx],
-            weights = [
-                vals[ai, bi] for bi in eachindex(b.idxs) for
-                ai in eachindex(a.idxs) if a.idxs[ai] <= b.idxs[bi]
-            ],
-        ) + QuadraticValue(
-            idxs = [(bidx, aidx) for aidx in a.idxs for bidx in b.idxs if bidx < aidx],
-            weights = [
-                vals[ai, bi] for ai in eachindex(a.idxs) for
-                bi in eachindex(b.idxs) if b.idxs[bi] < a.idxs[ai]
-            ],
-        )
+    let (idxs, weights) =
+            multiply_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
+        QuadraticValue(; idxs, weights)
     end
 
 """
