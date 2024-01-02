@@ -101,7 +101,7 @@ dice_system *=
 
 # For solving, we use GLPK (it has MILP capabilities).
 import GLPK
-dices_thrown = C.constraint_values(
+dices_thrown = C.substitute_values(
     dice_system,
     milp_optimized_vars(
         dice_system,
@@ -134,7 +134,7 @@ triangle_system =
 # We will need a solver that supports both quadratic and integer optimization:
 import SCIP
 triangle_sides =
-    C.constraint_values(
+    C.substitute_values(
         triangle_system,
         milp_optimized_vars(
             triangle_system,

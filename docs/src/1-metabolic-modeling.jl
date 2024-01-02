@@ -212,7 +212,7 @@ c *=
 solution = [1.0, 5.0] # corresponds to :x and :y in order given in `variables`
 
 # A value tree for this solution is constructed in a straightforward manner:
-st = C.constraint_values(system, solution)
+st = C.substitute_values(system, solution)
 
 # We can now check the values of the original coordinates
 st.original_coords
@@ -263,7 +263,7 @@ optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimize
 
 # To explore the solution more easily, we can make a tree with values that
 # correspond to ones in our constraint tree:
-result = C.constraint_values(c, optimal_variable_assignment)
+result = C.substitute_values(c, optimal_variable_assignment)
 
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
@@ -273,11 +273,11 @@ result.fluxes.R_PFK
 
 # Sometimes it is unnecessary to recover the values for all constraints, so we
 # are better off selecting just the right subtree:
-C.constraint_values(c.fluxes, optimal_variable_assignment)
+C.substitute_values(c.fluxes, optimal_variable_assignment)
 
 #
 
-C.constraint_values(c.objective, optimal_variable_assignment)
+C.substitute_values(c.objective, optimal_variable_assignment)
 
 # ## Combining and extending constraint systems
 #
@@ -322,7 +322,7 @@ c *=
 
 # Let's see how much biomass are the two species capable of producing together:
 result =
-    C.constraint_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
 # Finally, we can iterate over all species in the small community and see how
@@ -375,7 +375,7 @@ delete!(c.exchanges, :production_is_zero)
 
 # In the end, the flux optimization yields an expectably different result:
 result =
-    C.constraint_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
 @test result.exchanges.oxygen < -19.0 #src

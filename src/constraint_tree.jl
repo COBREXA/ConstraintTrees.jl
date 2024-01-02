@@ -227,12 +227,12 @@ Substitute variable values from `y` into the constraint tree's constraint's
 values, getting a tree of "solved" constraint values for the given variable
 assignment.
 """
-constraint_values(x::ConstraintTree, y::Vector{Float64}) =
-    tree_map(x, c -> substitute(value(c), y), Float64)
+substitute_values(x::ConstraintTree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
+    tree_map(x, c -> substitute(value(c), y), T)
 
 """
 $(TYPEDSIGNATURES)
 
-Fallback for [`constraint_values`](@ref) for a single constraint.
+Fallback for [`substitute_values`](@ref) for a single constraint.
 """
-constraint_values(x::Constraint, y::Vector{Float64}) = substitute(value(x), y)
+substitute_values(x::Constraint, y::AbstractVector, _ = eltype(y)) = substitute(value(x), y)

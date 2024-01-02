@@ -91,10 +91,10 @@ end
 @testset "Solution tree operations" begin
     ct = C.variables(keys = [:a, :b])
 
-    @test_throws BoundsError C.constraint_values(ct, [1.0])
-    st = C.constraint_values(ct, [123.0, 321.0])
+    @test_throws BoundsError C.substitute_values(ct, [1.0])
+    st = C.substitute_values(ct, [123.0, 321.0])
 
-    @test isempty(C.constraint_values(C.ConstraintTree(), Float64[]))
+    @test isempty(C.substitute_values(C.ConstraintTree(), Float64[]))
     @test !isempty(st)
     @test haskey(st, :a)
     @test hasproperty(st, :a)
