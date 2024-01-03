@@ -228,10 +228,10 @@ values, getting a tree of "solved" constraint values for the given variable
 assignment.
 
 The third argument forces the output type (it is forwarded to
-[`tree_map`](@ref)). The type gets defaulted from `eltype(y)`.
+[`map`](@ref)). The type gets defaulted from `eltype(y)`.
 """
 substitute_values(x::ConstraintTree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
-    tree_map(x, T) do c
+    map(x, T) do c
         substitute(value(c), y)
     end
 

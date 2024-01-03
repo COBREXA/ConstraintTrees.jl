@@ -113,9 +113,9 @@ elements of type specified by the 3rd argument. (This needs to be specified
 explicitly, because the typesystem generally cannot guess the universal type
 correctly.)
 """
-tree_map(f, x::Tree, ::Type{T}) where {T} = Tree{T}(k => tree_map(f, v, T) for (k, v) in x)
+map(f, x::Tree, ::Type{T}) where {T} = Tree{T}(k => map(f, v, T) for (k, v) in x)
 
-tree_map(f, x, ::Type) = f(x)
+map(f, x, ::Type) = f(x)
 
 """
 $(TYPEDSIGNATURES)
@@ -123,11 +123,11 @@ $(TYPEDSIGNATURES)
 Run a binary function over the intersection of 2 trees; extra elements are
 ignored.
 
-As with [`tree_map`](@ref), the inner type of the resulting tree is specified
+As with [`map`](@ref), the inner type of the resulting tree is specified
 by the last parameter.
 """
-tree_zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
-    k => tree_zip(f, x[k], y[k]) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => zip(f, x[k], y[k]) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
 )
 
-tree_zip(f, x, y, ::Type) = f(x,y)
+zip(f, x, y, ::Type) = f(x,y)
