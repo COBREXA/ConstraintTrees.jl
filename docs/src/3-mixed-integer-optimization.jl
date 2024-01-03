@@ -121,7 +121,7 @@ dices_thrown = C.substitute_values(
 vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))
 
 # For simpliclty, we make a shortcut for "values" in all variables:
-v = C.tree_map(vars, C.value, C.Value)
+v = C.tree_map(C.value, vars, C.Value)
 
 # With that shortcut, the constraint tree constructs quite easily:
 triangle_system =

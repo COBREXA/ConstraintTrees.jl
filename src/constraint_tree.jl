@@ -231,7 +231,9 @@ The third argument forces the output type (it is forwarded to
 [`tree_map`](@ref)). The type gets defaulted from `eltype(y)`.
 """
 substitute_values(x::ConstraintTree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
-    tree_map(x, c -> substitute(value(c), y), T)
+    tree_map(x, T) do c
+        substitute(value(c), y)
+    end
 
 """
 $(TYPEDSIGNATURES)

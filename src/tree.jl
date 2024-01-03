@@ -113,6 +113,6 @@ elements of type specified by the 3rd argument. (This needs to be specified
 explicitly, because the typesystem generally cannot guess the universal type
 correctly.)
 """
-tree_map(x::Tree, f, ::Type{T}) where {T} = Tree{T}(k => tree_map(v, f, T) for (k, v) in x)
+tree_map(f, x::Tree, ::Type{T}) where {T} = Tree{T}(k => tree_map(f, v, T) for (k, v) in x)
 
-tree_map(x, f, ::Type) = f(x)
+tree_map(f, x, ::Type) = f(x)
