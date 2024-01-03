@@ -188,7 +188,8 @@ $(TYPEDSIGNATURES)
 Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
-variable(; bound = nothing) = Constraint(value = LinearValue([1], [1.0]); bound)
+variable(; bound = nothing, idx = 1) =
+    Constraint(value = LinearValue(Int[idx], Float64[1.0]); bound)
 
 """
 $(TYPEDSIGNATURES)
@@ -211,8 +212,7 @@ function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
     ConstraintTree(
-        k => Constraint(value = LinearValue(Int[i], Float64[1.0]), bound = b) for
-        ((i, k), b) in zip(enumerate(keys), bs)
+        k => variable(idx = i, bound = b) for ((i, k), b) in zip(enumerate(keys), bs)
     )
 end
 
