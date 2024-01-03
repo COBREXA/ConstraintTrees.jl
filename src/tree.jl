@@ -116,3 +116,18 @@ correctly.)
 tree_map(f, x::Tree, ::Type{T}) where {T} = Tree{T}(k => tree_map(f, v, T) for (k, v) in x)
 
 tree_map(f, x, ::Type) = f(x)
+
+"""
+$(TYPEDSIGNATURES)
+
+Run a binary function over the intersection of 2 trees; extra elements are
+ignored.
+
+As with [`tree_map`](@ref), the inner type of the resulting tree is specified
+by the last parameter.
+"""
+tree_zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => tree_zip(f, x[k], y[k]) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+)
+
+tree_zip(f, x, y, ::Type) = f(x,y)
