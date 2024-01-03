@@ -212,7 +212,7 @@ function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
     ConstraintTree(
-        k => variable(idx = i, bound = b) for ((i, k), b) in zip(enumerate(keys), bs)
+        k => variable(idx = i, bound = b) for ((i, k), b) in Base.zip(enumerate(keys), bs)
     )
 end
 
