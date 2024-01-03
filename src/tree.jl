@@ -120,14 +120,19 @@ map(f, x, ::Type) = f(x)
 """
 $(TYPEDSIGNATURES)
 
-Run a binary function over the intersection of 2 trees; extra elements are
-ignored.
+Run a function over the values in the intersection of several trees (currently there is support for 2 and 3 trees). Extra elements are ignored.
 
-As with [`map`](@ref), the inner type of the resulting tree is specified
-by the last parameter.
+As with [`map`](@ref), the inner type of the resulting tree must be specified by the last parameter..
 """
 zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
-    k => zip(f, x[k], y[k]) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+    k => zip(f, x[k], y[k], T) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
 )
 
-zip(f, x, y, ::Type) = f(x,y)
+zip(f, x::Tree, y::Tree, z::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => zip(f, x[k], y[k], z[k], T) for
+    k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+)
+
+zip(f, x, y, ::Type) = f(x, y)
+
+zip(f, x, y, z, ::Type) = f(x, y, z)
