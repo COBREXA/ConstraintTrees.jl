@@ -279,6 +279,10 @@ C.substitute_values(c.fluxes, optimal_variable_assignment)
 
 C.substitute_values(c.objective, optimal_variable_assignment)
 
+# We'll save the `result` for future use at the end of this exmaple:
+
+result_single_organism = result
+
 # ## Combining and extending constraint systems
 #
 # Constraint trees can be extended with new variables from another constraint
@@ -374,8 +378,52 @@ c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0)
 delete!(c.exchanges, :production_is_zero)
 
 # In the end, the flux optimization yields an expectably different result:
-result =
+result_with_more_oxygen =
     C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
-@test result.exchanges.oxygen < -19.0 #src
+@test result_with_more_oxygen.exchanges.oxygen < -19.0 #src
+
+# ## Combining trees
+#
+# ConstraintTrees.jl defines its own version of `zip` function that can apply a
+# function to the contents of several trees, "zipping" them over the same keys
+# in the structure. This is vaguely similar but otherwise not related to the
+# `zip` from Julia base (similarly, ConstraintTrees.jl have their own specific
+# `map`).
+#
+# In practice, this allows you to create combined trees with various nice
+# properties very quickly. For example, you can find how much the values have
+# changed between our two communities:
+
+C.zip((x, y) -> y - x, result, result_with_more_oxygen, Float64)
+
+# The result is again a `Tree`, with the contained type specified by the last
+# argument (`Float64` in this case). We can explore it right away as the other
+# result trees. Also, it is possible to call this kind of function using the
+# Julia `do` notation, making the syntax a bit neater:
+
+difference = C.zip(result, result_with_more_oxygen, Float64) do x, y
+    y - x
+end
+
+# Exploring the difference works as expected:
+
+difference.community.species1.fluxes
+
+# For convenience in special cases, `zip` is also overloaded for 3 arguments.
+# We can, for a completely artificial example, check if the absolute flux
+# change was bigger in the first or in the second organism in the community
+# when compared to the original single-organism flux (which we luckily saved
+# above):
+
+changes = C.zip(
+    result.community.species1,
+    result.community.species2,
+    result_single_organism,
+    Bool,
+) do s1, s2, orig
+    abs(s1 - orig) > abs(s2 - orig)
+end
+
+changes.fluxes
