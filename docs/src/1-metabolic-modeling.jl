@@ -279,7 +279,7 @@ C.substitute_values(c.fluxes, optimal_variable_assignment)
 
 C.substitute_values(c.objective, optimal_variable_assignment)
 
-# We'll save the `result` for future use at the end of this exmaple:
+# We'll save the `result` for future use at the end of this example:
 
 result_single_organism = result
 

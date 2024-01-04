@@ -18,7 +18,7 @@
 # # Example: Mixed integer optimization (MILP)
 #
 # This example demonstrates the extension of `ConstraintTree` bounds structures
-# to accomodate new kinds of problems. In particular, we create a new kind of
+# to accommodate new kinds of problems. In particular, we create a new kind of
 # `Bound` that is restricting the value to be a full integer, and then solve a
 # geometric problem with that.
 
@@ -66,7 +66,7 @@ function jump_constraint(m, x, v::C.Value, b::C.Between)
 end
 
 # JuMP does not support direct integrality constraints, so we need to make a
-# small disgression with a slack variable:
+# small digression with a slack variable:
 function jump_constraint(m, x, v::C.Value, b::IntegerFromTo)
     var = JuMP.@variable(m, integer = true)
     JuMP.@constraint(m, var >= b.from)
