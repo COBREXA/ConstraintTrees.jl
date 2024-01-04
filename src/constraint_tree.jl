@@ -216,6 +216,22 @@ function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
     )
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Allocate a variable for each item in a constraint tree (or any other kind of
+tree) and return a [`ConstraintTree`](@ref) with variables bounded by the
+`makebound` function, which converts a given tree element's value into a bound
+for the corresponding variable.
+"""
+function variables_for(makebound, ts::Tree)
+    var_idx = 0
+    map(ts, Constraint) do x
+        var_idx += 1
+        variable(idx = var_idx, bound = makebound(x))
+    end
+end
+
 #
 # Transforming the constraint trees
 #
