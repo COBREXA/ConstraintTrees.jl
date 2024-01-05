@@ -212,7 +212,7 @@ c *=
 solution = [1.0, 5.0] # corresponds to :x and :y in order given in `variables`
 
 # A value tree for this solution is constructed in a straightforward manner:
-st = C.constraint_values(system, solution)
+st = C.substitute_values(system, solution)
 
 # We can now check the values of the original coordinates
 st.original_coords
@@ -263,7 +263,7 @@ optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimize
 
 # To explore the solution more easily, we can make a tree with values that
 # correspond to ones in our constraint tree:
-result = C.constraint_values(c, optimal_variable_assignment)
+result = C.substitute_values(c, optimal_variable_assignment)
 
 result.fluxes.R_BIOMASS_Ecoli_core_w_GAM
 
@@ -273,11 +273,15 @@ result.fluxes.R_PFK
 
 # Sometimes it is unnecessary to recover the values for all constraints, so we
 # are better off selecting just the right subtree:
-C.constraint_values(c.fluxes, optimal_variable_assignment)
+C.substitute_values(c.fluxes, optimal_variable_assignment)
 
 #
 
-C.constraint_values(c.objective, optimal_variable_assignment)
+C.substitute_values(c.objective, optimal_variable_assignment)
+
+# We'll save the `result` for future use at the end of this example:
+
+result_single_organism = result
 
 # ## Combining and extending constraint systems
 #
@@ -322,7 +326,7 @@ c *=
 
 # Let's see how much biomass are the two species capable of producing together:
 result =
-    C.constraint_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
 # Finally, we can iterate over all species in the small community and see how
@@ -374,8 +378,52 @@ c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0)
 delete!(c.exchanges, :production_is_zero)
 
 # In the end, the flux optimization yields an expectably different result:
-result =
-    C.constraint_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+result_with_more_oxygen =
+    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
-@test result.exchanges.oxygen < -19.0 #src
+@test result_with_more_oxygen.exchanges.oxygen < -19.0 #src
+
+# ## Combining trees
+#
+# ConstraintTrees.jl defines its own version of `zip` function that can apply a
+# function to the contents of several trees, "zipping" them over the same keys
+# in the structure. This is vaguely similar but otherwise not related to the
+# `zip` from Julia base (similarly, ConstraintTrees.jl have their own specific
+# `map`).
+#
+# In practice, this allows you to create combined trees with various nice
+# properties very quickly. For example, you can find how much the values have
+# changed between our two communities:
+
+C.zip((x, y) -> y - x, result, result_with_more_oxygen, Float64)
+
+# The result is again a `Tree`, with the contained type specified by the last
+# argument (`Float64` in this case). We can explore it right away as the other
+# result trees. Also, it is possible to call this kind of function using the
+# Julia `do` notation, making the syntax a bit neater:
+
+difference = C.zip(result, result_with_more_oxygen, Float64) do x, y
+    y - x
+end
+
+# Exploring the difference works as expected:
+
+difference.community.species1.fluxes
+
+# For convenience in special cases, `zip` is also overloaded for 3 arguments.
+# We can, for a completely artificial example, check if the absolute flux
+# change was bigger in the first or in the second organism in the community
+# when compared to the original single-organism flux (which we luckily saved
+# above):
+
+changes = C.zip(
+    result.community.species1,
+    result.community.species2,
+    result_single_organism,
+    Bool,
+) do s1, s2, orig
+    abs(s1 - orig) > abs(s2 - orig)
+end
+
+changes.fluxes
