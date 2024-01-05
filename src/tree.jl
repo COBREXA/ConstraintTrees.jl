@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import DataStructures: SortedDict
+import DataStructures: SortedDict, SortedSet
 
 """
 $(TYPEDEF)
@@ -113,6 +113,26 @@ elements of type specified by the 3rd argument. (This needs to be specified
 explicitly, because the typesystem generally cannot guess the universal type
 correctly.)
 """
-tree_map(x::Tree, f, ::Type{T}) where {T} = Tree{T}(k => tree_map(v, f, T) for (k, v) in x)
+map(f, x::Tree, ::Type{T}) where {T} = Tree{T}(k => map(f, v, T) for (k, v) in x)
 
-tree_map(x, f, ::Type) = f(x)
+map(f, x, ::Type) = f(x)
+
+"""
+$(TYPEDSIGNATURES)
+
+Run a function over the values in the intersection of several trees (currently there is support for 2 and 3 trees). Extra elements are ignored.
+
+As with [`map`](@ref), the inner type of the resulting tree must be specified by the last parameter..
+"""
+zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => zip(f, x[k], y[k], T) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+)
+
+zip(f, x::Tree, y::Tree, z::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => zip(f, x[k], y[k], z[k], T) for
+    k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+)
+
+zip(f, x, y, ::Type) = f(x, y)
+
+zip(f, x, y, z, ::Type) = f(x, y, z)

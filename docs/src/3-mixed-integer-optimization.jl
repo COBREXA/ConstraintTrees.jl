@@ -18,7 +18,7 @@
 # # Example: Mixed integer optimization (MILP)
 #
 # This example demonstrates the extension of `ConstraintTree` bounds structures
-# to accomodate new kinds of problems. In particular, we create a new kind of
+# to accommodate new kinds of problems. In particular, we create a new kind of
 # `Bound` that is restricting the value to be a full integer, and then solve a
 # geometric problem with that.
 
@@ -66,7 +66,7 @@ function jump_constraint(m, x, v::C.Value, b::C.Between)
 end
 
 # JuMP does not support direct integrality constraints, so we need to make a
-# small disgression with a slack variable:
+# small digression with a slack variable:
 function jump_constraint(m, x, v::C.Value, b::IntegerFromTo)
     var = JuMP.@variable(m, integer = true)
     JuMP.@constraint(m, var >= b.from)
@@ -101,7 +101,7 @@ dice_system *=
 
 # For solving, we use GLPK (it has MILP capabilities).
 import GLPK
-dices_thrown = C.constraint_values(
+dices_thrown = C.substitute_values(
     dice_system,
     milp_optimized_vars(
         dice_system,
@@ -121,7 +121,7 @@ dices_thrown = C.constraint_values(
 vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))
 
 # For simpliclty, we make a shortcut for "values" in all variables:
-v = C.tree_map(vars, C.value, C.Value)
+v = C.map(C.value, vars, C.Value)
 
 # With that shortcut, the constraint tree constructs quite easily:
 triangle_system =
@@ -134,7 +134,7 @@ triangle_system =
 # We will need a solver that supports both quadratic and integer optimization:
 import SCIP
 triangle_sides =
-    C.constraint_values(
+    C.substitute_values(
         triangle_system,
         milp_optimized_vars(
             triangle_system,

@@ -47,7 +47,7 @@ The package is structured as follows:
   -- this forms the basis of the "tidy" algebra of constraints.
 - A variable assignment, which is typically the "solution" for a given
   constraint tree, can be combined with a [`ConstraintTree`](@ref) to create a
-  "value tree" via [`constraint_values`](@ref), which enables browsing of the
+  "value tree" via [`substitute_values`](@ref), which enables browsing of the
   optimization results in the very same structure as the input
   [`ConstraintTree`](@ref).
 

@@ -54,7 +54,7 @@ system = :vars^system * :error^C.Constraint(error_val, C.Between(0, 100))
 # Let's pretend someone has solved the system, and see how much "error" the
 # solution has:
 solution = [1.0, 2.0, -1.0]
-st = C.constraint_values(system, solution)
+st = C.substitute_values(system, solution)
 st.error
 
 # ...not bad for a first guess.
@@ -135,7 +135,7 @@ end
 # We can now load a suitable optimizer and solve the system by maximizing the
 # negative squared error:
 import Clarabel
-st = C.constraint_values(s, quad_optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
+st = C.substitute_values(s, quad_optimized_vars(s, -s.objective.value, Clarabel.Optimizer))
 
 # If the optimization worked well, we can nicely get out the position of the
 # closest point to the line that is in the elliptical area:

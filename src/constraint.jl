@@ -27,17 +27,17 @@ becomes easily accessible for inspection and building other constraints.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct Constraint{V,B}
+Base.@kwdef mutable struct Constraint
     "A value (typically a [`LinearValue`](@ref) or a [`QuadraticValue`](@ref))
     that describes what the constraint constraints."
-    value::V
+    value::Value
     "A bound that the `value` must satisfy. Should be a subtype of
     [`MaybeBound`](@ref): Either `nothing` if there's no bound, or e.g.
     [`EqualTo`](@ref), [`Between`](@ref) or similar structs."
-    bound::B = nothing
+    bound::MaybeBound = nothing
 
-    function Constraint(v::T, b::U = nothing) where {T<:Value,U<:MaybeBound}
-        new{T,U}(v, b)
+    function Constraint(v::Value, b::MaybeBound = nothing)
+        new(v, b)
     end
 end
 

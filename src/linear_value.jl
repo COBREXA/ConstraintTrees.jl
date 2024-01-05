@@ -21,9 +21,11 @@ $(TYPEDEF)
 A representation of a "value" in a linear constrained optimization problem. The
 value is an affine linear combination of several variables.
 
-`LinearValue`s can be combined additively and multiplied by real-number constants.
+`LinearValue`s can be combined additively and multiplied by real-number
+constants.
 
-Multiplying two `LinearValue`s yields a quadratic form (in a [`QuadraticValue`](@ref)).
+Multiplying two `LinearValue`s yields a quadratic form (in a
+[`QuadraticValue`](@ref)).
 
 # Fields
 $(TYPEDFIELDS)
@@ -59,41 +61,62 @@ Base.:*(a::Real, b::LinearValue) = b * a
 Base.:*(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = b .* a.weights)
 Base.:/(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = a.weights ./ b)
 
-function Base.:+(a::LinearValue, b::LinearValue)
+"""
+$(TYPEDSIGNATURES)
+
+Helper function for implementing [`LinearValue`](@ref)-like objects. Given
+"sparse" representations of linear combinations, it computes a "merged" linear
+combination of 2 values added together.
+
+Zeroes are not filtered out.
+"""
+function add_sparse_linear_combination(
+    a_idxs::Vector{Int},
+    a_weights::Vector{T},
+    b_idxs::Vector{Int},
+    b_weights::Vector{T},
+)::Tuple{Vector{Int},Vector{T}} where {T}
     r_idxs = Int[]
     r_weights = Float64[]
     ai = 1
-    ae = length(a.idxs)
+    ae = length(a_idxs)
     bi = 1
-    be = length(b.idxs)
+    be = length(b_idxs)
     while ai <= ae && bi <= be
-        if a.idxs[ai] < b.idxs[bi]
-            push!(r_idxs, a.idxs[ai])
-            push!(r_weights, a.weights[ai])
+        if a_idxs[ai] < b_idxs[bi]
+            push!(r_idxs, a_idxs[ai])
+            push!(r_weights, a_weights[ai])
             ai += 1
-        elseif a.idxs[ai] > b.idxs[bi]
-            push!(r_idxs, b.idxs[bi])
-            push!(r_weights, b.weights[bi])
+        elseif a_idxs[ai] > b_idxs[bi]
+            push!(r_idxs, b_idxs[bi])
+            push!(r_weights, b_weights[bi])
             bi += 1
-        else # a.idxs[ai] == b.idxs[bi] -- merge case
-            push!(r_idxs, a.idxs[ai])
-            push!(r_weights, a.weights[ai] + b.weights[bi])
+        else # a_idxs[ai] == b_idxs[bi] -- merge case
+            push!(r_idxs, a_idxs[ai])
+            push!(r_weights, a_weights[ai] + b_weights[bi])
             ai += 1
             bi += 1
         end
     end
     while ai <= ae
-        push!(r_idxs, a.idxs[ai])
-        push!(r_weights, a.weights[ai])
+        push!(r_idxs, a_idxs[ai])
+        push!(r_weights, a_weights[ai])
         ai += 1
     end
     while bi <= be
-        push!(r_idxs, b.idxs[bi])
-        push!(r_weights, b.weights[bi])
+        push!(r_idxs, b_idxs[bi])
+        push!(r_weights, b_weights[bi])
         bi += 1
     end
-    LinearValue(idxs = r_idxs, weights = r_weights)
+    return (r_idxs, r_weights)
 end
+
+Base.:+(a::LinearValue, b::LinearValue) =
+    let
+        (idxs, weights) =
+            add_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
+        LinearValue(; idxs, weights)
+    end
 
 """
 $(TYPEDSIGNATURES)

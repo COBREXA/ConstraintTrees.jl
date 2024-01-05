@@ -188,7 +188,8 @@ $(TYPEDSIGNATURES)
 Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
-variable(; bound = nothing) = Constraint(value = LinearValue([1], [1.0]); bound)
+variable(; bound = nothing, idx = 1) =
+    Constraint(value = LinearValue(Int[idx], Float64[1.0]); bound)
 
 """
 $(TYPEDSIGNATURES)
@@ -211,9 +212,24 @@ function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
     ConstraintTree(
-        k => Constraint(value = LinearValue(Int[i], Float64[1.0]), bound = b) for
-        ((i, k), b) in zip(enumerate(keys), bs)
+        k => variable(idx = i, bound = b) for ((i, k), b) in Base.zip(enumerate(keys), bs)
     )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Allocate a variable for each item in a constraint tree (or any other kind of
+tree) and return a [`ConstraintTree`](@ref) with variables bounded by the
+`makebound` function, which converts a given tree element's value into a bound
+for the corresponding variable.
+"""
+function variables_for(makebound, ts::Tree)
+    var_idx = 0
+    map(ts, Constraint) do x
+        var_idx += 1
+        variable(idx = var_idx, bound = makebound(x))
+    end
 end
 
 #
@@ -226,13 +242,18 @@ $(TYPEDSIGNATURES)
 Substitute variable values from `y` into the constraint tree's constraint's
 values, getting a tree of "solved" constraint values for the given variable
 assignment.
+
+The third argument forces the output type (it is forwarded to
+[`map`](@ref)). The type gets defaulted from `eltype(y)`.
 """
-constraint_values(x::ConstraintTree, y::Vector{Float64}) =
-    tree_map(x, c -> substitute(value(c), y), Float64)
+substitute_values(x::ConstraintTree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
+    map(x, T) do c
+        substitute(value(c), y)
+    end
 
 """
 $(TYPEDSIGNATURES)
 
-Fallback for [`constraint_values`](@ref) for a single constraint.
+Fallback for [`substitute_values`](@ref) for a single constraint.
 """
-constraint_values(x::Constraint, y::Vector{Float64}) = substitute(value(x), y)
+substitute_values(x::Constraint, y::AbstractVector, _ = eltype(y)) = substitute(value(x), y)
