@@ -52,7 +52,7 @@ end
     @test C.bound(-convert(C.Constraint, (C.variable(bound = 123.0))) * 2 / 2).equal_to ==
           -123.0
     @test let x = C.bound(-convert(C.Constraint, (C.variable(bound = (-1, 2))) * 2 / 2))
-        (x.lower, x.upper) == (1.0, -2.0)
+        (x.lower, x.upper) == (-2.0, 1.0)
     end
 
     x = C.variable().value
