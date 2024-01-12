@@ -120,9 +120,12 @@ map(f, x, ::Type) = f(x)
 """
 $(TYPEDSIGNATURES)
 
-Run a function over the values in the intersection of several trees (currently there is support for 2 and 3 trees). Extra elements are ignored.
+Run a function over the values in the intersection of paths in several trees (currently
+there is support for 2 and 3 trees). This is an "inner join" -- all extra
+elements are ignored. "Outer join" can be done via [`merge`](@ref).
 
-As with [`map`](@ref), the inner type of the resulting tree must be specified by the last parameter..
+As with [`map`](@ref), the inner type of the resulting tree must be specified
+by the last parameter..
 """
 zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
     k => zip(f, x[k], y[k], T) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
@@ -136,3 +139,25 @@ zip(f, x::Tree, y::Tree, z::Tree, ::Type{T}) where {T} = Tree{T}(
 zip(f, x, y, ::Type) = f(x, y)
 
 zip(f, x, y, z, ::Type) = f(x, y, z)
+
+"""
+$(TYPEDSIGNATURES)
+
+Run a function over the values in the merge of all paths in the trees
+(currently there is support for 2 and 3 trees). This is an "outer join"
+equivalent of [`zip`](@ref).  Missing elements are replaced by `missing` in the
+function calls; otherwise the function works just like [`zip`](@ref).
+"""
+merge(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => merge(f, get(x, k, missing), get(y, k, missing), T) for
+    k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+)
+
+merge(f, x::Tree, y::Tree, z::Tree, ::Type{T}) where {T} = Tree{T}(
+    k => merge(f, x[k], y[k], z[k], T) for
+    k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+)
+
+merge(f, x, y, ::Type) = f(x, y)
+
+merge(f, x, y, z, ::Type) = f(x, y, z)
