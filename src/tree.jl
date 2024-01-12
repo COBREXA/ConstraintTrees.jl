@@ -194,15 +194,18 @@ $(TYPEDSIGNATURES)
 Run a function over the values in the merge of all paths in the trees
 (currently there is support for 2 and 3 trees). This is an "outer join"
 equivalent of [`zip`](@ref).  Missing elements are replaced by `missing` in the
-function calls; otherwise the function works just like [`zip`](@ref).
+function call parameters, and the function may return `missing` to omit
+elements.
 
 Note this is a specialized function specific for [`Tree`](@ref)s that behaves
 differently from `Base.merge`.
 """
 function merge(f, x, y, ::Type{T}) where {T}
     go(x::Tree, y::Tree) = Tree{T}(
-        k => go(get(x, k, missing), get(y, k, missing)) for
-        k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+        k => v for (k, v) in (
+            k => go(get(x, k, missing), get(y, k, missing)) for
+            k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+        ) if !ismissing(v)
     )
     go(x, y) = f(x, y)
 
@@ -211,8 +214,14 @@ end
 
 function merge(f, x, y, z, ::Type{T}) where {T}
     go(x::Tree, y::Tree, z::Tree) = Tree{T}(
-        k => go(get(x, k, missing), get(y, k, missing), get(z, k, missing)) for
-        k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+        k => v for (k, v) in (
+            k => go(
+                tuple(ix..., k),
+                get(x, k, missing),
+                get(y, k, missing),
+                get(z, k, missing),
+            ) for k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+        ) if !ismissing(v)
     )
     go(x, y, z) = f(x, y, z)
 
@@ -226,8 +235,10 @@ Index-reporting variant of [`merge`](@ref) (see [`imap`](@ref) for reference).
 """
 function imerge(f, x, y, ::Type{T}) where {T}
     go(ix, x::Tree, y::Tree) = Tree{T}(
-        k => go(tuple(ix..., k), get(x, k, missing), get(y, k, missing)) for
-        k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+        k => v for (k, v) in (
+            k => go(tuple(ix..., k), get(x, k, missing), get(y, k, missing)) for
+            k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+        ) if !ismissing(v)
     )
     go(ix, x, y) = f(ix, x, y)
 
@@ -236,12 +247,14 @@ end
 
 function imerge(f, x, y, z, ::Type{T}) where {T}
     go(ix, x::Tree, y::Tree, z::Tree) = Tree{T}(
-        k => go(
-            tuple(ix..., k),
-            get(x, k, missing),
-            get(y, k, missing),
-            get(z, k, missing),
-        ) for k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+        k => v for (k, v) in (
+            k => go(
+                tuple(ix..., k),
+                get(x, k, missing),
+                get(y, k, missing),
+                get(z, k, missing),
+            ) for k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+        ) if !ismissing(v)
     )
     go(ix, x, y, z) = f(ix, x, y, z)
 
