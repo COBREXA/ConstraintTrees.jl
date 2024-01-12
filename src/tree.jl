@@ -92,10 +92,10 @@ function Base.:^(pfx::Symbol, x::Tree{X}) where {X}
     Tree{X}(elems = SortedDict(pfx => x))
 end
 
-Base.:*(a::Tree, b::Tree...) = merge(a, b...)
+Base.:*(a::Tree, b::Tree...) = Base.merge(a, b...)
 
-Base.merge(d::Tree, others::Tree...) = mergewith(*, d, others...)
-Base.merge(a::Base.Callable, d::Tree, others::Tree...) = mergewith(a, d, others...)
+Base.merge(d::Tree, others::Tree...) = Base.mergewith(*, d, others...)
+Base.merge(a::Base.Callable, d::Tree, others::Tree...) = Base.mergewith(a, d, others...)
 
 function Base.mergewith(a::Base.Callable, d::Tree{X}, others::Tree...) where {X}
     Tree{X}(elems = mergewith(a, elems(d), elems.(others)...))
@@ -113,9 +113,26 @@ elements of type specified by the 3rd argument. (This needs to be specified
 explicitly, because the typesystem generally cannot guess the universal type
 correctly.)
 """
-map(f, x::Tree, ::Type{T}) where {T} = Tree{T}(k => map(f, v, T) for (k, v) in x)
+function map(f, x, ::Type{T}) where {T}
+    go(x::Tree) = Tree{T}(k => go(v) for (k, v) in x)
+    go(x) = f(x)
 
-map(f, x, ::Type) = f(x)
+    go(x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Like [`map`](@ref), but keeping the "index" path and giving it to the function
+as the first parameter. The "path" in the tree is reported as a tuple of
+symbols.
+"""
+function imap(f, x, ::Type{T}) where {T}
+    go(ix, x::Tree) = Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x)
+    go(ix, x) = f(ix, x)
+
+    go((), x)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -127,18 +144,49 @@ elements are ignored. "Outer join" can be done via [`merge`](@ref).
 As with [`map`](@ref), the inner type of the resulting tree must be specified
 by the last parameter..
 """
-zip(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
-    k => zip(f, x[k], y[k], T) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
-)
+function zip(f, x, y, ::Type{T}) where {T}
+    go(x::Tree, y::Tree) = Tree{T}(
+        k => go(x[k], y[k]) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+    )
+    go(x, y) = f(x, y)
 
-zip(f, x::Tree, y::Tree, z::Tree, ::Type{T}) where {T} = Tree{T}(
-    k => zip(f, x[k], y[k], z[k], T) for
-    k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
-)
+    go(x, y)
+end
 
-zip(f, x, y, ::Type) = f(x, y)
+function zip(f, x, y, z, ::Type{T}) where {T}
+    go(x::Tree, y::Tree, z::Tree) = Tree{T}(
+        k => go(x[k], y[k], z[k]) for
+        k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+    )
+    go(x, y, z) = f(x, y, z)
 
-zip(f, x, y, z, ::Type) = f(x, y, z)
+    go(x, y, z)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Index-reporting variant of [`zip`](@ref) (see [`imap`](@ref) for reference).
+"""
+function izip(f, x, y, ::Type{T}) where {T}
+    go(ix, x::Tree, y::Tree) = Tree{T}(
+        k => go(tuple(ix..., k), x[k], y[k]) for
+        k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+    )
+    go(ix, x, y) = f(ix, x, y)
+
+    go((), x, y)
+end
+
+function izip(f, x, y, z, ::Type{T}) where {T}
+    go(ix, x::Tree, y::Tree, z::Tree) = Tree{T}(
+        k => go(tuple(ix..., k), x[k], y[k], z[k]) for
+        k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+    )
+    go(ix, x, y, z) = f(ix, x, y, z)
+
+    go((), x, y, z)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -147,17 +195,55 @@ Run a function over the values in the merge of all paths in the trees
 (currently there is support for 2 and 3 trees). This is an "outer join"
 equivalent of [`zip`](@ref).  Missing elements are replaced by `missing` in the
 function calls; otherwise the function works just like [`zip`](@ref).
+
+Note this is a specialized function specific for [`Tree`](@ref)s that behaves
+differently from `Base.merge`.
 """
-merge(f, x::Tree, y::Tree, ::Type{T}) where {T} = Tree{T}(
-    k => merge(f, get(x, k, missing), get(y, k, missing), T) for
-    k in union(SortedSet(keys(x)), SortedSet(keys(y)))
-)
+function merge(f, x, y, ::Type{T}) where {T}
+    go(x::Tree, y::Tree) = Tree{T}(
+        k => go(get(x, k, missing), get(y, k, missing)) for
+        k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+    )
+    go(x, y) = f(x, y)
 
-merge(f, x::Tree, y::Tree, z::Tree, ::Type{T}) where {T} = Tree{T}(
-    k => merge(f, x[k], y[k], z[k], T) for
-    k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
-)
+    go(x, y)
+end
 
-merge(f, x, y, ::Type) = f(x, y)
+function merge(f, x, y, z, ::Type{T}) where {T}
+    go(x::Tree, y::Tree, z::Tree) = Tree{T}(
+        k => go(get(x, k, missing), get(y, k, missing), get(z, k, missing)) for
+        k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+    )
+    go(x, y, z) = f(x, y, z)
 
-merge(f, x, y, z, ::Type) = f(x, y, z)
+    go(x, y, z)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Index-reporting variant of [`merge`](@ref) (see [`imap`](@ref) for reference).
+"""
+function imerge(f, x, y, ::Type{T}) where {T}
+    go(ix, x::Tree, y::Tree) = Tree{T}(
+        k => go(tuple(ix..., k), get(x, k, missing), get(y, k, missing)) for
+        k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+    )
+    go(ix, x, y) = f(ix, x, y)
+
+    go((), x, y)
+end
+
+function imerge(f, x, y, z, ::Type{T}) where {T}
+    go(ix, x::Tree, y::Tree, z::Tree) = Tree{T}(
+        k => go(
+            tuple(ix..., k),
+            get(x, k, missing),
+            get(y, k, missing),
+            get(z, k, missing),
+        ) for k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+    )
+    go(ix, x, y, z) = f(ix, x, y, z)
+
+    go((), x, y, z)
+end
