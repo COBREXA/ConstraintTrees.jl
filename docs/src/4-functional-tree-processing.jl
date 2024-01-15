@@ -92,14 +92,17 @@ end
 @test x.value.idxs == [1, 2] #src
 @test x.value.weights == [1.0, 1.0] #src
 
-# What if we want to reduce the `point` specially? ?
+# What if we want to reduce the `point` specially?
 
-C.ireduce(constraints, init = C.Constraint(zero(C.LinearValue))) do path, x, y
+x = C.ireduce(constraints, init = C.Constraint(zero(C.LinearValue))) do path, x, y
+    return C.Constraint(value = x.value + y.value) #src
     if path == (:point,)
-        #md @info "reducing in point subtree!" x y
+        println("reducing in point/ subtree: $(x.value) + $(y.value)")
     end
     C.Constraint(value = x.value + y.value)
-end
+end;
+
+x
 
 # ## Comparing trees with `zip`
 
