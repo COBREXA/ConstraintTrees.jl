@@ -232,6 +232,20 @@ function variables_for(makebound, ts::Tree)
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Like [`variables_for`](@ref) but the `makebound` function also receives a path
+to the variable, as with [`imap`](@ref).
+"""
+function variables_ifor(makebound, ts::Tree)
+    var_idx = 0
+    imap(ts, Constraint) do path, x
+        var_idx += 1
+        variable(idx = var_idx, bound = makebound(path, x))
+    end
+end
+
 #
 # Transforming the constraint trees
 #
