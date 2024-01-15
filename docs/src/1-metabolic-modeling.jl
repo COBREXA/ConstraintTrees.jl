@@ -50,18 +50,18 @@ c = C.variables(keys = Symbol.(keys(ecoli.reactions)))
 
 @test length(C.elems(c)) == length(ecoli.reactions) #src
 
-# The above operation returns a `ConstraintTree`. You can browse these as a
-# dictionary:
+# The above operation returns a [`ConstraintTree`](@ref
+# ConstraintTrees.ConstraintTree). You can browse these as a dictionary:
 c[:R_PFK]
 
 # ...or much more conveniently using the record dot syntax as properties:
 c.R_PFK
 
-# The individual `LinearValue`s in constraints behave like sparse vectors that
-# refer to variables: The first field represents the referenced variable
-# indexes, and the second field represents the coefficients. Compared to the
-# sparse vectors, information about the total number of variables is not stored
-# explicitly.
+# The individual [`LinearValue`](@ref ConstraintTrees.LinearValue)s in
+# constraints behave like sparse vectors that refer to variables: The first
+# field represents the referenced variable indexes, and the second field
+# represents the coefficients. Compared to the sparse vectors, information
+# about the total number of variables is not stored explicitly.
 
 # Operator `^` is used to name individual constraints and directories in the
 # hierarchy. Let us name our constraints as "fluxes" (which is a common name in
@@ -87,7 +87,8 @@ c[:fluxes][:R_PFK]
 # Each element in the constraint tree consists of a linear combination of the
 # variables, which can be freely used to construct (and constraint) new linear
 # combinations of variables. As the simplest use, we can constraint the
-# variables to their valid bounds as defined by the model:
+# variables (using [`Constraint`](@ref ConstraintTrees.Constraint)s) to their
+# valid bounds as defined by the model:
 rxn_constraints =
     let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
         C.ConstraintTree(
@@ -384,7 +385,7 @@ result.exchanges
 
 @test result_with_more_oxygen.exchanges.oxygen < -19.0 #src
 
-# ## Combining trees
+# ## Seeing the differences between the results
 #
 # ConstraintTrees.jl defines its own version of `zip` function that can apply a
 # function to the contents of several trees, "zipping" them over the same keys
@@ -427,3 +428,6 @@ changes = C.zip(
 end
 
 changes.fluxes
+
+# More high-level functions like `zip` are described in [an example on
+# functional tree processing](4-functional-tree-processing.md).

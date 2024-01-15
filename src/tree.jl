@@ -56,6 +56,9 @@ Base.length(x::Tree) = length(elems(x))
 Base.iterate(x::Tree) = iterate(elems(x))
 Base.iterate(x::Tree, st) = iterate(elems(x), st)
 
+Base.get(x::Tree, k, default) = get(elems(x), k, default)
+Base.get(f::Function, x::Tree, args...) = get(f, elems(x), args...)
+
 Base.eltype(x::Tree) = eltype(elems(x))
 
 Base.keytype(x::Tree) = keytype(elems(x))
@@ -112,8 +115,11 @@ Run a function over everything in the tree. The resulting tree will contain
 elements of type specified by the 3rd argument. (This needs to be specified
 explicitly, because the typesystem generally cannot guess the universal type
 correctly.)
+
+Note this is a specialized function specific for [`Tree`](@ref)s that behaves
+differently from `Base.map`.
 """
-function map(f, x, ::Type{T}) where {T}
+function map(f, x, ::Type{T} = Constraint) where {T}
     go(x::Tree) = Tree{T}(k => go(v) for (k, v) in x)
     go(x) = f(x)
 
@@ -127,12 +133,65 @@ Like [`map`](@ref), but keeping the "index" path and giving it to the function
 as the first parameter. The "path" in the tree is reported as a tuple of
 symbols.
 """
-function imap(f, x, ::Type{T}) where {T}
+function imap(f, x, ::Type{T} = Constraint) where {T}
     go(ix, x::Tree) = Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x)
     go(ix, x) = f(ix, x)
 
     go((), x)
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Reduce all items in a [`Tree`](@ref). As with `Base.reduce`, the reduction
+order is not guaranteed, and the `init`ial value may be used any number of
+times.
+
+Note this is a specialized function specific for [`Tree`](@ref)s that behaves
+differently from `Base.mapreduce`.
+"""
+function mapreduce(f, op, x; init = missing)
+    go(x::Tree) = Base.reduce(op, (go(v) for (_, v) in x); init)
+    go(x) = f(x)
+
+    go(x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Like [`mapreduce`](@ref) but reporting the "tree directory path" where the reduced
+elements occur, like with [`imap`](@ref). (Single elements from different
+directory paths are not reduced together.)
+"""
+function imapreduce(f, op, x; init = missing)
+    go(ix, x::Tree) =
+        Base.reduce((a, b) -> op(ix, a, b), (go(tuple(ix..., k), v) for (k, v) in x); init)
+    go(ix, x) = f(ix, x)
+
+    go((), x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Like [`mapreduce`](@ref) but the mapped function is identity.
+
+To avoid much type suffering, the `op`eration should ideally preserve the type
+of its arguments. If you need to change the type, you likely want to use
+[`mapreduce`](@ref).
+
+Note this is a specialized function specific for [`Tree`](@ref)s that behaves
+differently from `Base.reduce`.
+"""
+reduce(op, x; init = missing) = mapreduce(identity, op, x; init)
+
+"""
+$(TYPEDSIGNATURES)
+
+Indexed version of [`reduce`](@ref) (internally uses [`imapreduce`](@ref)).
+"""
+ireduce(op, x; init = missing) = imapreduce((_, x) -> x, op, x; init)
 
 """
 $(TYPEDSIGNATURES)
@@ -143,8 +202,11 @@ elements are ignored. "Outer join" can be done via [`merge`](@ref).
 
 As with [`map`](@ref), the inner type of the resulting tree must be specified
 by the last parameter..
+
+Note this is a specialized function specific for [`Tree`](@ref)s that behaves
+differently from `Base.zip`.
 """
-function zip(f, x, y, ::Type{T}) where {T}
+function zip(f, x, y, ::Type{T} = Constraint) where {T}
     go(x::Tree, y::Tree) = Tree{T}(
         k => go(x[k], y[k]) for k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
     )
@@ -153,7 +215,7 @@ function zip(f, x, y, ::Type{T}) where {T}
     go(x, y)
 end
 
-function zip(f, x, y, z, ::Type{T}) where {T}
+function zip(f, x, y, z, ::Type{T} = Constraint) where {T}
     go(x::Tree, y::Tree, z::Tree) = Tree{T}(
         k => go(x[k], y[k], z[k]) for
         k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
@@ -168,7 +230,7 @@ $(TYPEDSIGNATURES)
 
 Index-reporting variant of [`zip`](@ref) (see [`imap`](@ref) for reference).
 """
-function izip(f, x, y, ::Type{T}) where {T}
+function izip(f, x, y, ::Type{T} = Constraint) where {T}
     go(ix, x::Tree, y::Tree) = Tree{T}(
         k => go(tuple(ix..., k), x[k], y[k]) for
         k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
@@ -178,7 +240,7 @@ function izip(f, x, y, ::Type{T}) where {T}
     go((), x, y)
 end
 
-function izip(f, x, y, z, ::Type{T}) where {T}
+function izip(f, x, y, z, ::Type{T} = Constraint) where {T}
     go(ix, x::Tree, y::Tree, z::Tree) = Tree{T}(
         k => go(tuple(ix..., k), x[k], y[k], z[k]) for
         k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
@@ -187,6 +249,29 @@ function izip(f, x, y, z, ::Type{T}) where {T}
 
     go((), x, y, z)
 end
+
+"""
+$(TYPEDEF)
+
+Helper type for implementation of `merge`-related functions.
+"""
+const OptionalTree = Union{Tree,Missing}
+
+"""
+$(TYPEDSIGNATURES)
+
+Get a key from a tree that is possibly `missing`.
+"""
+optional_tree_get(::Missing, _) = missing
+optional_tree_get(x, k) = get(x, k, missing)
+
+"""
+$(TYPEDSIGNATURES)
+
+Get a sorted set of keys from a tree that is possibly `missing`.
+"""
+optional_tree_keys(::Missing) = SortedSet()
+optional_tree_keys(x) = SortedSet(keys(x))
 
 """
 $(TYPEDSIGNATURES)
@@ -200,11 +285,11 @@ elements.
 Note this is a specialized function specific for [`Tree`](@ref)s that behaves
 differently from `Base.merge`.
 """
-function merge(f, x, y, ::Type{T}) where {T}
-    go(x::Tree, y::Tree) = Tree{T}(
+function merge(f, x, y, ::Type{T} = Constraint) where {T}
+    go(x::OptionalTree, y::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(get(x, k, missing), get(y, k, missing)) for
-            k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+            k => go(optional_tree_get(x, k), optional_tree_get(y, k)) for
+            k in union(optional_tree_keys(x), optional_tree_keys(y))
         ) if !ismissing(v)
     )
     go(x, y) = f(x, y)
@@ -212,17 +297,18 @@ function merge(f, x, y, ::Type{T}) where {T}
     go(x, y)
 end
 
-function merge(f, x, y, z, ::Type{T}) where {T}
-    go(x::Tree, y::Tree, z::Tree) = Tree{T}(
+function merge(f, x, y, z, ::Type{T} = Constraint) where {T}
+    go(x::OptionalTree, y::OptionalTree, z::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
             k => go(
-                tuple(ix..., k),
-                get(x, k, missing),
-                get(y, k, missing),
-                get(z, k, missing),
-            ) for k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+                optional_tree_get(x, k),
+                optional_tree_get(y, k),
+                optional_tree_get(z, k),
+            ) for k in
+            union(optional_tree_keys(x), optional_tree_keys(y), optional_tree_keys(z))
         ) if !ismissing(v)
     )
+
     go(x, y, z) = f(x, y, z)
 
     go(x, y, z)
@@ -233,11 +319,11 @@ $(TYPEDSIGNATURES)
 
 Index-reporting variant of [`merge`](@ref) (see [`imap`](@ref) for reference).
 """
-function imerge(f, x, y, ::Type{T}) where {T}
-    go(ix, x::Tree, y::Tree) = Tree{T}(
+function imerge(f, x, y, ::Type{T} = Constraint) where {T}
+    go(ix, x::OptionalTree, y::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(tuple(ix..., k), get(x, k, missing), get(y, k, missing)) for
-            k in union(SortedSet(keys(x)), SortedSet(keys(y)))
+            k => go(tuple(ix..., k), optional_tree_get(x, k), optional_tree_get(y, k)) for
+            k in union(optional_tree_keys(x), optional_tree_keys(y))
         ) if !ismissing(v)
     )
     go(ix, x, y) = f(ix, x, y)
@@ -245,15 +331,16 @@ function imerge(f, x, y, ::Type{T}) where {T}
     go((), x, y)
 end
 
-function imerge(f, x, y, z, ::Type{T}) where {T}
-    go(ix, x::Tree, y::Tree, z::Tree) = Tree{T}(
+function imerge(f, x, y, z, ::Type{T} = Constraint) where {T}
+    go(ix, x::OptionalTree, y::OptionalTree, z::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
             k => go(
                 tuple(ix..., k),
-                get(x, k, missing),
-                get(y, k, missing),
-                get(z, k, missing),
-            ) for k in union(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+                optional_tree_get(x, k),
+                optional_tree_get(y, k),
+                optional_tree_get(z, k),
+            ) for k in
+            union(optional_tree_keys(x), optional_tree_keys(y), optional_tree_keys(z))
         ) if !ismissing(v)
     )
     go(ix, x, y, z) = f(ix, x, y, z)

@@ -1,0 +1,260 @@
+
+# # Example: Processing the trees functionally
+#
+# The main goal of ConstraintTrees.jl is to make the constraint-manipulating
+# code orderly and elegant, and preferably short. To improve the manipulation
+# of large constraint trees, the package also provides a small
+# functional-programming-inspired framework that allows one to easily
+# transform, summarize and combine all kinds of trees without writing
+# repetitive code.
+#
+# You might already seen the [`zip`](@ref ConstraintTrees.zip) function in the
+# [metabolic modeling example](1-metabolic-modeling.md). There are more
+# functions that behave like `zip`, so let's have a little summary here:
+#
+# - [`map`](@ref ConstraintTrees.map) applies a function to all elements
+#   (including the nested ones) of a tree
+# - [`mapreduce`](@ref ConstraintTrees.mapreduce) transforms all elements of a
+#   tree using a given function (first parameter) and then combines the result
+#   using the second function (a binary operator); [`reduce`](@ref
+#   ConstraintTrees.reduce) is a shortcut where the `map` function is an
+#   identity
+# - [`zip`](@ref ConstraintTrees.zip) combines elements common to both trees
+#   using a given zipping function
+# - [`merge`](@ref ConstraintTrees.merge) combines all elements in both trees
+#   (including the ones present in only one tree) using a given merging
+#   function
+# - [`variables_for`](@ref ConstraintTrees.variables_for) allocates a variable
+#   for each constraint in the tree and allows the user to specify bounds
+#
+# Additionally, all these have their "indexed" variant which allows you to know
+# the path where the tree elements are being merged. The path is passed to the
+# handling function as a tuple of symbols. The variants are prefixed with `i`:
+#
+# - [`imap`](@ref ConstraintTrees.imap)
+# - [`imapreduce`](@ref ConstraintTrees.ireduce) (here the path refers to the
+#   common directory of the reduced elements) together with the shortcut
+#   [`ireduce`](@ref ConstraintTrees.ireduce)
+# - [`izip`](@ref ConstraintTrees.izip)
+# - [`imerge`](@ref ConstraintTrees.imerge)
+# - [`variables_ifor`](@ref ConstraintTrees.variables_ifor)
+
+#md # !!! danger "Naming conflicts with Julia base"
+#md #     Names of some of the higher-order function conflict with Julia base package and are not compatible. We recommend using them with named imports, such as by `import ConstraintTrees as C` and then `C.zip` and `C.merge`.
+
+# For demonstration, let's make a very simple constrained system.
+
+import ConstraintTrees as C
+
+constraints = :point^C.variables(keys = [:x, :y], bounds = C.Between(0, 1))
+
+# ## Transforming trees with `map`
+#
+# Let's make a tree where the bounds are 2 times bigger and negated:
+
+x = C.map(constraints) do x
+    C.Constraint(x.value, -2 * x.bound)
+end
+
+x.point.x
+
+@test x.point.x.bound.lower == -2.0 #src
+
+# With `imap`, we can detect that we are working on a specific constraint and
+# do something entirely different:
+
+x = C.imap(constraints) do path, x
+    if path == (:point, :x)
+        C.Constraint(x.value, 100 * x.bound)
+    else
+        x
+    end
+end
+
+[x.point.x, x.point.y]
+
+@test x.point.x.bound.upper == 100 #src
+
+# ## Summarizing the trees with `mapreduce` and `reduce`
+#
+# How many constraints are there in the tree?
+
+x = C.mapreduce(init = 0, _ -> 1, +, constraints)
+
+@test x == 2 #src
+
+# What if we want to sum all constraints' values?
+
+x = C.reduce(constraints, init = C.Constraint(zero(C.LinearValue))) do x, y
+    C.Constraint(value = x.value + y.value)
+end
+
+@test x.value.idxs == [1, 2] #src
+@test x.value.weights == [1.0, 1.0] #src
+
+# What if we want to reduce the `point` specially? ?
+
+C.ireduce(constraints, init = C.Constraint(zero(C.LinearValue))) do path, x, y
+    if path == (:point,)
+        #md @info "reducing in point subtree!" x y
+    end
+    C.Constraint(value = x.value + y.value)
+end
+
+# ## Comparing trees with `zip`
+
+# Assume we have two solutions of the constraint system above, as follows:
+
+s1 = C.substitute_values(constraints, [0.9, 0.8])
+s2 = C.substitute_values(constraints, [0.99, 0.78])
+
+# Let's compute the squared distance between individual items:
+
+x = C.zip(s1, s2, Float64) do x, y
+    (x - y)^2
+end
+
+x.point
+
+@test isapprox(x.point.x, 0.09^2) #src
+
+# What if we want to put extra weight on distances between specific variables?
+
+x = C.izip(s1, s2, Float64) do path, x, y
+    if path == (:point, :x)
+        10
+    else
+        1
+    end * (x - y)^2
+end
+
+x.point
+
+@test isapprox(x.point.x, 10 * 0.09^2) #src
+@test C.reduce(&, C.izip((_, a, _, c) -> a == c, s1, s2, s1, Bool), init = true) #src
+
+# ## Combining trees with `merge`
+#
+# Zipping trees together always produces a tree that only contains the intersection
+# of keys from both original trees. That is not very useful if one wants to
+# e.g. add new elements from extended trees. `merge`-style functions implement
+# precisely that.
+#
+# The "zipping" function in `merge` takes 2 arguments; any of these may be
+# `missing` in case one of the trees does not contain the elements. Also, a key
+# may be omitted by returning `missing` from the function.
+#
+# Let's make some very heterogeneous trees and try to combine them:
+
+t1 = :x^s1.point * :y^s2.point
+t2 = :x^s2.point * :z^s1.point
+t3 = :y^s2.point
+
+# As a nice combination function, we can try to compute an average on all
+# positions from the first 2 trees:
+
+t = C.merge(t1, t2, Float64) do x, y
+    ismissing(x) && return y
+    ismissing(y) && return x
+    (x + y) / 2
+end
+
+t.x
+
+t.y
+
+t.z
+
+@test isapprox(t.x.x, 0.945) #src
+@test isapprox(t.x.y, 0.79) #src
+
+# Merge can also take 3 parameters (which is convenient in some situations). We
+# may also want to omit certain output completely:
+
+tz = C.merge(t1, t2, t3, Float64) do x, y, z
+    ismissing(z) && return missing
+    ismissing(x) && return y
+    ismissing(y) && return x
+    (x + y) / 2
+end
+
+tz.y
+@test isapprox(tz.y.x, 0.99) #src
+@test isapprox(tz.y.y, 0.78) #src
+
+# We also have the indexed variants; for example this allows us to only merge the `x` elements in points:
+
+tx = C.imerge(t1, t2, Float64) do path, x, y
+    last(path) == :x || return missing
+    ismissing(x) && return y
+    ismissing(y) && return x
+    (x + y) / 2
+end
+
+tx.x
+
+@test tx.y.x == tz.y.x #src
+
+# For completeness, we demonstrate a trick with easily coalescing the "missing"
+# things to compute the means more easily:
+
+miss(_::Missing, _, def) = def;
+miss(x, f, _) = f(x);
+fixmean(a) = miss(a, x -> (x, 1), (0, 0));
+
+tx = C.imerge(t1, t2, t3, Float64) do path, x, y, z
+    last(path) == :x || return missing
+    tmp = fixmean.([x, y, z])
+    sum(first.(tmp)) / sum(last.(tmp))
+end
+
+tx.y
+
+@test isapprox(tx.y.x, 0.99) #src
+@test !haskey(tx.y, :y) #src
+@test get(() -> 123, tx.x, :y) == 123 #src
+
+# ## Allocating trees of variables using `variables_for`
+#
+# In many cases it is convenient to make a new model from the old by allocating
+# new variables for whatever "old" tree out there. For example, one might wish
+# to allocate a new variable for an approximate value (plus-minus-one) for each
+# of the above tree's values. `variables_for` allocates one variable for each
+# element of the given tree, and allows you to create bounds for the variables
+# via the given function:
+
+x = C.variables_for(t) do a
+    C.Between(a - 1, a + 1)
+end
+
+t.x.x
+
+x.x.x
+
+# Note that the variables for the other subtrees are different now:
+
+x.x.x.value
+
+x.y.x.value
+
+@test C.var_count(x) == 6 #src
+@test isapprox(x.x.x.bound.lower, -0.055) #src
+
+# As in all cases with indexes, you may match the tree path to do a special
+# action. For example, to make sure that all `y` coordinates are exact in the
+# new system:
+
+x = C.variables_ifor(t) do path, a
+    if last(path) == :y
+        C.EqualTo(a)
+    else
+        C.Between(a - 1, a + 1)
+    end
+end
+
+x.x
+
+C.bound.(values(x.x))
+
+@test isapprox(x.x.x.bound.upper, 1.945) #src
+@test isapprox(x.x.y.bound.equal_to, 0.79) #src
