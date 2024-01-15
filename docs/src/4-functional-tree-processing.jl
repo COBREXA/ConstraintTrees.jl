@@ -102,6 +102,8 @@ x = C.ireduce(constraints, init = C.Constraint(zero(C.LinearValue))) do path, x,
     C.Constraint(value = x.value + y.value)
 end;
 
+#
+
 x
 
 # ## Comparing trees with `zip`
