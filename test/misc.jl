@@ -59,6 +59,7 @@ end
     s = :a^C.Constraint(x, 5.0) + :b^C.Constraint(x * x - x, (4.0, 6.0))
     @test C.value(s.a).idxs == [1]
     @test C.value(s.b).idxs == [(0, 2), (2, 2)]
+    @test C.value(s.a.value) === C.value(s.a)
     vars = [C.LinearValue([1], [1.0]), C.LinearValue([2], [1.0])]
     @test C.substitute(s.a, vars).bound == s.a.bound
     @test C.substitute(s.a, vars).value.idxs == s.a.value.idxs
