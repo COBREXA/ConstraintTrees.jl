@@ -19,3 +19,12 @@ $(TYPEDEF)
 Abstract type of all values usable in constraints, including [`LinearValue`](@ref) and [`QuadraticValue`](@ref).
 """
 abstract type Value end
+
+"""
+$(TYPEDSIGNATURES)
+
+Returns any [`Real`](@ref)- or [`Value`](@ref)-typed `x`. This is a convenience
+overload; typically one enjoys this more when extracting values from
+[`Constraint`](@ref)s.
+"""
+value(x::T) where {T<:Union{Real,Value}} = x
