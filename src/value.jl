@@ -23,7 +23,7 @@ abstract type Value end
 """
 $(TYPEDSIGNATURES)
 
-Returns any [`Real`](@ref)- or [`Value`](@ref)-typed `x`. This is a convenience
+Returns any `Real`- or [`Value`](@ref)-typed `x`. This is a convenience
 overload; typically one enjoys this more when extracting values from
 [`Constraint`](@ref)s.
 """
