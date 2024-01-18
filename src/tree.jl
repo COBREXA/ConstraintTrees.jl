@@ -143,6 +143,46 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Like [`map`](@ref), but discards the results, thus relying only on the side
+effects of `f`.
+
+Technically the name should be `for`, but that's a Julia keyword.
+"""
+function traverse(f, x)
+    go(x::Tree) =
+        for (_, v) in x
+            go(v)
+        end
+    go(x) = begin
+        f(x)
+        nothing
+    end
+
+    go(x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+[`itraverse`](@ref) is to [`traverse`](@ref) like [`imap`](@ref) is to
+[`map`](@ref).
+"""
+function itraverse(f, x)
+    go(ix, x::Tree) =
+        for (k, v) in x
+            go(tuple(ix..., k), v)
+        end
+    go(ix, x) = begin
+        f(ix, x)
+        nothing
+    end
+
+    go((), x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Reduce all items in a [`Tree`](@ref). As with `Base.reduce`, the reduction
 order is not guaranteed, and the `init`ial value may be used any number of
 times.
