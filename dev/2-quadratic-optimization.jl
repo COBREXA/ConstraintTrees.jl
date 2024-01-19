@@ -113,7 +113,7 @@ function quad_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
-    function add_constraint(c::C.Constraint)
+    C.traverse(cs) do c
         b = c.bound
         if b isa C.EqualTo
             JuMP.@constraint(model, C.substitute(c.value, x) == b.equal_to)
@@ -123,10 +123,6 @@ function quad_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer
             isinf(b.upper) || JuMP.@constraint(model, val <= b.upper)
         end
     end
-    function add_constraint(c::C.ConstraintTree)
-        add_constraint.(values(c))
-    end
-    add_constraint(cs)
     JuMP.set_silent(model)
     JuMP.optimize!(model)
     JuMP.value.(model[:x])
