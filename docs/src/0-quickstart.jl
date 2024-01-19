@@ -46,19 +46,21 @@
 
 import ConstraintTrees as C
 
-# Let's name our system `s`. We first need a few variables:
+# Let's name our system `s`. We first need a few [`variables:`](@ref
+# ConstraintTrees.variables)
 
 s = C.variables(keys = [:wheat, :barley])
 
 # With ConstraintTrees.jl, we can (and want to!) label everything very nicely
 # -- the constraint trees are essentially directory structures, so one can
-# prefix everything with symbols to put it into nice directories.
+# prefix everything with symbols to put it into nice directories, e.g. as such:
 
-s = :area^s
+:area^s
 
 # To be absolutely realistic, we also want to make sure that all areas are
-# non-negative. To demonstrate how to do it nicely from the start, we here
-# rather re-do the constraints with an interval bound:
+# non-negative. To demonstrate how to do that nicely from the start, we rather
+# re-do the constraints with an appropriate [interval bound](@ref
+# ConstraintTrees.Between):
 
 s = :area^C.variables(keys = [:wheat, :barley], bounds = C.Between(0, Inf))
 
@@ -78,8 +80,8 @@ total_area = s.area.wheat.value + s.area.barley.value
 
 total_area_constraint = C.Constraint(total_area, (0, 100))
 
-# We can add any kind of constraint into the existing constraint trees by
-# "merging" multiple trees with operator `*`:
+# We can add any kind of [constraint](@ref ConstraintTrees.Constraint) into
+# the existing constraint trees by "merging" multiple trees with operator `*`:
 
 s *= :total_area^total_area_constraint
 
@@ -104,8 +106,9 @@ s *= :profit^C.Constraint(s.area.wheat.value * 350 + s.area.barley.value * 550)
 #
 # We can now take the structure of the constraint tree, translate it to any
 # suitable linear optimizer interface, and have it solved. For popular reasons
-# we choose JuMP with GLPK -- the code is left uncommented here; see the other
-# examples for a slightly more detailed explanation:
+# we choose [JuMP](https://jump.dev/) with
+# [GLPK](https://www.gnu.org/software/glpk/) -- the code is left uncommented
+# here as-is; see the other examples for a slightly more detailed explanation:
 
 import JuMP
 function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimizer)
@@ -129,13 +132,14 @@ end
 import GLPK
 optimal_variable_assignment = optimized_vars(s, s.profit.value, GLPK.Optimizer)
 
-# That gives us the optimized variable values! If we cared to remember what
-# they stand for, we might already see how much barley to use. On the other
-# hand, the main point of ConstraintTrees is that one should not be forced to
+# This gives us the optimized variable values! If we cared to remember what
+# they stand for, we might already know how much barley to sow. On the other
+# hand, the main point of ConstraintTree.jl is that one should not be forced to
 # remember things like variable ordering and indexes, or be forced to manually
 # calculate how much money we actually make or how much fertilizer is going to
-# be left -- we can simply feed the variable values back to the constraint
-# tree, and get a really good overview of all values in our constrained system:
+# be left -- instead, we can simply [feed the variable values back to the
+# constraint tree](@ref ConstraintTrees.substitute_values), and get a really
+# good overview of all values in our constrained system:
 
 optimal_s = C.substitute_values(s, optimal_variable_assignment)
 
@@ -228,8 +232,8 @@ f *=
         ),
     )
 
-# Having the 2 systems at hand, we can connect the factory "system" `f` to the
-# field "system" `s` (into a compound system `c` here):
+# Having the two systems at hand, we can connect the factory "system" `f` to
+# the field "system" `s`, making a compound system `c` as such:
 
 c = :factory^f + :fields^s
 
@@ -238,16 +242,17 @@ c = :factory^f + :fields^s
 #md #
 #md #     On a side note, the operator `^` was chosen mainly to match the algebraic view of the tree combination, and nicely fit into Julia's operator priority structure.
 
-# To connect the systems, let's add a transport -- the barley and wheat
-# produced on the fields is going to be the only barley and wheat consumed by
-# the factory, thus their production and consumption must sum to net zero:
+# To actually connect the systems (which now exist as completely independent
+# parts of `s`), let's add a transport -- the barley and wheat produced on the
+# fields is going to be the only barley and wheat consumed by the factory, thus
+# their production and consumption must sum to net zero:
 
 c *= :transport^C.zip(c.fields.area, c.factory.materials) do area, material
     C.Constraint(area.value - material.value, 0)
 end
 
 #md # !!! info "High-level constraint tree manipulation"
-#md #     There is also a [dedicated example](4-functional-tree-processing.md) with many more useful functions like `zip` above.
+#md #     There is also a [dedicated example](4-functional-tree-processing.md) with many more useful functions like [`zip`](@ref ConstraintTrees.zip) above.
 
 # Finally, let's see how much money can we make from having the factory
 # supported by our fields in total!
