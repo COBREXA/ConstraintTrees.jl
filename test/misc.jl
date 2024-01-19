@@ -22,6 +22,7 @@ import SparseArrays as SP
         C.LinearValue(idxs = [2, 3], weights = [5.0, 4.0])
     @test x.idxs == [1, 2, 3]
     @test x.weights == [5.0, 5.0, 10.0]
+    @test C.substitute_values(x, [1, 2, 3, 4]) == C.substitute(x, [1, 2, 3, 4])
     x = convert(C.LinearValue, 123.0)
     @test x.idxs == [0]
     @test x.weights == [123.0]
