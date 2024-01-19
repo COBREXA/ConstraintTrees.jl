@@ -77,3 +77,10 @@ Substitute anything vector-like as variables into the constraint's value,
 producing a constraint with the new value.
 """
 substitute(x::Constraint, y) = Constraint(substitute(x.value, y), x.bound)
+
+"""
+$(TYPEDSIGNATURES)
+
+Overload of [`substitute_values`](@ref) for a single constraint.
+"""
+substitute_values(x::Constraint, y::AbstractVector, _ = eltype(y)) = substitute(value(x), y)

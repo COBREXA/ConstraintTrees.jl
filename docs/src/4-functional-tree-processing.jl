@@ -263,3 +263,38 @@ C.bound.(values(x.x))
 
 @test isapprox(x.x.x.bound.upper, 1.945) #src
 @test isapprox(x.x.y.bound.equal_to, 0.79) #src
+
+# ## Looping through the trees with `traverse`
+#
+# Since we are writing our code in an imperative language, it is often quite
+# beneficial to run a function over the trees just for the side effect.
+#
+# For this purpose, [`traverse`](@ref ConstraintTrees.traverse) and
+# [`itraverse`](@ref ConstraintTrees.itraverse) work precisely like
+# [`map`](@ref ConstraintTrees.map) and [`imap`](@ref ConstraintTrees.imap),
+# except no tree is returned and the only "output" of the functions are their
+# side effect.
+#
+# For example, you can write a less-functional counting of number of
+# constraints in the tree as follows:
+
+constraint_count = 0
+C.traverse(x) do _
+    global constraint_count += 1
+end
+constraint_count
+
+@test constraint_count == 6 #src
+
+# The indexed variant of traverse works as expected; it may be beneficial e.g.
+# for printing the contents of the constraint trees in a "flat" form, or
+# potentially working with other path-respecting data structures.
+
+C.itraverse(x) do ix, c
+    path = join(String.(ix), '/')
+    return #src
+    println("$path = $c")
+end;
+
+# To prevent uncertainty, both functions always traverse the keys in sorted
+# order.

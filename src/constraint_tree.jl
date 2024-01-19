@@ -260,14 +260,7 @@ assignment.
 The third argument forces the output type (it is forwarded to
 [`map`](@ref)). The type gets defaulted from `eltype(y)`.
 """
-substitute_values(x::ConstraintTree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
+substitute_values(x::Tree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
     map(x, T) do c
-        substitute(value(c), y)
+        substitute_values(c, y)
     end
-
-"""
-$(TYPEDSIGNATURES)
-
-Fallback for [`substitute_values`](@ref) for a single constraint.
-"""
-substitute_values(x::Constraint, y::AbstractVector, _ = eltype(y)) = substitute(value(x), y)

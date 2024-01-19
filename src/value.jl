@@ -28,3 +28,12 @@ overload; typically one enjoys this more when extracting values from
 [`Constraint`](@ref)s.
 """
 value(x::T) where {T<:Union{Real,Value}} = x
+
+"""
+$(TYPEDSIGNATURES)
+
+Substutite a value into a [`Value`](@ref)-typed `x`. This is a convenience
+overload for the purpose of having [`substitute_values`](@ref) to run on both
+[`Constraint`](@ref)s and [`Value`](@ref)s.
+"""
+substitute_values(x::Value, y::AbstractVector, _ = eltype(y)) = substitute(x, y)
