@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and      #src
 # limitations under the License.                                           #src
 
-
 # # Example: Mixed integer optimization (MILP)
 #
 # This example demonstrates the extension of `ConstraintTree` bounds structures
@@ -78,13 +77,9 @@ function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer
     model = JuMP.Model(optimizer)
     JuMP.@variable(model, x[1:C.var_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
-    function add_constraint(c::C.Constraint)
+    C.traverse(cs) do c
         isnothing(c.bound) || jump_constraint(model, x, c.value, c.bound)
     end
-    function add_constraint(c::C.ConstraintTree)
-        add_constraint.(values(c))
-    end
-    add_constraint(cs)
     JuMP.set_silent(model)
     JuMP.optimize!(model)
     JuMP.value.(model[:x])
