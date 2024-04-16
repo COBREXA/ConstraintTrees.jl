@@ -11,7 +11,7 @@ main goal, it abstracts over the distinction between constraints and variables,
 allowing much tidier, nicer and extensible representation of many kinds of
 complex constraint systems. The primary purpose is to support constraint-based
 metabolic modeling within
-[COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl).
+[COBREXA.jl](https://github.com/COBREXA/COBREXA.jl).
 
 ConstraintTrees are intended to be used with
 [JuMP](https://github.com/jump-dev/JuMP.jl), but the package does not depend on
