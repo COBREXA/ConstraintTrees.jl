@@ -6,10 +6,10 @@
 | ![CI status](https://github.com/COBREXA/ConstraintTrees.jl/workflows/CI/badge.svg?branch=master) [![codecov](https://codecov.io/gh/COBREXA/ConstraintTrees.jl/branch/master/graph/badge.svg?token=A2ui7exGIH)](https://codecov.io/gh/COBREXA/ConstraintTrees.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://cobrexa.github.io/ConstraintTrees.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://cobrexa.github.io/ConstraintTrees.jl/dev) |
 
 Package `ConstraintTrees.jl` provides a simple data structure `ConstraintTree`
-for organizing the contents of linear and quadratic constrained optimization
-problems. As a main goal, it abstracts over the distinction between constraints
-and variables, allowing much tidier representation for many kinds of complex
-constraint systems. The primary purpose is to support constraint-based
+for organizing the contents of various constrained optimization problems. As a
+main goal, it abstracts over the distinction between constraints and variables,
+allowing much tidier, nicer and extensible representation of many kinds of
+complex constraint systems. The primary purpose is to support constraint-based
 metabolic modeling within
 [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl).
 
@@ -17,12 +17,12 @@ ConstraintTrees are intended to be used with
 [JuMP](https://github.com/jump-dev/JuMP.jl), but the package does not depend on
 JuMP -- instead it is completely generic and lightweight, and may be used with
 any other constraint-solving framework. The documentation describes a typical
-use of ConstraintTrees for solving constrained linear systems (in metabolic
-modeling) and constrained quadratic systems (for geometry) using JuMP, together
-with copy-pasteable code snippets that provide the integration.
+use of ConstraintTrees for describing and solving constrained linear (LP),
+quadratic (QP) and mixed-integer (MILP) problems using JuMP, together with
+copy-pasteable code snippets that provide the integration.
 
-ConstraintTrees package is maintained and open for extensions. Feel free to
-discuss changes and ideas via issues and pull requests.
+ConstraintTrees package is actively maintained and open for extensions. Feel
+free to discuss changes and ideas via issues and pull requests.
 
 #### Acknowledgements
 
