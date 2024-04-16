@@ -56,10 +56,9 @@ x *= :sum^C.Constraint(sum(C.value.(values(x.vars))))
 import SparseArrays: sparsevec
 v = x.sum.value
 
-sparsevec(v.idxs, v.weights, 1000)
+value_in_a_vector = sparsevec(v.idxs, v.weights, 1000)
 
-test = ans #src
-@test isapprox(sum(test), 1000.0) #src
+@test isapprox(sum(value_in_a_vector), 1000.0) #src
 
 # This usually requires only a single memory allocation, and runs in time
 # linear with the number of variables in the value. As an obvious downside, you

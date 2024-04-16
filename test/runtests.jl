@@ -33,6 +33,10 @@ using Test
         include("../docs/src/4-functional-tree-processing.jl")
     end
 
+    @testset "JuMP integration improvements" begin
+        include("../docs/src/5-jump-integration.jl")
+    end
+
     @testset "Miscellaneous methods" begin
         include("misc.jl")
     end
