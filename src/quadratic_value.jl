@@ -112,6 +112,9 @@ function add_sparse_quadratic_combination(
     bi = 1
     be = length(b_idxs)
 
+    sizehint!(r_idxs, ae + be)
+    sizehint!(r_weights, ae + be)
+
     while ai <= ae && bi <= be
         if colex_le(a_idxs[ai], b_idxs[bi])
             push!(r_idxs, a_idxs[ai])
