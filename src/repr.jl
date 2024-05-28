@@ -21,7 +21,8 @@ Represent a [`Tree`](@ref) using base Julia structures.
 Useful for saving trees in JSON, YAML and other formats that can work with
 `Dict`s and `Vector`s.
 """
-to_repr(x::Tree{T}) where {T} = Dict(repr_label(Tree{T}) => Dict(String(k) => to_repr(v) for (k,v)=x))
+to_repr(x::Tree{T}) where {T} =
+    Dict(repr_label(Tree{T}) => Dict(String(k) => to_repr(v) for (k, v) in x))
 
 repr_label(::Type{Tree}) = "tree"
 
@@ -33,4 +34,5 @@ Create a [`Tree`](@ref) from base Julia structures.
 Useful for loading trees from JSON, YAML and other formats that can work with
 `Dict`s and `Vector`s.
 """
-from_repr(::Type{Tree{T}}, x::AbstractDict) where {T<:Tree} = Tree{T}(Symbol(k) => from_repr(v) for (k,v)=x)
+from_repr(::Type{Tree{T}}, x::AbstractDict) where {T<:Tree} =
+    Tree{T}(Symbol(k) => from_repr(v) for (k, v) in x)
