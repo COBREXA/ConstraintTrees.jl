@@ -37,3 +37,49 @@ overload for the purpose of having [`substitute_values`](@ref) to run on both
 [`Constraint`](@ref)s and [`Value`](@ref)s.
 """
 substitute_values(x::Value, y::AbstractVector, _ = eltype(y)) = substitute(x, y)
+
+"""
+$(TYPEDSIGNATURES)
+
+An alternative of `Base.reduce` which does a "pairwise" reduction in the shape
+of a binary merge tree, like in mergesort. In general this is a little more
+complex, but if the reduced value "grows" with more elements added (such as
+when adding a lot of [`LinearValue`](@ref)s together), this is able to prevent
+a complexity explosion by postponing "large" reducing operations as much as
+possible.
+
+In the specific case with adding lots of [`LinearValue`](@ref)s and
+[`QuadraticValue`](@ref)s together, this effectively squashes the reduction
+complexity from something around `O(n^2)` to `O(n)` (with a little larger
+constant factor.
+"""
+function preduce(op, xs; init = zero(eltype(xs)))
+    n = length(xs)
+    n == 0 && return init
+
+    # This works by simulating integer increment and carry to organize the
+    # additions in a (mildly begin-biased) tree. `used` stores the integer,
+    # `val` the associated values.
+    stksize = sizeof(typeof(n)) * 8 - leading_zeros(n)
+    used = fill(false, stksize)
+    val = fill(init, stksize)
+
+    for item in xs
+        idx = 1
+        while used[idx]
+            item = op(item, val[idx]) # collect the bit and carry
+            used[idx] = false
+            idx += 1
+        end
+        val[idx] = item # hit a zero, no more carrying
+        used[idx] = true
+    end
+    # collect all used bits
+    item = init
+    for idx = 1:stksize
+        if used[idx]
+            item = op(item, val[idx])
+        end
+    end
+    return item
+end
