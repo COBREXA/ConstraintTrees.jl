@@ -92,4 +92,4 @@ Alias for [`preduce`](@ref) that uses `+` as the operation.
 Not as versatile as the `sum` from Base, but much faster for growing values
 like [`LinearValue`](@ref)s and [`QuadraticValue`](@ref)s.
 """
-sum(xs; init=zero(eltype(xs))) = preduce(+, xs; init)
+sum(xs; init = zero(eltype(xs))) = preduce(+, xs; init)
