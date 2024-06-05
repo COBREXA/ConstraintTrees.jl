@@ -131,6 +131,15 @@ collect(keys(c))
 # values when making new constraints:
 sum(C.value.(values(c.fluxes)))
 
+# Notably, ConstraintTrees provide their own implementation of `sum` which
+# typically works faster when adding many `Value`s together. The basic interface and results are otherwise
+# the same as with the `sum` from Base:
+
+C.sum(C.value.(values(c.fluxes)))
+
+#md # !!! danger "`Base.sum` vs. `ConstraintTrees.sum`"
+#md #     Since the `sum` from Base package is usually implemented as a left fold, it does not behave optimally when the temporary sub-results grow during the computation (and thus their addition becomes gradually slower). In turn, using the `Base.sum` for summing up [`LinearValue`](@ref ConstraintTrees.LinearValue)s and [`QuadraticValue`](@ref ConstraintTrees.QuadraticValue)s may take time quadratic in the number of added items. [`sum`](@ref ConstraintTrees.sum) from ConstraintTrees uses a different addition order which reduces the amount of large items added together (implemented by ["pairwise" `preduce`](@ref ConstraintTrees.preduce)), and in works in almost-linear time in most cases.
+
 # ### Affine values
 #
 # To simplify various modeling goals (mainly calculation of various kinds of
@@ -159,13 +168,13 @@ system =
 # in the SBML structure:
 stoi_constraints = C.ConstraintTree(
     Symbol(m) => C.Constraint(
-        value = -sum(
+        value = -C.sum(
             (
                 sr.stoichiometry * c.fluxes[Symbol(rid)].value for
                 (rid, r) in ecoli.reactions for sr in r.reactants if sr.species == m
             ),
             init = zero(C.LinearValue), # sometimes the sums are empty
-        ) + sum(
+        ) + C.sum(
             (
                 sr.stoichiometry * c.fluxes[Symbol(rid)].value for
                 (rid, r) in ecoli.reactions for sr in r.products if sr.species == m
@@ -193,7 +202,7 @@ c = c * :stoichiometry^stoi_constraints
 # We can save that information into the constraint system immediately:
 c *=
     :objective^C.Constraint(
-        sum(
+        C.sum(
             c.fluxes[Symbol(rid)].value * coeff for
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
             coeff != 0.0
@@ -364,7 +373,7 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 c.exchanges.oxygen.bound = C.Between(-20.0, 20.0)
 
 # ...or rebuild a whole constraint (using a tuple shortcut for
-# [`ConstraintTrees.Between`](@ref)):
+# [`Between`](@ref ConstraintTrees.Between)):
 c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))
 
 # ...or even add new constraints, here using the index syntax for demonstration:
