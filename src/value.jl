@@ -60,13 +60,17 @@ function preduce(op, xs; init = zero(eltype(xs)), stack_type = eltype(xs))
     # This works by simulating integer increment and carry to organize the
     # additions in a (mildly begin-biased) tree. `used` stores the integer,
     # `val` the associated values.
-    stksize = sizeof(typeof(n)) * 8 - leading_zeros(n)
-    used = fill(false, stksize)
-    val = stack_type[init for _ in used]
+    used = Vector{Bool}()
+    val = Vector{stack_type}()
 
     for item in xs
         idx = 1
-        while used[idx]
+        while true
+            if idx > length(used)
+                push!(used, false)
+                push!(val, init)
+            end
+            used[idx] || break
             item = op(item, val[idx]) # collect the bit and carry
             used[idx] = false
             idx += 1
@@ -76,7 +80,7 @@ function preduce(op, xs; init = zero(eltype(xs)), stack_type = eltype(xs))
     end
     # collect all used bits
     item = init
-    for idx = 1:stksize
+    for idx = 1:length(used)
         if used[idx]
             item = op(item, val[idx])
         end
