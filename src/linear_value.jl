@@ -82,6 +82,10 @@ function add_sparse_linear_combination(
     ae = length(a_idxs)
     bi = 1
     be = length(b_idxs)
+
+    sizehint!(r_idxs, ae + be)
+    sizehint!(r_weights, ae + be)
+
     while ai <= ae && bi <= be
         if a_idxs[ai] < b_idxs[bi]
             push!(r_idxs, a_idxs[ai])

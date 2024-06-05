@@ -114,9 +114,7 @@ $(TYPEDSIGNATURES)
 Find the expected count of variables in a [`QuadraticValue`](@ref). (This is a
 O(1) operation, relying on the co-lexicographical ordering of indexes.)
 """
-var_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : let (_, max) = last(x.idxs)
-    max
-end
+var_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : last(last(x.idxs))
 
 """
 $(TYPEDSIGNATURES)
