@@ -205,7 +205,8 @@ c *=
         C.sum(
             c.fluxes[Symbol(rid)].value * coeff for
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
-            coeff != 0.0
+            coeff != 0.0;
+            init = 0.0,
         ),
     )
 
