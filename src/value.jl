@@ -53,20 +53,33 @@ In the specific case with adding lots of [`LinearValue`](@ref)s and
 complexity from something around `O(n^2)` to `O(n)` (with a little larger
 constant factor.
 """
-function preduce(op, xs; init)
-    # TODO improve type stability here (it's veeeery far from optimal).
-    # TODO find a way to smuggle this into mapreduce
-    up(::Nothing, _, i) = i
-    up(next::Tuple, l, i) =
-        let
-            (next1, i1) = down(next, l)
-            up(next1, l + 1, op(i, i1))
+function preduce(op, xs; init = zero(eltype(xs)))
+    n = length(xs)
+    n == 0 && return init
+
+    # This works by simulating integer increment and carry to organize the
+    # additions in a (mildly begin-biased) tree. `used` stores the integer,
+    # `val` the associated values.
+    stksize = sizeof(typeof(n)) * 8 - leading_zeros(n)
+    used = fill(false, stksize)
+    val = fill(init, stksize)
+
+    for item in xs
+        idx = 1
+        while used[idx]
+            item = op(item, val[idx]) # collect the bit and carry
+            used[idx] = false
+            idx += 1
         end
-    down(::Nothing, _) = (nothing, init)
-    down(next::Tuple, l) =
-        l == 0 ? (iterate(xs, last(next)), first(next)) :
-        let (next1, x1) = down(next, l - 1), (next2, x2) = down(next1, l - 1)
-            (next2, op(x1, x2))
+        val[idx] = item # hit a zero, no more carrying
+        used[idx] = true
+    end
+    # collect all used bits
+    item = init
+    for idx = 1:stksize
+        if used[idx]
+            item = op(item, val[idx])
         end
-    up(iterate(xs), 0, init)
+    end
+    return item
 end
