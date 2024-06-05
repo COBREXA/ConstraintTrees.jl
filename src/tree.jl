@@ -155,7 +155,7 @@ function traverse(f, x)
         end
     go(x) = begin
         f(x)
-        nothing
+        return nothing
     end
 
     go(x)
@@ -174,7 +174,7 @@ function itraverse(f, x)
         end
     go(ix, x) = begin
         f(ix, x)
-        nothing
+        return nothing
     end
 
     go((), x)
