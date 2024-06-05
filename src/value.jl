@@ -53,7 +53,7 @@ In the specific case with adding lots of [`LinearValue`](@ref)s and
 complexity from something around `O(n^2)` to `O(n)` (with a little larger
 constant factor.
 """
-function preduce(op, xs; init = zero(eltype(xs)))
+function preduce(op, xs; init = zero(eltype(xs)), stack_type = eltype(xs))
     n = length(xs)
     n == 0 && return init
 
@@ -62,7 +62,7 @@ function preduce(op, xs; init = zero(eltype(xs)))
     # `val` the associated values.
     stksize = sizeof(typeof(n)) * 8 - leading_zeros(n)
     used = fill(false, stksize)
-    val = fill(init, stksize)
+    val = stack_type[init for _ in used]
 
     for item in xs
         idx = 1
