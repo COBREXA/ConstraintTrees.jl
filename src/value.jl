@@ -54,9 +54,6 @@ complexity from something around `O(n^2)` to `O(n)` (with a little larger
 constant factor.
 """
 function preduce(op, xs; init = zero(eltype(xs)), stack_type = eltype(xs))
-    n = length(xs)
-    n == 0 && return init
-
     # This works by simulating integer increment and carry to organize the
     # additions in a (mildly begin-biased) tree. `used` stores the integer,
     # `val` the associated values.
