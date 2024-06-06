@@ -66,5 +66,6 @@ include("constraint.jl")
 include("tree.jl")
 include("constraint_tree.jl")
 include("pretty.jl")
+include("repr.jl")
 
 end # module ConstraintTrees
