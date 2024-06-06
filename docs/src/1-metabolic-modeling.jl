@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023, University of Luxembourg                             #src
+# Copyright (c) 2023-2024, University of Luxembourg                        #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
 # you may not use this file except in compliance with the License.         #src

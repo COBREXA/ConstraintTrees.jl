@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023, University of Luxembourg
+# Copyright (c) 2023-2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,6 +80,7 @@ end
     @test hasproperty(ct1, :a)
     @test !haskey(ct1, :c)
     @test !hasproperty(ct1, :c)
+    @test haskey(ct1, "a")
 
     @test collect(propertynames(ct1)) == [:a, :b]
     @test [k for (k, _) in ct2] == [:c, :d]
@@ -89,6 +90,11 @@ end
     @test_throws ErrorException :a^ct1 * ct1
     @test_throws ErrorException ct1 * :a^ct1
     @test C.var_count(C.variables_for(_ -> C.EqualTo(0.0), ct1 + ct2)) == 4
+
+    delete!(ct1, "a")
+    ct2["a"] = ct1["b"]
+    @test !haskey(ct1, :a)
+    @test haskey(ct2, :a)
 end
 
 @testset "Solution tree operations" begin
