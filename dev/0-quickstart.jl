@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023, University of Luxembourg                             #src
+# Copyright (c) 2023-2024, University of Luxembourg                        #src
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf                #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
@@ -72,6 +72,10 @@ s.area
 #
 
 s[:area].barley
+
+# (For convenience in some cases, string indexes are also supported:)
+
+s["area"]["barley"]
 
 # Now let's start rewriting the problem into the constraint-tree-ish
 # description. First, we only have 100 square kilometers of area:
