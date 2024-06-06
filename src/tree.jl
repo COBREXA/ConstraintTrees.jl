@@ -66,17 +66,21 @@ Base.keytype(x::Tree) = keytype(elems(x))
 Base.keys(x::Tree) = keys(elems(x))
 
 Base.haskey(x::Tree, sym::Symbol) = haskey(elems(x), sym)
+Base.haskey(x::Tree, str::String) = haskey(x, Symbol(str))
 
 Base.valtype(x::Tree) = valtype(elems(x))
 
 Base.values(x::Tree) = values(elems(x))
 
 Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
+Base.getindex(x::Tree, str::String) = getindex(x, Symbol(str))
 
 Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X,E<:X} =
     setindex!(elems(x), val, sym)
+Base.setindex!(x::Tree, val, str::String) = setindex!(x, val, Symbol(str))
 
 Base.delete!(x::Tree, sym::Symbol) = delete!(elems(x), sym)
+Base.delete!(x::Tree, str::String) = delete!(x, Symbol(str))
 
 Base.propertynames(x::Tree) = keys(x)
 

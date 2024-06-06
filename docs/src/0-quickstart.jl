@@ -73,6 +73,10 @@ s.area
 
 s[:area].barley
 
+# (For convenience in some cases, string indexes are also supported:)
+
+s["area"]["barley"]
+
 # Now let's start rewriting the problem into the constraint-tree-ish
 # description. First, we only have 100 square kilometers of area:
 
