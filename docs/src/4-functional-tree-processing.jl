@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023, University of Luxembourg                             #src
+# Copyright (c) 2023-2024, University of Luxembourg                        #src
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf                #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
