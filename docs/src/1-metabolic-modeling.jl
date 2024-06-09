@@ -397,7 +397,7 @@ result.exchanges
 # Accessors.jl implement a "lensy" way to update immutable data structures.
 # That comes with a nice outcome of doing the right amount of shallow copyies
 # for you automatically, thus avoiding much of the technical danger of in-place
-# modifiations. (You still lose the equational reasoning on your code, but that
+# modifications. (You still lose the equational reasoning on your code, but that
 # may not be an issue at all in usual codebases.)
 #
 # Accessors interface is used simply through macros `@set` (which sets a deeply
