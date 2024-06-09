@@ -357,14 +357,15 @@ Dict(k => v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)
 #   change at a single place of the tree may easily change values also in other
 #   parts of any trees, including completely different trees
 # - the "convenient way" of making sure that the above problem never happens is
-#   to deep-copy the whole tree structure, which is typically quite detrimental
-#   to memory use and program efficiency
+#   to copy-on-write the whole tree structure, which is typically quite
+#   detrimental to memory use and program efficiency
 #
 #md # !!! danger "Rules of thumb for safe use of in-place modification"
 #md #     Only use the in-place modifications if:
 #md #     - there is code that explicitly makes sure there is no false sharing via references, e.g. using a deep copy
 #md #     - the in-place modifications are the last thing happening to the constraint tree before it is used by the solver
 #md #     - the in-place modification code is not a part of a re-usable library
+#md #     - you are using a suitable wrapper interface such as [Accessors.jl](https://github.com/JuliaObjects/Accessors.jl)
 #
 # Now, if you are completely sure that ignoring the robustness guidelines will
 # help your code, you can do the in-place tree modifications quite easily using
@@ -390,6 +391,39 @@ result_with_more_oxygen =
 result.exchanges
 
 @test result_with_more_oxygen.exchanges.oxygen < -19.0 #src
+
+# ### Alternative: Using Accessors.jl
+#
+# Accessors.jl implement a "lensy" way to update immutable data structures.
+# That comes with a nice outcome of doing the right amount of shallow copyies
+# for you automatically, thus avoiding much of the technical danger of in-place
+# modifiations. (You still lose the equational reasoning on your code, but that
+# may not be an issue at all in usual codebases.)
+#
+# Accessors interface is used simply through macros `@set` (which sets a deeply
+# nested field in a structure, returning a modified copy), or with `@reset`
+# which automatically "assigns" the result back to the original variable:
+
+using Accessors
+
+c = @set c.exchanges.biomass.bound = C.Between(-50, 50)
+
+# The above code is equivalent to:
+
+@reset c.exchanges.biomass.bound = C.Between(-50, 50)
+
+# ...and it is also possible to use string and symbol indexes to pick the
+# individual tree items:
+
+@reset c[:exchanges]["biomass"].bound = C.Between(-50, 50)
+
+# All of these operations give us:
+
+c.exchanges.biomass
+
+@test typeof(c.exchanges.biomass.bound) == C.Between #src
+@test c.exchanges.biomass.bound.lower == -50 #src
+@test c.exchanges.biomass.bound.upper == 50 #src
 
 # ## Seeing the differences between the results
 #
