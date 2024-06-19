@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ConstructionBase
 import DataStructures: SortedDict, SortedSet
 
 """
@@ -75,9 +76,14 @@ Base.values(x::Tree) = values(elems(x))
 Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
 Base.getindex(x::Tree, str::String) = getindex(x, Symbol(str))
 
-Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X,E<:X} =
+Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X,E<:Union{X,Tree{X}}} =
     setindex!(elems(x), val, sym)
 Base.setindex!(x::Tree, val, str::String) = setindex!(x, val, Symbol(str))
+
+Base.setindex(x::Tree{X}, val::E, sym::Symbol) where {X,E<:Union{X,Tree{X}}} =
+    Tree{X}(elems(x)..., sym => val)
+Base.setindex(x::Tree{X}, val::E, str::String) where {X,E<:Union{X,Tree{X}}} =
+    Base.setindex(x, val, Symbol(str))
 
 Base.delete!(x::Tree, sym::Symbol) = delete!(elems(x), sym)
 Base.delete!(x::Tree, str::String) = delete!(x, Symbol(str))
@@ -88,8 +94,11 @@ Base.hasproperty(x::Tree, sym::Symbol) = haskey(x, sym)
 
 Base.getproperty(x::Tree, sym::Symbol) = elems(x)[sym]
 
-Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X,E<:X} =
+Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X,E<:Union{X,Tree{X}}} =
     setindex!(elems(x), val, sym)
+
+ConstructionBase.setproperties(x::Tree{T}, props::NamedTuple) where {T} =
+    Tree{T}(elems(x)..., pairs(props)...)
 
 #
 # Algebraic construction
