@@ -159,7 +159,7 @@ $(TYPEDSIGNATURES)
 Filter all branches and leaves in a tree, leaving only the ones where `f`
 returns `true`.
 
-Note that the branches are passed to `f` as well. Use [`filter_lea2es`](@ref)
+Note that the branches are passed to `f` as well. Use [`filter_leaves`](@ref)
 to only work with the leaf values.
 """
 function filter(f, x::Tree{T}) where {T}
