@@ -98,7 +98,7 @@ $(TYPEDSIGNATURES)
 
 Find the expected count of variables in a [`ConstraintTree`](@ref).
 """
-var_count(x::ConstraintTree) = isempty(elems(x)) ? 0 : maximum(var_count.(values(x)))
+var_count(x::ConstraintTree) = isempty(x) ? 0 : maximum(var_count.(values(x)))
 
 """
 $(TYPEDSIGNATURES)
@@ -130,7 +130,7 @@ Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
 increment.
 """
 incr_var_idxs(x::ConstraintTree, incr::Int) =
-    ConstraintTree(k => incr_var_idxs(v, incr) for (k, v) in elems(x))
+    ConstraintTree(k => incr_var_idxs(v, incr) for (k, v) in x)
 
 """
 $(TYPEDSIGNATURES)
@@ -175,7 +175,8 @@ collect_variables!(x::QuadraticValue, out) =
     for (idx, idy) in x.idxs
         push!(out, idx, idy)
     end
-collect_variables!(x::ConstraintTree, out) = collect_variables!.(values(x), Ref(out))
+collect_variables!(x::Tree{T}, out::C) where {T,C} =
+    collect_variables!.(values(x), Ref(out))
 
 """
 $(TYPEDSIGNATURES)
@@ -207,7 +208,7 @@ This does not run any consistency checks on the result; the `mapping` must
 therefore be monotonically increasing, and the zero index must map to itself,
 otherwise invalid [`Value`](@ref)s will be produced.
 """
-renumber_variables(x::ConstraintTree, mapping) =
+renumber_variables(x::Tree{T}, mapping) where {T} =
     ConstraintTree(k => renumber_variables(v, mapping) for (k, v) in x)
 renumber_variables(x::Constraint, mapping) =
     Constraint(renumber_variables(x.value, mapping), x.bound)
@@ -217,6 +218,19 @@ renumber_variables(x::QuadraticValue, mapping) = QuadraticValue(
     idxs = [(mapping[idx], mapping[idy]) for (idx, idy) in x.idxs],
     weights = x.weights,
 )
+
+"""
+$(TYPEDSIGNATURES)
+
+Remove variable references from all [`Value`](@ref)s in the given object
+(usually a [`ConstraintTree`](@ref)) where the variable weight is exactly zero.
+"""
+drop_zeros(x::Tree{T}) where {T} = ConstraintTree(k => drop_zeros(v) for (k, v) in x)
+drop_zeros(x::Constraint) = Constraint(drop_zeros(x.value), x.bound)
+drop_zeros(x::LinearValue) =
+    LinearValue(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.idxs.!=0])
+drop_zeros(x::QuadraticValue) =
+    QuadraticValue(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.weights.!=0])
 
 #
 # Algebraic construction

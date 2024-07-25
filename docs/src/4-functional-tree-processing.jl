@@ -356,8 +356,11 @@ filtered = C.filter_leaves(x) do c
     all(>=(4), c.value.idxs)
 end
 
-# Notably, these operations leave the tree with a slightly sub-optimal state,
-# as there are indexes allocated for variables that are no longer used!
+# ### Pruning unused variable references
+#
+# Filtering operations may leave the constraint tree in a slightly sub-optimal
+# state, where there are indexes allocated for variables that are no longer
+# used!
 
 C.var_count(filtered)
 
@@ -370,18 +373,42 @@ C.var_count(pruned)
 
 @test C.var_count(pruned) == 3 #src
 
-# Note that given the renumbering, constraint trees are no longer compatible
-# after pruning, and should not be combined with `*`. As an anti-example, one
-# might be interested in pruning the variable values before joining them in to
-# larger constraint tree, e.g. to simplify larger quadratic values:
+# Note that after the pruning and renumbering, the involved constraint trees
+# are no longer compatible, and should not be combined with `*`. As an
+# anti-example, one might be interested in pruning the variable values before
+# joining them in to larger constraint tree, e.g. to simplify larger quadratic
+# values:
 
 pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)
 
-# Despite the variable count decreased, the value now corresponds to a
-# completely different value in the original tree! Compare:
+# This value now corresponds to a completely different value in the original
+# tree! Compare:
 
 (pruned_qv, x.x.x.value * x.x.y.value)
 
 @test C.var_count(pruned_qv) == 2 #src
 @test pruned_qv.idxs == (x.x.x.value * x.x.y.value).idxs #src
 @test pruned_qv.weights == (x.x.x.value * x.x.y.value).weights #src
+
+# As another common source of redundant variable references, some variables may
+# be used with zero weights. This situation is not detected by
+# [`prune_variables`](@ref ConstraintTrees.prune_variables) by default, but you
+# can remove the "zeroed out" variable references by using
+# [`drop_zeros`](@ref), which allows the pruning to work properly.
+#
+# For example, the value constructed in the tree below does not really refer to
+# `x.x.y` anymore, but pruning does not help to get rid of the now-redundant
+# variable:
+
+x.x.y.value = x.x.y.value + x.x.x.value * x.x.x.value - x.x.y.value
+
+C.var_count(C.prune_variables(x))
+
+@test C.var_count(C.prune_variables(x)) == 6 #src
+
+# After the zero-weight variable references are dropped, the pruning behaves as
+# desired:
+
+C.var_count(C.prune_variables(C.drop_zeros(x)))
+
+@test C.var_count(C.prune_variables(C.drop_zeros(x))) == 5 #src
