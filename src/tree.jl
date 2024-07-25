@@ -156,6 +156,61 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Filter all branches and leaves in a tree, leaving only the ones where `f`
+returns `true`.
+
+Note that the branches are passed to `f` as well. Use [`filter_leaves`](@ref)
+to only work with the leaf values.
+"""
+function filter(f, x::Tree{T}) where {T}
+    go(x::Tree) = Tree{T}(k => go(v) for (k, v) in x if f(v))
+    go(x) = x
+
+    go(x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Like [`filter`](@ref) but the filtering predicate function also receives the
+"path" in the tree.
+"""
+function ifilter(f, x::Tree{T}) where {T}
+    go(ix, x::Tree{T}) =
+        Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x if f(tuple(ix..., k), v))
+    go(ix, x) = x
+
+    go((), x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Like [`filter`](@ref) but the filtering predicate function `f` only receives
+the leaf values (i.e., no intermediate sub-trees).
+
+In turn, the result will retain the whole subtree structure (even if empty).
+"""
+function filter_leaves(f, x::Tree{T}) where {T}
+    flt(x::Tree{T}) = true
+    flt(x) = f(x)
+
+    filter(flt, x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Combination of [`ifilter`](@ref) and [`filter_leaves`](@ref).
+"""
+ifilter_leaves(f, x::Tree{T}) where {T} =
+    let flt(_, x::Tree{T}) = true, flt(i, x) = f(i, x)
+        ifilter(flt, x)
+    end
+
+"""
+$(TYPEDSIGNATURES)
+
 Like [`map`](@ref), but discards the results, thus relying only on the side
 effects of `f`.
 
