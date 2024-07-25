@@ -394,7 +394,8 @@ pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)
 # be used with zero weights. This situation is not detected by
 # [`prune_variables`](@ref ConstraintTrees.prune_variables) by default, but you
 # can remove the "zeroed out" variable references by using
-# [`drop_zeros`](@ref), which allows the pruning to work properly.
+# [`drop_zeros`](@ref ConstraintTrees.drop_zeros), which allows the pruning to
+# work properly.
 #
 # For example, the value constructed in the tree below does not really refer to
 # `x.x.y` anymore, but pruning does not help to get rid of the now-redundant
