@@ -166,7 +166,7 @@ Push all variable indexes found in `x` to the `out` container.
 
 (The container needs to support the standard `push!`.)
 """
-collect_variables!(x::Constraint, out) = collect_variables!(x.value)
+collect_variables!(x::Constraint, out) = collect_variables!(x.value, out)
 collect_variables!(x::LinearValue, out) =
     for idx in x.idxs
         push!(out, idx)
@@ -193,7 +193,7 @@ function prune_variables(x)
     push!(vars, 0)
     vv = collect(vars)
     @assert vv[1] == 0 "variable indexes are broken"
-    return renumber_variables(x, SortedDict(vv .=> 0:length(vv)))
+    return renumber_variables(x, SortedDict(vv .=> 0:length(vv)-1))
 end
 
 """
@@ -208,7 +208,7 @@ therefore be monotonically increasing, and the zero index must map to itself,
 otherwise invalid [`Value`](@ref)s will be produced.
 """
 renumber_variables(x::ConstraintTree, mapping) =
-    ConstraintTree(k => renumber_Variables(v, mapping) for (k, v) in x)
+    ConstraintTree(k => renumber_variables(v, mapping) for (k, v) in x)
 renumber_variables(x::Constraint, mapping) =
     Constraint(renumber_variables(x.value, mapping), x.bound)
 renumber_variables(x::LinearValue, mapping) =

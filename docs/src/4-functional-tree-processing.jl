@@ -42,9 +42,10 @@
 # - [`variables_for`](@ref ConstraintTrees.variables_for) allocates a variable
 #   for each constraint in the tree and allows the user to specify bounds
 #
-# Additionally, all these have their "indexed" variant which allows you to know
-# the path where the tree elements are being merged. The path is passed to the
-# handling function as a tuple of symbols. The variants are prefixed with `i`:
+# Additionally, all these have their "indexed" variant which allows the user to
+# know the path where the tree elements are being merged. The path is passed to
+# the handling function as a tuple of symbols. The variants are prefixed with
+# `i`:
 #
 # - [`imap`](@ref ConstraintTrees.imap)
 # - [`imapreduce`](@ref ConstraintTrees.ireduce) (here the path refers to the
@@ -202,7 +203,8 @@ tz.y
 @test isapprox(tz.y.x, 0.99) #src
 @test isapprox(tz.y.y, 0.78) #src
 
-# We also have the indexed variants; for example this allows us to only merge the `x` elements in points:
+# We also have the indexed variants; for example this allows us to only merge
+# the `x` elements in points:
 
 tx = C.imerge(t1, t2, Float64) do path, x, y
     last(path) == :x || return missing
@@ -313,3 +315,73 @@ end;
 
 # To prevent uncertainty, both functions always traverse the keys in sorted
 # order.
+
+# ## Removing constraints with `filter`
+#
+# In many cases it is beneficial to simplify the constraint system by
+# systematically removing constraints. [`filter`](@ref ConstraintTrees.filter)
+# and [`ifilter`](@ref ConstraintTrees.ifilter) run a function on all subtrees
+# and leaves (usually the leaves are [`Constraint`](@ref
+# ConstraintTrees.Constraint)s), and only retain these where the function
+# returns `true`.
+#
+# For example, this removes all constraints named `y`:
+
+filtered = C.ifilter(x) do ix, c
+    return c isa C.ConstraintTree || last(ix) != :y
+end
+
+filtered.z
+
+@test !haskey(filtered.x, :y) #src
+
+# Functions [`filter_leaves`](@ref ConstraintTrees.filter_leaves) and
+# [`ifilter_leaves`](@ref ConstraintTrees.ifilter_leaves) act similarly but
+# automatically assume that the directory structure is going to stay intact,
+# freeing the user from having to handle the subdirectories.
+#
+# The above example thus simplifies to:
+
+filtered = C.ifilter_leaves(x) do ix, c
+    last(ix) != :y
+end
+
+filtered.z
+
+@test !haskey(filtered.x, :y) #src
+
+# We can also remove whole variable ranges:
+
+filtered = C.filter_leaves(x) do c
+    all(>=(4), c.value.idxs)
+end
+
+# Notably, these operations leave the tree with a slightly sub-optimal state,
+# as there are indexes allocated for variables that are no longer used!
+
+C.var_count(filtered)
+
+# To fix the issue, it is possible to "squash" the variable indexes using
+# [`prune_variables`](@ref ConstraintTrees.prune_variables):
+
+pruned = C.prune_variables(filtered)
+
+C.var_count(pruned)
+
+@test C.var_count(pruned) == 3 #src
+
+# Note that given the renumbering, constraint trees are no longer compatible
+# after pruning, and should not be combined with `*`. As an anti-example, one
+# might be interested in pruning the variable values before joining them in to
+# larger constraint tree, e.g. to simplify larger quadratic values:
+
+pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)
+
+# Despite the variable count decreased, the value now corresponds to a
+# completely different value in the original tree! Compare:
+
+(pruned_qv, x.x.x.value * x.x.y.value)
+
+@test C.var_count(pruned_qv) == 2 #src
+@test pruned_qv.idxs == (x.x.x.value * x.x.y.value).idxs #src
+@test pruned_qv.weights == (x.x.x.value * x.x.y.value).weights #src

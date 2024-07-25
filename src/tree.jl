@@ -164,7 +164,7 @@ to only work with the leaf values.
 """
 function filter(f, x::Tree{T}) where {T}
     go(x::Tree) = Tree{T}(k => go(v) for (k, v) in x if f(v))
-    go(x) = f(x)
+    go(x) = x
 
     go(x)
 end
@@ -176,8 +176,9 @@ Like [`filter`](@ref) but the filtering predicate function also receives the
 "path" in the tree.
 """
 function ifilter(f, x::Tree{T}) where {T}
-    go(ix, x::Tree{T}) = Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x if f(v))
-    go(ix, x) = f(ix, x)
+    go(ix, x::Tree{T}) =
+        Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x if f(tuple(ix..., k), v))
+    go(ix, x) = x
 
     go((), x)
 end
@@ -190,10 +191,12 @@ the leaf values (i.e., no intermediate sub-trees).
 
 In turn, the result will retain the whole subtree structure (even if empty).
 """
-filter_leaves(f, x::Tree{T}) where {T} =
-    let flt(x::Tree{T}) = true, flt(x) = f(x)
-        filter(flt, x)
-    end
+function filter_leaves(f, x::Tree{T}) where {T}
+    flt(x::Tree{T}) = true
+    flt(x) = f(x)
+
+    filter(flt, x)
+end
 
 """
 $(TYPEDSIGNATURES)
