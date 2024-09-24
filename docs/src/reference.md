@@ -50,9 +50,3 @@ Pages = ["src/tree.jl"]
 Modules = [ConstraintTrees]
 Pages = ["src/constraint_tree.jl"]
 ```
-## Trees for storing solved values
-
-```@autodocs
-Modules = [ConstraintTrees]
-Pages = ["src/value_tree.jl"]
-```
