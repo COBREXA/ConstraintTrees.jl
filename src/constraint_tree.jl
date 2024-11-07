@@ -325,11 +325,31 @@ end
 $(TYPEDSIGNATURES)
 
 Substitute variable values from `y` into the constraint tree's constraint's
+values, getting a tree with modified constraints.
+
+In a typical application, this can be used together with
+[`prune_variables`](@ref) to fix a subset of variables to known values and
+effectively remove them from the problem.
+
+Cf. [`substitute_values`](@ref), which creates a tree of "plain" values with
+no constraints.
+"""
+substitute(x::ConstraintTree, y::AbstractVector) =
+    map(x) do c
+        substitute(c, y)
+    end
+
+"""
+$(TYPEDSIGNATURES)
+
+Substitute variable values from `y` into the constraint tree's constraint's
 values, getting a tree of "solved" constraint values for the given variable
 assignment.
 
 The third argument forces the output type (it is forwarded to
 [`map`](@ref)). The type gets defaulted from `eltype(y)`.
+
+To preserve the constraints in the tree, use [`substitute`](@ref).
 """
 substitute_values(x::Tree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
     map(x, T) do c
