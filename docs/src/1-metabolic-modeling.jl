@@ -472,7 +472,7 @@ changes.fluxes
 # More high-level functions like `zip` are described in [an example on
 # functional tree processing](4-functional-tree-processing.md).
 
-## Simplifying the modified constraint systems
+# ## Simplifying the modified constraint systems
 #
 # We may notice that some constraints that we placed on the community make
 # solving of some variables quite trivial. For example, we knocked out PFK in
