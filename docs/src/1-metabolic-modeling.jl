@@ -541,4 +541,4 @@ c.community.species1.stoichiometry.M_f6p_c
 c_simplified.community.species1.stoichiometry.M_f6p_c
 
 @test length(c.community.species1.stoichiometry.M_f6p_c.value.idxs) == #src
-      length(c.community.species1.stoichiometry.M_f6p_c.value.idxs) + 1 #src
+      length(c_simplified.community.species1.stoichiometry.M_f6p_c.value.idxs) + 1 #src
