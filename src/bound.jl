@@ -25,7 +25,7 @@ turn, one can write e.g. `Constraint.(some_values, EqualTo(0.0))`).
 """
 abstract type Bound end
 
-Base.length(x::Bound) = 1
+Base.length(x::Bound) = return 1
 
 """
 $(TYPEDEF)
