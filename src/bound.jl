@@ -20,9 +20,8 @@ $(TYPEDEF)
 Abstract type of all bounds usable in constraints, including [`Between`](@ref)
 and [`EqualTo`](@ref).
 
-To make broadcasting work, `length(::Bound) = 1` has been extended. This allows
-functions like [`variables`](@ref) to broadcast a single supplied bound across
-all constraints.
+`length` of any `Bound` defaults to 1 in order to make broadcasting easier (in
+turn, one can write e.g. `Constraint.(some_values, EqualTo(0.0))`).
 """
 abstract type Bound end
 
