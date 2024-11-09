@@ -471,3 +471,74 @@ changes.fluxes
 
 # More high-level functions like `zip` are described in [an example on
 # functional tree processing](4-functional-tree-processing.md).
+
+# ## Simplifying the modified constraint systems
+#
+# We may notice that some constraints that we placed on the community make
+# solving of some variables quite trivial. For example, we knocked out PFK in
+# `species1`:
+
+c.community.species1.handicap
+
+@test c.community.species1.handicap.value.idxs == [49] #src
+
+# Obviously, the variable at index `49` must be equal to zero in the whole
+# model, and we could completely remove it from the model. Unfortunately, just
+# removing the constraint will not help: The variable is also referenced from
+# elsewhere (e.g., from stoichiometry) and removing the constraints actually
+# creates additional feasible solutions for the model, leaving us with possibly
+# invalid solutions!
+#
+# Instead of that, we can substitute a literal zero value into the variable in
+# the whole model, and then use a pruning function to get rid of the (now
+# unused) variable index.
+#
+# First, let's create a list of all variables in the model that we can use for
+# substitution:
+
+vars = [C.variable(; idx).value for idx = 1:C.var_count(c)]
+
+# Now we use a bit of the knowledge about the model structure -- the handicaps
+# constraint single variables, so we can substitute for them directly. (If the
+# handicaps constrained larger linear combinations of variables, we would have
+# to resort to algebra.)
+
+@test length(c.community.species1.handicap.value.idxs) == 1 #src
+@test length(c.community.species2.handicap.value.idxs) == 1 #src
+
+vars[c.community.species1.handicap.value.idxs[1]] = zero(C.LinearValue)
+vars[c.community.species2.handicap.value.idxs[1]] = zero(C.LinearValue)
+
+# [`substitute`](@ref ConstraintTrees.substitute) can be used to feed these new
+# variables into all variables in the existing constraint system, which we
+# immediately follow by pruning of the variables (pruning is described closer
+# in the [functional tree processing
+# example](4-functional-tree-processing.md)).
+
+c_simplified = C.prune_variables(C.substitute(c, vars))
+
+# The result contains exactly 2 variables less than the original community:
+
+(C.var_count(c), C.var_count(c_simplified))
+
+@test C.var_count(c) == C.var_count(c_simplified) + 2 #src
+
+# The constraints that were substituted for are, at this point, roughly
+# equivalent to saying `0 == 0`, and most solvers will simply drop them as
+# tautologies:
+
+c_simplified.community.species1.handicap
+
+# Finally, the variables are properly substituted for in the other equations,
+# including the stoichiometry: We can compare e.g. the original balance of
+# metabolite f6p (which is consumed by PFK):
+
+c.community.species1.stoichiometry.M_f6p_c
+
+# ...to the simplified stoichiometry, which no longer refers to the PFK
+# reaction:
+
+c_simplified.community.species1.stoichiometry.M_f6p_c
+
+@test length(c.community.species1.stoichiometry.M_f6p_c.value.idxs) == #src
+      length(c_simplified.community.species1.stoichiometry.M_f6p_c.value.idxs) + 1 #src
