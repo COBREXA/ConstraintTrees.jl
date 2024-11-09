@@ -500,7 +500,7 @@ vars = [C.variable(; idx).value for idx = 1:C.var_count(c)]
 
 # Now we use a bit of the knowledge about the model structure -- the handicaps
 # constraint single variables, so we can substitute for them directly. (If the
-# handicaps constrainted larger linear combinations of variables, we would have
+# handicaps constrained larger linear combinations of variables, we would have
 # to resort to algebra.)
 
 @test length(c.community.species1.handicap.value.idxs) == 1 #src
