@@ -430,8 +430,8 @@ Index-reporting variant of [`merge`](@ref) (see [`imap`](@ref) for reference).
 function imerge(f, x, y, ::Type{T} = Constraint) where {T}
     go(ix, x::OptionalTree, y::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(tuple(ix..., k), optional_tree_get(x, k), optional_tree_get(y, k)) for
-            k in union(optional_tree_keys(x), optional_tree_keys(y))
+            k => go(tuple(ix..., k), optional_tree_get(x, k), optional_tree_get(y, k))
+            for k in union(optional_tree_keys(x), optional_tree_keys(y))
         ) if !ismissing(v)
     )
     go(ix, x, y) = f(ix, x, y)

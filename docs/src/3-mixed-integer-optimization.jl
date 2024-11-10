@@ -75,7 +75,7 @@ end
 
 function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
-    JuMP.@variable(model, x[1:C.var_count(cs)])
+    JuMP.@variable(model, x[1:C.variable_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     C.traverse(cs) do c
         isnothing(c.bound) || jump_constraint(model, x, c.value, c.bound)
@@ -128,15 +128,14 @@ triangle_system =
 
 # We will need a solver that supports both quadratic and integer optimization:
 import SCIP
-triangle_sides =
-    C.substitute_values(
+triangle_sides = C.substitute_values(
+    triangle_system,
+    milp_optimized_vars(
         triangle_system,
-        milp_optimized_vars(
-            triangle_system,
-            -triangle_system.circumference.value,
-            SCIP.Optimizer,
-        ),
-    ).sides
+        -triangle_system.circumference.value,
+        SCIP.Optimizer,
+    ),
+).sides
 
 @test isapprox(triangle_sides.a, 3.0) #src
 @test isapprox(triangle_sides.b, 4.0) #src
