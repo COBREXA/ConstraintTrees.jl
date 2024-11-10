@@ -30,11 +30,11 @@ public value
 public elems
 public map, imap
 public mapreduce, imapreduce
-public traverse,itraverse
-public filter,ifilter
+public traverse, itraverse
+public filter, ifilter
 public filter_leaves, ifilter_leaves
-public zip,izip
-public merge,imerge
+public zip, izip
+public merge, imerge
 
 # constraint-tree things
 public variable_count
