@@ -1,4 +1,3 @@
-
 # Copyright (c) 2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

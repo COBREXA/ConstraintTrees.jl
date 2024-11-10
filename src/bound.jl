@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf
 #
@@ -78,4 +77,4 @@ $(TYPEDEF)
 Shortcut for all possible [`Bound`](@ref)s including the "empty" bound that
 does not constraint anything (represented by `nothing`).
 """
-const MaybeBound = Union{Nothing,Bound}
+const MaybeBound = Union{Nothing, Bound}

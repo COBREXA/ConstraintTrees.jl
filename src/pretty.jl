@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +16,7 @@
 # that we can re-use the AbstractDict-printing machinery from Base. It would be
 # better to have AbstractDict as a proper supertype of Tree, but that currently
 # seems very complex due to circularity of the definition.
-struct ADWrap <: AbstractDict{Symbol,Any}
+struct ADWrap <: AbstractDict{Symbol, Any}
     x::Any
 end
 
@@ -29,11 +28,11 @@ Base.summary(io::IO, x::Tree{X}) where {X} =
     print(io, "$(Tree{X}) with ", length(x), length(x) == 1 ? " element" : " elements")
 
 function Base.show(io::IO, mime::MIME"text/plain", x::Tree{X}) where {X}
-    show(io, mime, ADWrap(x))
+    return show(io, mime, ADWrap(x))
 end
 
 function Base.show(io::IO, x::Tree{X}) where {X}
-    print(
+    return print(
         io,
         "$(Tree{X})(#= ",
         length(x),
@@ -43,7 +42,7 @@ function Base.show(io::IO, x::Tree{X}) where {X}
 end
 
 function Base.show(io::IO, x::Constraint)
-    if get(io, :compact, false)::Bool
+    return if get(io, :compact, false)::Bool
         print(
             io,
             "$Constraint(",

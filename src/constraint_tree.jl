@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf
 #
@@ -80,7 +79,7 @@ $(TYPEDEF)
 
 A shortcut for the type of the values in [`ConstraintTree`](@ref).
 """
-const ConstraintTreeElem = Union{Constraint,ConstraintTree}
+const ConstraintTreeElem = Union{Constraint, ConstraintTree}
 
 #
 # Tree-wide operations with variables
@@ -190,13 +189,13 @@ Push all variable indexes found in `x` to the `out` container.
 collect_variables!(x::Constraint, out) = collect_variables!(x.value, out)
 collect_variables!(x::LinearValue, out) =
     for idx in x.idxs
-        push!(out, idx)
-    end
+    push!(out, idx)
+end
 collect_variables!(x::QuadraticValue, out) =
     for (idx, idy) in x.idxs
-        push!(out, idx, idy)
-    end
-collect_variables!(x::Tree{T}, out::C) where {T,C} =
+    push!(out, idx, idy)
+end
+collect_variables!(x::Tree{T}, out::C) where {T, C} =
     collect_variables!.(values(x), Ref(out))
 
 """
@@ -215,7 +214,7 @@ function prune_variables(x)
     push!(vars, 0)
     vv = collect(vars)
     @assert vv[1] == 0 "variable indexes are broken"
-    return renumber_variables(x, SortedDict(vv .=> 0:(length(vv)-1)))
+    return renumber_variables(x, SortedDict(vv .=> 0:(length(vv) - 1)))
 end
 
 """
@@ -261,7 +260,7 @@ Base.:^(pfx::Symbol, x::Constraint) = ConstraintTree(elems = SortedDict(pfx => x
 
 function Base.:+(a::ConstraintTree, b::ConstraintTree)
     offset = variable_count(a)
-    a * increase_variable_indexes(b, offset)
+    return a * increase_variable_indexes(b, offset)
 end
 
 Base.:*(a::ConstraintTree, b::Constraint) =
@@ -303,7 +302,7 @@ function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
         length(bounds) == 1 ? Base.Iterators.cycle(tuple(bounds)) :
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
-    ConstraintTree(
+    return ConstraintTree(
         k => variable(idx = i, bound = b) for ((i, k), b) in Base.zip(enumerate(keys), bs)
     )
 end
@@ -318,7 +317,7 @@ for the corresponding variable.
 """
 function variables_for(makebound, ts::Tree)
     var_idx = 0
-    map(ts, Constraint) do x
+    return map(ts, Constraint) do x
         var_idx += 1
         variable(idx = var_idx, bound = makebound(x))
     end
@@ -332,7 +331,7 @@ to the variable, as with [`imap`](@ref).
 """
 function variables_ifor(makebound, ts::Tree)
     var_idx = 0
-    imap(ts, Constraint) do path, x
+    return imap(ts, Constraint) do path, x
         var_idx += 1
         variable(idx = var_idx, bound = makebound(path, x))
     end
@@ -357,8 +356,8 @@ no constraints.
 """
 substitute(x::ConstraintTree, y::AbstractVector) =
     map(x) do c
-        substitute(c, y)
-    end
+    substitute(c, y)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -374,5 +373,5 @@ To preserve the constraints in the tree, use [`substitute`](@ref).
 """
 substitute_values(x::Tree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
     map(x, T) do c
-        substitute_values(c, y)
-    end
+    substitute_values(c, y)
+end

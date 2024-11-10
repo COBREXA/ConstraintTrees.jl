@@ -18,10 +18,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr checkout ${{ github.event.issue.number }}
-      - name: Install JuliaFormatter and format
+      - name: Install Runic formatter and format
         run: |
-          julia --color=yes -e 'import Pkg; Pkg.add("JuliaFormatter")'
-          julia --color=yes -e 'using JuliaFormatter; format(".")'
+          julia --color=yes -e 'import Pkg; Pkg.add("Runic")'
+          julia --color=yes -e 'using Runic; exit(Runic.main(ARGS))' -- . --inplace
       - name: Remove trailing whitespace
         run: |
           find -name '*.jl' -or -name '*.md' -or -name '*.toml' -or -name '*.yml' | while read filename ; do

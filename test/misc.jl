@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +31,8 @@ end
     @test (
         1 - (
             1 *
-            (1 + (zero(C.LinearValue) - zero(C.QuadraticValue) + zero(C.LinearValue)) + 1) *
-            1
+                (1 + (zero(C.LinearValue) - zero(C.QuadraticValue) + zero(C.LinearValue)) + 1) *
+                1
         ) + convert(C.QuadraticValue, 123.0)
     ).idxs == [(0, 0)]
     @test convert(C.QuadraticValue, C.variable().value).idxs == [(0, 1)]
@@ -51,7 +50,7 @@ end
     @test C.bound(C.variable(bound = 123.0)).equal_to == 123.0
     @test C.value(C.variable(bound = 123.0)).idxs == [1]
     @test C.bound(-convert(C.Constraint, (C.variable(bound = 123.0))) * 2 / 2).equal_to ==
-          -123.0
+        -123.0
     @test let x = C.bound(-convert(C.Constraint, (C.variable(bound = (-1, 2))) * 2 / 2))
         (x.lower, x.upper) == (-2.0, 1.0)
     end
@@ -118,7 +117,7 @@ end
     @test collect(keys(st)) == [:a, :b]
     @test sum([v for (_, v) in st]) == 444.0
     @test sum(values(st)) == 444.0
-    @test eltype(st) == Pair{Symbol,Union{C.Tree{Float64},Float64}}
+    @test eltype(st) == Pair{Symbol, Union{C.Tree{Float64}, Float64}}
 end
 
 @testset "Pretty-printing" begin

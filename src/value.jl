@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,7 @@ Returns any `Real`- or [`Value`](@ref)-typed `x`. This is a convenience
 overload; typically one enjoys this more when extracting values from
 [`Constraint`](@ref)s.
 """
-value(x::T) where {T<:Union{Real,Value}} = x
+value(x::T) where {T <: Union{Real, Value}} = x
 
 """
 $(TYPEDSIGNATURES)
@@ -77,7 +76,7 @@ function preduce(op, xs; init = zero(eltype(xs)), stack_type = eltype(xs))
     end
     # collect all used bits
     item = init
-    for idx = 1:length(used)
+    for idx in 1:length(used)
         if used[idx]
             item = op(item, val[idx])
         end

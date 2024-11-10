@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,11 +70,11 @@ combination of 2 values added together.
 Zeroes are not filtered out.
 """
 function add_sparse_linear_combination(
-    a_idxs::Vector{Int},
-    a_weights::Vector{T},
-    b_idxs::Vector{Int},
-    b_weights::Vector{T},
-)::Tuple{Vector{Int},Vector{T}} where {T}
+        a_idxs::Vector{Int},
+        a_weights::Vector{T},
+        b_idxs::Vector{Int},
+        b_weights::Vector{T},
+    )::Tuple{Vector{Int}, Vector{T}} where {T}
     r_idxs = Int[]
     r_weights = Float64[]
     ai = 1
@@ -116,11 +115,11 @@ function add_sparse_linear_combination(
 end
 
 Base.:+(a::LinearValue, b::LinearValue) =
-    let
-        (idxs, weights) =
-            add_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
-        LinearValue(; idxs, weights)
-    end
+let
+    (idxs, weights) =
+        add_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
+    LinearValue(; idxs, weights)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -140,6 +139,6 @@ Shortcut for making a [`LinearValue`](@ref) out of a linear combination defined
 by the `SparseVector`.
 """
 LinearValue(x::SparseVector{Float64}) =
-    let (idxs, weights) = findnz(x)
-        LinearValue(; idxs, weights)
-    end
+let (idxs, weights) = findnz(x)
+    LinearValue(; idxs, weights)
+end

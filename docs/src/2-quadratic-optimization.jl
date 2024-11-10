@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg                        #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
@@ -85,9 +84,9 @@ ellipse_system = C.ConstraintTree(
 line_param = C.variable().value
 line_system =
     :point^C.ConstraintTree(
-        :x => C.Constraint(0 + 2 * line_param),
-        :y => C.Constraint(0 + 1 * line_param),
-    )
+    :x => C.Constraint(0 + 2 * line_param),
+    :y => C.Constraint(0 + 1 * line_param),
+)
 
 # Finally, let's connect the systems using `+` operator and add the objective
 # that would minimize the distance of the points:
@@ -95,9 +94,9 @@ s = :ellipse^ellipse_system + :line^line_system
 
 s *=
     :objective^C.Constraint(
-        C.squared(s.ellipse.point.x.value - s.line.point.x.value) +
+    C.squared(s.ellipse.point.x.value - s.line.point.x.value) +
         C.squared(s.ellipse.point.y.value - s.line.point.y.value),
-    )
+)
 # (Note that if we used `*` to connect the systems, the variables from the
 # definition of `point` would not be duplicated, and various non-interesting
 # logic errors would follow.)
@@ -125,7 +124,7 @@ function quad_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer
     end
     JuMP.set_silent(model)
     JuMP.optimize!(model)
-    JuMP.value.(model[:x])
+    return JuMP.value.(model[:x])
 end
 
 # We can now load a suitable optimizer and solve the system by maximizing the
@@ -137,16 +136,16 @@ st = C.substitute_values(s, quad_optimized_vars(s, -s.objective.value, Clarabel.
 # closest point to the line that is in the elliptical area:
 (st.ellipse.point.x, st.ellipse.point.y)
 
-@test isapprox(st.ellipse.point.x, 1.414, atol = 1e-2) #src
-@test isapprox(st.ellipse.point.y, 9.293, atol = 1e-2) #src
+@test isapprox(st.ellipse.point.x, 1.414, atol = 1.0e-2) #src
+@test isapprox(st.ellipse.point.y, 9.293, atol = 1.0e-2) #src
 
 # ...as well as the position on the line that is closest to the ellipse:
 st.line.point
 
-@test isapprox(st.line.point.x, 2 * st.line.point.y, atol = 1e-3) #src
-@test isapprox(st.line.point.x, 4.849, atol = 1e-2) #src
+@test isapprox(st.line.point.x, 2 * st.line.point.y, atol = 1.0e-3) #src
+@test isapprox(st.line.point.x, 4.849, atol = 1.0e-2) #src
 
 # ...and, with a little bit of extra math, the minimized distance:
 sqrt(st.objective)
 
-@test isapprox(sqrt(st.objective), 7.679, atol = 1e-2) #src
+@test isapprox(sqrt(st.objective), 7.679, atol = 1.0e-2) #src

@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg                        #src
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf                #src
 #                                                                          #src
@@ -56,12 +55,12 @@ dice_system = C.variables(keys = [:first_dice, :second_dice], bounds = IntegerFr
 import JuMP
 
 function jump_constraint(m, x, v::C.Value, b::C.EqualTo)
-    JuMP.@constraint(m, C.substitute(v, x) == b.equal_to)
+    return JuMP.@constraint(m, C.substitute(v, x) == b.equal_to)
 end
 
 function jump_constraint(m, x, v::C.Value, b::C.Between)
     isinf(b.lower) || JuMP.@constraint(m, C.substitute(v, x) >= b.lower)
-    isinf(b.upper) || JuMP.@constraint(m, C.substitute(v, x) <= b.upper)
+    return isinf(b.upper) || JuMP.@constraint(m, C.substitute(v, x) <= b.upper)
 end
 
 # JuMP does not support direct integrality constraints, so we need to make a
@@ -70,7 +69,7 @@ function jump_constraint(m, x, v::C.Value, b::IntegerFromTo)
     var = JuMP.@variable(m, integer = true)
     JuMP.@constraint(m, var >= b.from)
     JuMP.@constraint(m, var <= b.to)
-    JuMP.@constraint(m, C.substitute(v, x) == var)
+    return JuMP.@constraint(m, C.substitute(v, x) == var)
 end
 
 function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
@@ -82,7 +81,7 @@ function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer
     end
     JuMP.set_silent(model)
     JuMP.optimize!(model)
-    JuMP.value.(model[:x])
+    return JuMP.value.(model[:x])
 end
 
 # Let's try to solve a tiny system with the dice first. What's the best value
@@ -90,9 +89,9 @@ end
 
 dice_system *=
     :points_distance^C.Constraint(
-        dice_system.first_dice.value - dice_system.second_dice.value,
-        C.Between(1.5, Inf),
-    )
+    dice_system.first_dice.value - dice_system.second_dice.value,
+    C.Between(1.5, Inf),
+)
 
 # For solving, we use GLPK (it has MILP capabilities).
 import GLPK

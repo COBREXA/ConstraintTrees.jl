@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg                        #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
@@ -86,12 +85,12 @@ c[:fluxes][:R_PFK]
 # variables (using [`Constraint`](@ref ConstraintTrees.Constraint)s) to their
 # valid bounds as defined by the model:
 rxn_constraints =
-    let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
-        C.ConstraintTree(
-            r => C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
+let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
+    C.ConstraintTree(
+        r => C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
             (r, ((lb, _), (ub, _))) in rxn_bounds # SBML units are ignored for simplicity
-        )
-    end
+    )
+end
 
 # Note that in the example we use a simplified `Dict`-like construction of the
 # `ConstraintTree`. You might equivalently write the code as a product (using
@@ -151,9 +150,9 @@ system = C.variables(keys = [:x, :y])
 system =
     :original_coords^system *
     :transformed_coords^C.ConstraintTree(
-        :xt => C.Constraint(1 + system.x.value + 4 + system.y.value),
-        :yt => C.Constraint(0.1 * (3 - system.y.value)),
-    )
+    :xt => C.Constraint(1 + system.x.value + 4 + system.y.value),
+    :yt => C.Constraint(0.1 * (3 - system.y.value)),
+)
 
 # ## Adding combined constraints
 
@@ -164,21 +163,21 @@ system =
 # in the SBML structure:
 stoi_constraints = C.ConstraintTree(
     Symbol(m) => C.Constraint(
-        value = -C.sum(
-            (
-                sr.stoichiometry * c.fluxes[Symbol(rid)].value for
-                (rid, r) in ecoli.reactions for sr in r.reactants if sr.species == m
+            value = -C.sum(
+                (
+                    sr.stoichiometry * c.fluxes[Symbol(rid)].value for
+                    (rid, r) in ecoli.reactions for sr in r.reactants if sr.species == m
+                ),
+                init = zero(C.LinearValue), # sometimes the sums are empty
+            ) + C.sum(
+                (
+                    sr.stoichiometry * c.fluxes[Symbol(rid)].value for
+                    (rid, r) in ecoli.reactions for sr in r.products if sr.species == m
+                ),
+                init = zero(C.LinearValue),
             ),
-            init = zero(C.LinearValue), # sometimes the sums are empty
-        ) + C.sum(
-            (
-                sr.stoichiometry * c.fluxes[Symbol(rid)].value for
-                (rid, r) in ecoli.reactions for sr in r.products if sr.species == m
-            ),
-            init = zero(C.LinearValue),
-        ),
-        bound = 0.0,
-    ) for m in keys(ecoli.species)
+            bound = 0.0,
+        ) for m in keys(ecoli.species)
 );
 
 # Let's have a closer look at one of the constraints:
@@ -198,13 +197,13 @@ c = c * :stoichiometry^stoi_constraints
 # We can save that information into the constraint system immediately:
 c *=
     :objective^C.Constraint(
-        C.sum(
-            c.fluxes[Symbol(rid)].value * coeff for
+    C.sum(
+        c.fluxes[Symbol(rid)].value * coeff for
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
             coeff != 0.0;
-            init = 0.0,
-        ),
-    )
+        init = 0.0,
+    ),
+)
 
 # ## Constrained system solutions and value trees
 #
@@ -256,7 +255,7 @@ function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimize
         end
     end
     JuMP.optimize!(model)
-    JuMP.value.(model[:x])
+    return JuMP.value.(model[:x])
 end
 
 # With this in hand, we can use an external linear problem solver to find the
@@ -301,9 +300,9 @@ result_single_organism = result
 # organisms:
 c =
     :community^(
-        :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0)) +
+    :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0)) +
         :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0))
-    )
+)
 
 # We can create additional variables that represent total community intake of
 # oxygen, and total community production of biomass:
@@ -314,18 +313,18 @@ c += :exchanges^C.variables(keys = [:oxygen, :biomass], bounds = [(-10.0, 10.0),
 # each of the species:
 c *=
     :exchange_constraints^C.ConstraintTree(
-        :oxygen => C.Constraint(
-            value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
-                    c.community.species2.fluxes.R_EX_o2_e.value,
-            bound = 0.0,
-        ),
-        :biomass => C.Constraint(
-            value = c.exchanges.biomass.value -
-                    c.community.species1.fluxes.R_BIOMASS_Ecoli_core_w_GAM.value -
-                    c.community.species2.fluxes.R_BIOMASS_Ecoli_core_w_GAM.value,
-            bound = 0.0,
-        ),
-    )
+    :oxygen => C.Constraint(
+        value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
+            c.community.species2.fluxes.R_EX_o2_e.value,
+        bound = 0.0,
+    ),
+    :biomass => C.Constraint(
+        value = c.exchanges.biomass.value -
+            c.community.species1.fluxes.R_BIOMASS_Ecoli_core_w_GAM.value -
+            c.community.species2.fluxes.R_BIOMASS_Ecoli_core_w_GAM.value,
+        bound = 0.0,
+    ),
+)
 
 # Let's see how much biomass are the two species capable of producing together:
 result =
@@ -492,7 +491,7 @@ c.community.species1.handicap
 # First, let's create a list of all variables in the model that we can use for
 # substitution:
 
-vars = [C.variable(; idx).value for idx = 1:C.variable_count(c)]
+vars = [C.variable(; idx).value for idx in 1:C.variable_count(c)]
 
 # Now we use a bit of the knowledge about the model structure -- the handicaps
 # constraint single variables, so we can substitute for them directly. (If the
@@ -537,4 +536,4 @@ c.community.species1.stoichiometry.M_f6p_c
 c_simplified.community.species1.stoichiometry.M_f6p_c
 
 @test length(c.community.species1.stoichiometry.M_f6p_c.value.idxs) == #src
-      length(c_simplified.community.species1.stoichiometry.M_f6p_c.value.idxs) + 1 #src
+    length(c_simplified.community.species1.stoichiometry.M_f6p_c.value.idxs) + 1 #src

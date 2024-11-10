@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg                        #src
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf                #src
 #                                                                          #src
@@ -95,11 +94,11 @@ s *= :total_area^total_area_constraint
 
 s *=
     :resources^C.ConstraintTree(
-        :fertilizer =>
-            C.Constraint(s.area.wheat.value * 6 + s.area.barley.value * 2, (0, 500)),
-        :insecticide =>
-            C.Constraint(s.area.wheat.value * 1 + s.area.barley.value * 4, (0, 300)),
-    )
+    :fertilizer =>
+        C.Constraint(s.area.wheat.value * 6 + s.area.barley.value * 2, (0, 500)),
+    :insecticide =>
+        C.Constraint(s.area.wheat.value * 1 + s.area.barley.value * 4, (0, 300)),
+)
 
 # We can also represent the expected profit as a constraint (although we do not
 # need to actually put a constraint bound there):
@@ -130,7 +129,7 @@ function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimize
         end
     end
     JuMP.optimize!(model)
-    JuMP.value.(model[:x])
+    return JuMP.value.(model[:x])
 end
 
 import GLPK
@@ -175,9 +174,9 @@ optimal_s.resources
 
 s *=
     :actual_profit^C.Constraint(
-        s.profit.value - 30 * s.resources.fertilizer.value -
+    s.profit.value - 30 * s.resources.fertilizer.value -
         110 * s.resources.insecticide.value,
-    )
+)
 
 # Is the result going to change if we optimize for the corrected profit?
 
@@ -210,31 +209,31 @@ f += :materials^C.variables(keys = [:wheat, :barley], bounds = C.Between(0, Inf)
 
 f *=
     :resources^C.ConstraintTree(
-        :heat => C.Constraint(
-            5 * f.products.bread.value + 3 * f.products.weizen.value,
-            (0, 1000),
-        ),
-        :water => C.Constraint(
-            2 * f.products.bread.value + 10 * f.products.weizen.value,
-            (0, 3000),
-        ),
-    )
+    :heat => C.Constraint(
+        5 * f.products.bread.value + 3 * f.products.weizen.value,
+        (0, 1000),
+    ),
+    :water => C.Constraint(
+        2 * f.products.bread.value + 10 * f.products.weizen.value,
+        (0, 3000),
+    ),
+)
 
 # How much raw materials are required for each product:
 
 f *=
     :material_allocation^C.ConstraintTree(
-        :wheat => C.Constraint(
-            8 * f.products.bread.value + 2 * f.products.weizen.value -
+    :wheat => C.Constraint(
+        8 * f.products.bread.value + 2 * f.products.weizen.value -
             f.materials.wheat.value,
-            0,
-        ),
-        :barley => C.Constraint(
-            0.5 * f.products.bread.value + 10 * f.products.weizen.value -
+        0,
+    ),
+    :barley => C.Constraint(
+        0.5 * f.products.bread.value + 10 * f.products.weizen.value -
             f.materials.barley.value,
-            0,
-        ),
-    )
+        0,
+    ),
+)
 
 # Having the two systems at hand, we can connect the factory "system" `f` to
 # the field "system" `s`, making a compound system `c` as such:

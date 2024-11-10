@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,7 @@ merging.
 """
 Base.@kwdef struct Tree{X}
     "Sorted dictionary of elements of the tree."
-    elems::SortedDict{Symbol,Union{X,Tree{X}}} = SortedDict()
+    elems::SortedDict{Symbol, Union{X, Tree{X}}} = SortedDict()
 
     """
     $(TYPEDSIGNATURES)
@@ -32,7 +31,7 @@ Base.@kwdef struct Tree{X}
     Create a properly typed [`Tree`](@ref) out of anything that can be used to
     construct the inner dictionary.
     """
-    Tree{X}(x...) where {X} = new{X}(SortedDict{Symbol,Union{X,Tree{X}}}(x...))
+    Tree{X}(x...) where {X} = new{X}(SortedDict{Symbol, Union{X, Tree{X}}}(x...))
 
     # TODO Tree could be a proper subtype of AbstractDict, but currently that
     # fails due to circular use of the type in its own parameter. Might be hard
@@ -76,13 +75,13 @@ Base.values(x::Tree) = values(elems(x))
 Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
 Base.getindex(x::Tree, str::String) = getindex(x, Symbol(str))
 
-Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X,E<:Union{X,Tree{X}}} =
+Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X, E <: Union{X, Tree{X}}} =
     setindex!(elems(x), val, sym)
 Base.setindex!(x::Tree, val, str::String) = setindex!(x, val, Symbol(str))
 
-Base.setindex(x::Tree{X}, val::E, sym::Symbol) where {X,E<:Union{X,Tree{X}}} =
+Base.setindex(x::Tree{X}, val::E, sym::Symbol) where {X, E <: Union{X, Tree{X}}} =
     Tree{X}(elems(x)..., sym => val)
-Base.setindex(x::Tree{X}, val::E, str::String) where {X,E<:Union{X,Tree{X}}} =
+Base.setindex(x::Tree{X}, val::E, str::String) where {X, E <: Union{X, Tree{X}}} =
     Base.setindex(x, val, Symbol(str))
 
 Base.delete!(x::Tree, sym::Symbol) = delete!(elems(x), sym)
@@ -94,7 +93,7 @@ Base.hasproperty(x::Tree, sym::Symbol) = haskey(x, sym)
 
 Base.getproperty(x::Tree, sym::Symbol) = elems(x)[sym]
 
-Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X,E<:Union{X,Tree{X}}} =
+Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X, E <: Union{X, Tree{X}}} =
     setindex!(elems(x), val, sym)
 
 ConstructionBase.setproperties(x::Tree{T}, props::NamedTuple) where {T} =
@@ -105,7 +104,7 @@ ConstructionBase.setproperties(x::Tree{T}, props::NamedTuple) where {T} =
 #
 
 function Base.:^(pfx::Symbol, x::Tree{X}) where {X}
-    Tree{X}(elems = SortedDict(pfx => x))
+    return Tree{X}(elems = SortedDict(pfx => x))
 end
 
 Base.:*(a::Tree, b::Tree...) = Base.merge(a, b...)
@@ -114,7 +113,7 @@ Base.merge(d::Tree, others::Tree...) = Base.mergewith(*, d, others...)
 Base.merge(a::Base.Callable, d::Tree, others::Tree...) = Base.mergewith(a, d, others...)
 
 function Base.mergewith(a::Base.Callable, d::Tree{X}, others::Tree...) where {X}
-    Tree{X}(elems = mergewith(a, elems(d), elems.(others)...))
+    return Tree{X}(elems = mergewith(a, elems(d), elems.(others)...))
 end
 
 #
@@ -136,7 +135,7 @@ function map(f, x, ::Type{T} = Constraint) where {T}
     go(x::Tree) = Tree{T}(k => go(v) for (k, v) in x)
     go(x) = f(x)
 
-    go(x)
+    return go(x)
 end
 
 """
@@ -150,7 +149,7 @@ function imap(f, x, ::Type{T} = Constraint) where {T}
     go(ix, x::Tree) = Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x)
     go(ix, x) = f(ix, x)
 
-    go((), x)
+    return go((), x)
 end
 
 """
@@ -166,7 +165,7 @@ function filter(f, x::Tree{T}) where {T}
     go(x::Tree) = Tree{T}(k => go(v) for (k, v) in x if f(v))
     go(x) = x
 
-    go(x)
+    return go(x)
 end
 
 """
@@ -180,7 +179,7 @@ function ifilter(f, x::Tree{T}) where {T}
         Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x if f(tuple(ix..., k), v))
     go(ix, x) = x
 
-    go((), x)
+    return go((), x)
 end
 
 """
@@ -195,7 +194,7 @@ function filter_leaves(f, x::Tree{T}) where {T}
     flt(x::Tree{T}) = true
     flt(x) = f(x)
 
-    filter(flt, x)
+    return filter(flt, x)
 end
 
 """
@@ -204,9 +203,9 @@ $(TYPEDSIGNATURES)
 Combination of [`ifilter`](@ref) and [`filter_leaves`](@ref).
 """
 ifilter_leaves(f, x::Tree{T}) where {T} =
-    let flt(_, x::Tree{T}) = true, flt(i, x) = f(i, x)
-        ifilter(flt, x)
-    end
+let flt(_, x::Tree{T}) = true, flt(i, x) = f(i, x)
+    ifilter(flt, x)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -219,14 +218,14 @@ Technically the name should be `for`, but that's a Julia keyword.
 function traverse(f, x)
     go(x::Tree) =
         for (_, v) in x
-            go(v)
-        end
+        go(v)
+    end
     go(x) = begin
         f(x)
         return nothing
     end
 
-    go(x)
+    return go(x)
 end
 
 """
@@ -238,14 +237,14 @@ $(TYPEDSIGNATURES)
 function itraverse(f, x)
     go(ix, x::Tree) =
         for (k, v) in x
-            go(tuple(ix..., k), v)
-        end
+        go(tuple(ix..., k), v)
+    end
     go(ix, x) = begin
         f(ix, x)
         return nothing
     end
 
-    go((), x)
+    return go((), x)
 end
 
 """
@@ -262,7 +261,7 @@ function mapreduce(f, op, x; init = missing)
     go(x::Tree) = Base.reduce(op, (go(v) for (_, v) in x); init)
     go(x) = f(x)
 
-    go(x)
+    return go(x)
 end
 
 """
@@ -277,7 +276,7 @@ function imapreduce(f, op, x; init = missing)
         Base.reduce((a, b) -> op(ix, a, b), (go(tuple(ix..., k), v) for (k, v) in x); init)
     go(ix, x) = f(ix, x)
 
-    go((), x)
+    return go((), x)
 end
 
 """
@@ -320,17 +319,17 @@ function zip(f, x, y, ::Type{T} = Constraint) where {T}
     )
     go(x, y) = f(x, y)
 
-    go(x, y)
+    return go(x, y)
 end
 
 function zip(f, x, y, z, ::Type{T} = Constraint) where {T}
     go(x::Tree, y::Tree, z::Tree) = Tree{T}(
         k => go(x[k], y[k], z[k]) for
-        k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+            k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
     )
     go(x, y, z) = f(x, y, z)
 
-    go(x, y, z)
+    return go(x, y, z)
 end
 
 """
@@ -341,21 +340,21 @@ Index-reporting variant of [`zip`](@ref) (see [`imap`](@ref) for reference).
 function izip(f, x, y, ::Type{T} = Constraint) where {T}
     go(ix, x::Tree, y::Tree) = Tree{T}(
         k => go(tuple(ix..., k), x[k], y[k]) for
-        k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
+            k in intersect(SortedSet(keys(x)), SortedSet(keys(y)))
     )
     go(ix, x, y) = f(ix, x, y)
 
-    go((), x, y)
+    return go((), x, y)
 end
 
 function izip(f, x, y, z, ::Type{T} = Constraint) where {T}
     go(ix, x::Tree, y::Tree, z::Tree) = Tree{T}(
         k => go(tuple(ix..., k), x[k], y[k], z[k]) for
-        k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
+            k in intersect(SortedSet(keys(x)), SortedSet(keys(y)), SortedSet(keys(z)))
     )
     go(ix, x, y, z) = f(ix, x, y, z)
 
-    go((), x, y, z)
+    return go((), x, y, z)
 end
 
 """
@@ -363,7 +362,7 @@ $(TYPEDEF)
 
 Helper type for implementation of `merge`-related functions.
 """
-const OptionalTree = Union{Tree,Missing}
+const OptionalTree = Union{Tree, Missing}
 
 """
 $(TYPEDSIGNATURES)
@@ -396,30 +395,30 @@ differently from `Base.merge`.
 function merge(f, x, y, ::Type{T} = Constraint) where {T}
     go(x::OptionalTree, y::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(optional_tree_get(x, k), optional_tree_get(y, k)) for
-            k in union(optional_tree_keys(x), optional_tree_keys(y))
-        ) if !ismissing(v)
+                k => go(optional_tree_get(x, k), optional_tree_get(y, k)) for
+                k in union(optional_tree_keys(x), optional_tree_keys(y))
+            ) if !ismissing(v)
     )
     go(x, y) = f(x, y)
 
-    go(x, y)
+    return go(x, y)
 end
 
 function merge(f, x, y, z, ::Type{T} = Constraint) where {T}
     go(x::OptionalTree, y::OptionalTree, z::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(
-                optional_tree_get(x, k),
-                optional_tree_get(y, k),
-                optional_tree_get(z, k),
-            ) for k in
-            union(optional_tree_keys(x), optional_tree_keys(y), optional_tree_keys(z))
-        ) if !ismissing(v)
+                k => go(
+                    optional_tree_get(x, k),
+                    optional_tree_get(y, k),
+                    optional_tree_get(z, k),
+                ) for k in
+                union(optional_tree_keys(x), optional_tree_keys(y), optional_tree_keys(z))
+            ) if !ismissing(v)
     )
 
     go(x, y, z) = f(x, y, z)
 
-    go(x, y, z)
+    return go(x, y, z)
 end
 
 """
@@ -430,28 +429,28 @@ Index-reporting variant of [`merge`](@ref) (see [`imap`](@ref) for reference).
 function imerge(f, x, y, ::Type{T} = Constraint) where {T}
     go(ix, x::OptionalTree, y::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(tuple(ix..., k), optional_tree_get(x, k), optional_tree_get(y, k))
-            for k in union(optional_tree_keys(x), optional_tree_keys(y))
-        ) if !ismissing(v)
+                k => go(tuple(ix..., k), optional_tree_get(x, k), optional_tree_get(y, k))
+                for k in union(optional_tree_keys(x), optional_tree_keys(y))
+            ) if !ismissing(v)
     )
     go(ix, x, y) = f(ix, x, y)
 
-    go((), x, y)
+    return go((), x, y)
 end
 
 function imerge(f, x, y, z, ::Type{T} = Constraint) where {T}
     go(ix, x::OptionalTree, y::OptionalTree, z::OptionalTree) = Tree{T}(
         k => v for (k, v) in (
-            k => go(
-                tuple(ix..., k),
-                optional_tree_get(x, k),
-                optional_tree_get(y, k),
-                optional_tree_get(z, k),
-            ) for k in
-            union(optional_tree_keys(x), optional_tree_keys(y), optional_tree_keys(z))
-        ) if !ismissing(v)
+                k => go(
+                    tuple(ix..., k),
+                    optional_tree_get(x, k),
+                    optional_tree_get(y, k),
+                    optional_tree_get(z, k),
+                ) for k in
+                union(optional_tree_keys(x), optional_tree_keys(y), optional_tree_keys(z))
+            ) if !ismissing(v)
     )
     go(ix, x, y, z) = f(ix, x, y, z)
 
-    go((), x, y, z)
+    return go((), x, y, z)
 end

@@ -1,4 +1,3 @@
-
 # Copyright (c) 2024, University of Luxembourg                             #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
@@ -46,7 +45,7 @@ import ConstraintTrees as C
 # trigger this problem (and a JuMP warning) if used with normal
 # [`substitute`](@ref ConstraintTrees.substitute):
 
-x = :vars^C.variables(keys = Symbol.("x$i" for i = 1:1000), bounds = C.Between(0, 10))
+x = :vars^C.variables(keys = Symbol.("x$i" for i in 1:1000), bounds = C.Between(0, 10))
 x *= :sum^C.Constraint(sum(C.value.(values(x.vars))))
 
 # Now, imagine the expressions are represented e.g. by sparse vectors of fixed
@@ -81,7 +80,7 @@ function substitute_jump(val::C.LinearValue, vars)
             add_to_expression!(e, w, vars[i])
         end
     end
-    e
+    return e
 end
 
 model = Model(GLPK.Optimizer)
@@ -107,7 +106,7 @@ function substitute_jump(val::C.QuadraticValue, vars)
             add_to_expression!(e, w, vars[i], vars[j])
         end
     end
-    e
+    return e
 end
 
 qvalue = 123 + (x.vars.x1.value + x.vars.x2.value) * (x.vars.x3.value - 321)

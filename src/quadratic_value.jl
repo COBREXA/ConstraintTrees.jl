@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +41,7 @@ Base.@kwdef struct QuadraticValue <: Value
     As with [`LinearValue`](@ref), index `0` represents the
     affine element.
     """
-    idxs::Vector{Tuple{Int,Int}}
+    idxs::Vector{Tuple{Int, Int}}
     "Coefficient of the variable pairs selected by `idxs`."
     weights::Vector{Float64}
 end
@@ -100,12 +99,12 @@ with the values of both added together.
 Zeroes are not filtered out.
 """
 function add_sparse_quadratic_combination(
-    a_idxs::Vector{Tuple{Int,Int}},
-    a_weights::Vector{T},
-    b_idxs::Vector{Tuple{Int,Int}},
-    b_weights::Vector{T},
-)::Tuple{Vector{Tuple{Int,Int}},Vector{T}} where {T}
-    r_idxs = Tuple{Int,Int}[]
+        a_idxs::Vector{Tuple{Int, Int}},
+        a_weights::Vector{T},
+        b_idxs::Vector{Tuple{Int, Int}},
+        b_weights::Vector{T},
+    )::Tuple{Vector{Tuple{Int, Int}}, Vector{T}} where {T}
+    r_idxs = Tuple{Int, Int}[]
     r_weights = Float64[]
     ai = 1
     ae = length(a_idxs)
@@ -145,10 +144,10 @@ function add_sparse_quadratic_combination(
 end
 
 Base.:+(a::QuadraticValue, b::QuadraticValue) =
-    let (idxs, weights) =
-            add_sparse_quadratic_combination(a.idxs, a.weights, b.idxs, b.weights)
-        QuadraticValue(; idxs, weights)
-    end
+let (idxs, weights) =
+        add_sparse_quadratic_combination(a.idxs, a.weights, b.idxs, b.weights)
+    QuadraticValue(; idxs, weights)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -159,31 +158,31 @@ a [`QuadraticValue`](@ref)-like object. This computes and merges the product.
 Zeroes are not filtered out.
 """
 function multiply_sparse_linear_combination(
-    a_idxs::Vector{Int},
-    a_weights::Vector{T},
-    b_idxs::Vector{Int},
-    b_weights::Vector{T},
-)::Tuple{Vector{Tuple{Int,Int}},Vector{T}} where {T}
+        a_idxs::Vector{Int},
+        a_weights::Vector{T},
+        b_idxs::Vector{Int},
+        b_weights::Vector{T},
+    )::Tuple{Vector{Tuple{Int, Int}}, Vector{T}} where {T}
     vals = a_weights .* b_weights'
-    add_sparse_quadratic_combination(
+    return add_sparse_quadratic_combination(
         [(aidx, bidx) for bidx in b_idxs for aidx in a_idxs if aidx <= bidx],
         [
             vals[ai, bi] for bi in eachindex(b_idxs) for
-            ai in eachindex(a_idxs) if a_idxs[ai] <= b_idxs[bi]
+                ai in eachindex(a_idxs) if a_idxs[ai] <= b_idxs[bi]
         ],
         [(bidx, aidx) for aidx in a_idxs for bidx in b_idxs if bidx < aidx],
         [
             vals[ai, bi] for ai in eachindex(a_idxs) for
-            bi in eachindex(b_idxs) if b_idxs[bi] < a_idxs[ai]
+                bi in eachindex(b_idxs) if b_idxs[bi] < a_idxs[ai]
         ],
     )
 end
 
 Base.:*(a::LinearValue, b::LinearValue) =
-    let (idxs, weights) =
-            multiply_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
-        QuadraticValue(; idxs, weights)
-    end
+let (idxs, weights) =
+        multiply_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
+    QuadraticValue(; idxs, weights)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -202,7 +201,7 @@ and return the result.
 substitute(x::QuadraticValue, y) = sum(
     (
         let (idx1, idx2) = x.idxs[i]
-            (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
+                (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
         end for (i, w) in enumerate(x.weights)
     ),
     init = 0.0,
@@ -215,13 +214,13 @@ Shortcut for making a [`QuadraticValue`](@ref) out of a square sparse matrix. Th
 matrix is force-symmetrized by calculating `x' + x`.
 """
 QuadraticValue(x::SparseMatrixCSC{Float64}) =
-    let
-        rs, cs, vals = findnz(x' + x)
-        # Note: Correctness of this now relies on (row,col) index pairs coming
-        # from `findnz` in correct (co-lexicographical) order. Might be worth
-        # testing.
-        QuadraticValue(
-            idxs = [(rs[i], cs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
-            weights = [vals[i] for i in eachindex(rs) if rs[i] <= cs[i]],
-        )
-    end
+let
+    rs, cs, vals = findnz(x' + x)
+    # Note: Correctness of this now relies on (row,col) index pairs coming
+    # from `findnz` in correct (co-lexicographical) order. Might be worth
+    # testing.
+    QuadraticValue(
+        idxs = [(rs[i], cs[i]) for i in eachindex(rs) if rs[i] <= cs[i]],
+        weights = [vals[i] for i in eachindex(rs) if rs[i] <= cs[i]],
+    )
+end

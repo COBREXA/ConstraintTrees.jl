@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023-2024, University of Luxembourg                        #src
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf                #src
 #                                                                          #src
