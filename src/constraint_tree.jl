@@ -87,18 +87,25 @@ const ConstraintTreeElem = Union{Constraint,ConstraintTree}
 #
 
 """
+Old name for [`variable_count`](@ref).
+
+**Deprecation warning:** This will be removed in a future release.
+"""
+const var_count = variable_count
+
+"""
 $(TYPEDSIGNATURES)
 
 Find the expected count of variables in a [`Constraint`](@ref).
 """
-var_count(x::Constraint) = var_count(x.value)
+variable_count(x::Constraint) = variable_count(x.value)
 
 """
 $(TYPEDSIGNATURES)
 
 Find the expected count of variables in a [`ConstraintTree`](@ref).
 """
-var_count(x::ConstraintTree) = isempty(x) ? 0 : maximum(var_count.(values(x)))
+variable_count(x::ConstraintTree) = isempty(x) ? 0 : maximum(variable_count.(values(x)))
 
 """
 $(TYPEDSIGNATURES)
@@ -106,7 +113,7 @@ $(TYPEDSIGNATURES)
 Find the expected count of variables in a [`LinearValue`](@ref). (This is a
 O(1) operation, relying on the ordering of the indexes.)
 """
-var_count(x::LinearValue) = isempty(x.idxs) ? 0 : last(x.idxs)
+variable_count(x::LinearValue) = isempty(x.idxs) ? 0 : last(x.idxs)
 
 """
 $(TYPEDSIGNATURES)
@@ -114,14 +121,28 @@ $(TYPEDSIGNATURES)
 Find the expected count of variables in a [`QuadraticValue`](@ref). (This is a
 O(1) operation, relying on the co-lexicographical ordering of indexes.)
 """
-var_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : last(last(x.idxs))
+variable_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : last(last(x.idxs))
+
+"""
+Old name for [`increase_variable_index`](@ref).
+
+**Deprecation warning:** This will be removed in a future release.
+"""
+const incr_var_idx = increase_variable_index
 
 """
 $(TYPEDSIGNATURES)
 
 Internal helper for manipulating variable indices.
 """
-incr_var_idx(x::Int, incr::Int) = x == 0 ? 0 : x + incr
+increase_variable_index(x::Int, incr::Int) = x == 0 ? 0 : x + incr
+
+"""
+Old name for [`increase_variable_indexes`](@ref).
+
+**Deprecation warning:** This will be removed in a future release.
+"""
+const incr_var_idxs = increase_variable_indexes
 
 """
 $(TYPEDSIGNATURES)
@@ -129,8 +150,8 @@ $(TYPEDSIGNATURES)
 Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
 increment.
 """
-incr_var_idxs(x::ConstraintTree, incr::Int) =
-    ConstraintTree(k => incr_var_idxs(v, incr) for (k, v) in x)
+increase_variable_indexes(x::ConstraintTree, incr::Int) =
+    ConstraintTree(k => increase_variable_indexes(v, incr) for (k, v) in x)
 
 """
 $(TYPEDSIGNATURES)
@@ -138,24 +159,24 @@ $(TYPEDSIGNATURES)
 Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
 increment.
 """
-incr_var_idxs(x::Constraint, incr::Int) =
-    Constraint(value = incr_var_idxs(x.value, incr), bound = x.bound)
+increase_variable_indexes(x::Constraint, incr::Int) =
+    Constraint(value = increase_variable_indexes(x.value, incr), bound = x.bound)
 
 """
 $(TYPEDSIGNATURES)
 
 Offset all variable indexes in a [`LinearValue`](@ref) by the given increment.
 """
-incr_var_idxs(x::LinearValue, incr::Int) =
-    LinearValue(idxs = incr_var_idx.(x.idxs, incr), weights = x.weights)
+increase_variable_indexes(x::LinearValue, incr::Int) =
+    LinearValue(idxs = increase_variable_index.(x.idxs, incr), weights = x.weights)
 
 """
 $(TYPEDSIGNATURES)
 
 Offset all variable indexes in a [`QuadraticValue`](@ref) by the given increment.
 """
-incr_var_idxs(x::QuadraticValue, incr::Int) = QuadraticValue(
-    idxs = broadcast(ii -> incr_var_idx.(ii, incr), x.idxs),
+increase_variable_indexes(x::QuadraticValue, incr::Int) = QuadraticValue(
+    idxs = broadcast(ii -> increase_variable_index.(ii, incr), x.idxs),
     weights = x.weights,
 )
 
@@ -239,8 +260,8 @@ drop_zeros(x::QuadraticValue) =
 Base.:^(pfx::Symbol, x::Constraint) = ConstraintTree(elems = SortedDict(pfx => x))
 
 function Base.:+(a::ConstraintTree, b::ConstraintTree)
-    offset = var_count(a)
-    a * incr_var_idxs(b, offset)
+    offset = variable_count(a)
+    a * increase_variable_indexes(b, offset)
 end
 
 Base.:*(a::ConstraintTree, b::Constraint) =

@@ -75,7 +75,7 @@ end
 
 function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
-    JuMP.@variable(model, x[1:C.var_count(cs)])
+    JuMP.@variable(model, x[1:C.variable_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     C.traverse(cs) do c
         isnothing(c.bound) || jump_constraint(model, x, c.value, c.bound)
