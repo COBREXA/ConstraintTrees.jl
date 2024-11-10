@@ -42,11 +42,7 @@ ecoli = SBML.readSBML("e_coli_core.xml")
 c = C.variables(keys = Symbol.(keys(ecoli.reactions)))
 
 #md # !!! info "Pretty-printing"
-#md #     By default, Julia shows relatively long namespace prefixes before all
-#md #     identifiers, which clutters the output. You can import individual
-#md #     names form `ConstraintTrees` package to improve the pretty-printing,
-#md #     using e.g.:
-#md #     `import ConstraintTrees: Constraint, Tree, LinearValue`.
+#md #     By default, Julia shows relatively long namespace prefixes before all identifiers, which substantially clutters the output. To improve the pretty-printing, all type names are marked as exported from the package, and you can import them via `using ConstraintTrees`.
 
 @test length(C.elems(c)) == length(ecoli.reactions) #src
 
