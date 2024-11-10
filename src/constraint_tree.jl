@@ -87,13 +87,6 @@ const ConstraintTreeElem = Union{Constraint,ConstraintTree}
 #
 
 """
-Old name for [`variable_count`](@ref).
-
-**Deprecation warning:** This will be removed in a future release.
-"""
-const var_count = variable_count
-
-"""
 $(TYPEDSIGNATURES)
 
 Find the expected count of variables in a [`Constraint`](@ref).
@@ -124,11 +117,11 @@ O(1) operation, relying on the co-lexicographical ordering of indexes.)
 variable_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : last(last(x.idxs))
 
 """
-Old name for [`increase_variable_index`](@ref).
+Old name for [`variable_count`](@ref).
 
 **Deprecation warning:** This will be removed in a future release.
 """
-const incr_var_idx = increase_variable_index
+const var_count = variable_count
 
 """
 $(TYPEDSIGNATURES)
@@ -138,11 +131,11 @@ Internal helper for manipulating variable indices.
 increase_variable_index(x::Int, incr::Int) = x == 0 ? 0 : x + incr
 
 """
-Old name for [`increase_variable_indexes`](@ref).
+Old name for [`increase_variable_index`](@ref).
 
 **Deprecation warning:** This will be removed in a future release.
 """
-const incr_var_idxs = increase_variable_indexes
+const incr_var_idx = increase_variable_index
 
 """
 $(TYPEDSIGNATURES)
@@ -179,6 +172,13 @@ increase_variable_indexes(x::QuadraticValue, incr::Int) = QuadraticValue(
     idxs = broadcast(ii -> increase_variable_index.(ii, incr), x.idxs),
     weights = x.weights,
 )
+
+"""
+Old name for [`increase_variable_indexes`](@ref).
+
+**Deprecation warning:** This will be removed in a future release.
+"""
+const incr_var_idxs = increase_variable_indexes
 
 """
 $(TYPEDSIGNATURES)
