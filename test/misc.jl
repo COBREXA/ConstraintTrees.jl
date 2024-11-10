@@ -134,9 +134,12 @@ end
     @test length(C.ADWrap(ct)) == length(ct)
     @test occursin(":x", s(ct))
     @test occursin(":y", s(ct))
-    @test occursin(r"Tree{[a-zA-Z.]*Constraint}", s(ct))
+    @test occursin("ConstraintTree(", s(ct))
     @test occursin("2 elements", s(ct.x))
     @test occursin(":a", s(ct.x))
     @test occursin("[2]", s(ct.x.b))
     @test occursin("[1.0]", s(ct.x.a))
+
+    vt = substitute_values(ct, [1.0, 2.0])
+    @test occursin("Tree{Float64}", s(vt))
 end
