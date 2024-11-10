@@ -87,8 +87,7 @@ end
 # Let's try to solve a tiny system with the dice first. What's the best value
 # we can throw if the dice are thrown at least 1.5 points apart?
 
-dice_system *=
-    :points_distance^C.Constraint(
+dice_system *= :points_distance^C.Constraint(
     dice_system.first_dice.value - dice_system.second_dice.value,
     C.Between(1.5, Inf),
 )
@@ -118,8 +117,7 @@ vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))
 v = C.map(C.value, vars, C.Value)
 
 # With that shortcut, the constraint tree constructs quite easily:
-triangle_system =
-    :sides^vars *
+triangle_system = :sides^vars *
     :circumference^C.Constraint(sum(values(v))) *
     :a_less_than_b^C.Constraint(v.b - v.a, (0, Inf)) *
     :b_less_than_c^C.Constraint(v.c - v.b, (0, Inf)) *

@@ -75,14 +75,11 @@ Base.values(x::Tree) = values(elems(x))
 Base.getindex(x::Tree, sym::Symbol) = getindex(elems(x), sym)
 Base.getindex(x::Tree, str::String) = getindex(x, Symbol(str))
 
-Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X, E <: Union{X, Tree{X}}} =
-    setindex!(elems(x), val, sym)
+Base.setindex!(x::Tree{X}, val::E, sym::Symbol) where {X, E <: Union{X, Tree{X}}} = setindex!(elems(x), val, sym)
 Base.setindex!(x::Tree, val, str::String) = setindex!(x, val, Symbol(str))
 
-Base.setindex(x::Tree{X}, val::E, sym::Symbol) where {X, E <: Union{X, Tree{X}}} =
-    Tree{X}(elems(x)..., sym => val)
-Base.setindex(x::Tree{X}, val::E, str::String) where {X, E <: Union{X, Tree{X}}} =
-    Base.setindex(x, val, Symbol(str))
+Base.setindex(x::Tree{X}, val::E, sym::Symbol) where {X, E <: Union{X, Tree{X}}} = Tree{X}(elems(x)..., sym => val)
+Base.setindex(x::Tree{X}, val::E, str::String) where {X, E <: Union{X, Tree{X}}} = Base.setindex(x, val, Symbol(str))
 
 Base.delete!(x::Tree, sym::Symbol) = delete!(elems(x), sym)
 Base.delete!(x::Tree, str::String) = delete!(x, Symbol(str))
@@ -93,11 +90,9 @@ Base.hasproperty(x::Tree, sym::Symbol) = haskey(x, sym)
 
 Base.getproperty(x::Tree, sym::Symbol) = elems(x)[sym]
 
-Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X, E <: Union{X, Tree{X}}} =
-    setindex!(elems(x), val, sym)
+Base.setproperty!(x::Tree{X}, sym::Symbol, val::E) where {X, E <: Union{X, Tree{X}}} = setindex!(elems(x), val, sym)
 
-ConstructionBase.setproperties(x::Tree{T}, props::NamedTuple) where {T} =
-    Tree{T}(elems(x)..., pairs(props)...)
+ConstructionBase.setproperties(x::Tree{T}, props::NamedTuple) where {T} = Tree{T}(elems(x)..., pairs(props)...)
 
 #
 # Algebraic construction
@@ -175,8 +170,7 @@ Like [`filter`](@ref) but the filtering predicate function also receives the
 "path" in the tree.
 """
 function ifilter(f, x::Tree{T}) where {T}
-    go(ix, x::Tree{T}) =
-        Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x if f(tuple(ix..., k), v))
+    go(ix, x::Tree{T}) = Tree{T}(k => go(tuple(ix..., k), v) for (k, v) in x if f(tuple(ix..., k), v))
     go(ix, x) = x
 
     return go((), x)
@@ -202,8 +196,7 @@ $(TYPEDSIGNATURES)
 
 Combination of [`ifilter`](@ref) and [`filter_leaves`](@ref).
 """
-ifilter_leaves(f, x::Tree{T}) where {T} =
-let flt(_, x::Tree{T}) = true, flt(i, x) = f(i, x)
+ifilter_leaves(f, x::Tree{T}) where {T} = let flt(_, x::Tree{T}) = true, flt(i, x) = f(i, x)
     ifilter(flt, x)
 end
 
@@ -216,8 +209,7 @@ effects of `f`.
 Technically the name should be `for`, but that's a Julia keyword.
 """
 function traverse(f, x)
-    go(x::Tree) =
-        for (_, v) in x
+    go(x::Tree) = for (_, v) in x
         go(v)
     end
     go(x) = begin
@@ -235,8 +227,7 @@ $(TYPEDSIGNATURES)
 [`map`](@ref).
 """
 function itraverse(f, x)
-    go(ix, x::Tree) =
-        for (k, v) in x
+    go(ix, x::Tree) = for (k, v) in x
         go(tuple(ix..., k), v)
     end
     go(ix, x) = begin
@@ -272,8 +263,7 @@ elements occur, like with [`imap`](@ref). (Single elements from different
 directory paths are not reduced together.)
 """
 function imapreduce(f, op, x; init = missing)
-    go(ix, x::Tree) =
-        Base.reduce((a, b) -> op(ix, a, b), (go(tuple(ix..., k), v) for (k, v) in x); init)
+    go(ix, x::Tree) = Base.reduce((a, b) -> op(ix, a, b), (go(tuple(ix..., k), v) for (k, v) in x); init)
     go(ix, x) = f(ix, x)
 
     return go((), x)

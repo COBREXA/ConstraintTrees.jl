@@ -15,8 +15,7 @@
 
 using Documenter, Literate, ConstraintTrees
 
-examples =
-    sort(filter(x -> endswith(x, ".jl"), readdir(joinpath(@__DIR__, "src"), join = true)))
+examples = sort(filter(x -> endswith(x, ".jl"), readdir(joinpath(@__DIR__, "src"), join = true)))
 
 for example in examples
     Literate.markdown(

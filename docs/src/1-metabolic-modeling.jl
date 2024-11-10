@@ -84,8 +84,7 @@ c[:fluxes][:R_PFK]
 # combinations of variables. As the simplest use, we can constraint the
 # variables (using [`Constraint`](@ref ConstraintTrees.Constraint)s) to their
 # valid bounds as defined by the model:
-rxn_constraints =
-let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
+rxn_constraints = let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=> zip(SBML.flux_bounds(ecoli)...)
     C.ConstraintTree(
         r => C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
             (r, ((lb, _), (ub, _))) in rxn_bounds # SBML units are ignored for simplicity
@@ -147,8 +146,7 @@ system = C.variables(keys = [:x, :y])
 
 # To add an affine element to a `LinearValue`, simply add it as a `Real`
 # number, as in the linear transformations below:
-system =
-    :original_coords^system *
+system = :original_coords^system *
     :transformed_coords^C.ConstraintTree(
     :xt => C.Constraint(1 + system.x.value + 4 + system.y.value),
     :yt => C.Constraint(0.1 * (3 - system.y.value)),
@@ -195,8 +193,7 @@ c = c * :stoichiometry^stoi_constraints
 # constraints), but we can save the objective as a harmless unconstrained
 # "constraint" that can be used later to refer to the objective more easily.
 # We can save that information into the constraint system immediately:
-c *=
-    :objective^C.Constraint(
+c *= :objective^C.Constraint(
     C.sum(
         c.fluxes[Symbol(rid)].value * coeff for
             (rid, coeff) in (keys(ecoli.reactions) .=> SBML.flux_objective(ecoli)) if
@@ -298,8 +295,7 @@ result_single_organism = result
 # E. Coli species: First, we disable functionality of a different reaction in
 # each of the models to create a diverse group of differently handicapped
 # organisms:
-c =
-    :community^(
+c = :community^(
     :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0)) +
         :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0))
 )
@@ -311,8 +307,7 @@ c += :exchanges^C.variables(keys = [:oxygen, :biomass], bounds = [(-10.0, 10.0),
 # These can be constrained so that the total influx (or outflux) of each of the
 # registered metabolites is in fact equal to total consumption or production by
 # each of the species:
-c *=
-    :exchange_constraints^C.ConstraintTree(
+c *= :exchange_constraints^C.ConstraintTree(
     :oxygen => C.Constraint(
         value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
             c.community.species2.fluxes.R_EX_o2_e.value,
@@ -327,8 +322,7 @@ c *=
 )
 
 # Let's see how much biomass are the two species capable of producing together:
-result =
-    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+result = C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
 # Finally, we can iterate over all species in the small community and see how
@@ -381,8 +375,7 @@ c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0)
 delete!(c.exchanges, :production_is_zero)
 
 # In the end, the flux optimization yields an expectably different result:
-result_with_more_oxygen =
-    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+result_with_more_oxygen = C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
 result.exchanges
 
 @test result_with_more_oxygen.exchanges.oxygen < -19.0 #src

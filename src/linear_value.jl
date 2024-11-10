@@ -44,8 +44,7 @@ $(TYPEDSIGNATURES)
 
 Construct a constant [`LinearValue`](@ref) with a single affine element.
 """
-LinearValue(x::Real) =
-    iszero(x) ? LinearValue(idxs = [], weights = []) :
+LinearValue(x::Real) = iszero(x) ? LinearValue(idxs = [], weights = []) :
     LinearValue(idxs = [0], weights = [x])
 
 Base.convert(::Type{LinearValue}, x::Real) = LinearValue(x)
@@ -114,10 +113,8 @@ function add_sparse_linear_combination(
     return (r_idxs, r_weights)
 end
 
-Base.:+(a::LinearValue, b::LinearValue) =
-let
-    (idxs, weights) =
-        add_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
+Base.:+(a::LinearValue, b::LinearValue) = let
+    (idxs, weights) = add_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
     LinearValue(; idxs, weights)
 end
 
@@ -138,7 +135,6 @@ $(TYPEDSIGNATURES)
 Shortcut for making a [`LinearValue`](@ref) out of a linear combination defined
 by the `SparseVector`.
 """
-LinearValue(x::SparseVector{Float64}) =
-let (idxs, weights) = findnz(x)
+LinearValue(x::SparseVector{Float64}) = let (idxs, weights) = findnz(x)
     LinearValue(; idxs, weights)
 end

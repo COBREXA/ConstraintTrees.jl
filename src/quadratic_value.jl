@@ -51,8 +51,7 @@ $(TYPEDSIGNATURES)
 
 Construct a constant [`QuadraticValue`](@ref) with a single affine element.
 """
-QuadraticValue(x::Real) =
-    iszero(x) ? QuadraticValue(idxs = [], weights = []) :
+QuadraticValue(x::Real) = iszero(x) ? QuadraticValue(idxs = [], weights = []) :
     QuadraticValue(idxs = [(0, 0)], weights = [x])
 
 """
@@ -60,8 +59,7 @@ $(TYPEDSIGNATURES)
 
 Construct a [`QuadraticValue`](@ref) that is equivalent to a given [`LinearValue`](@ref).
 """
-QuadraticValue(x::LinearValue) =
-    QuadraticValue(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
+QuadraticValue(x::LinearValue) = QuadraticValue(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
 
 Base.convert(::Type{QuadraticValue}, x::Real) = QuadraticValue(x)
 Base.convert(::Type{QuadraticValue}, x::LinearValue) = QuadraticValue(x)
@@ -76,11 +74,9 @@ Base.:-(a::QuadraticValue, b::Real) = a - QuadraticValue(b)
 Base.:-(a::LinearValue, b::QuadraticValue) = QuadraticValue(a) - b
 Base.:-(a::QuadraticValue, b::LinearValue) = a - QuadraticValue(b)
 Base.:*(a::Real, b::QuadraticValue) = b * a
-Base.:*(a::QuadraticValue, b::Real) =
-    QuadraticValue(idxs = a.idxs, weights = b .* a.weights)
+Base.:*(a::QuadraticValue, b::Real) = QuadraticValue(idxs = a.idxs, weights = b .* a.weights)
 Base.:-(a::QuadraticValue, b::QuadraticValue) = a + (-1 * b)
-Base.:/(a::QuadraticValue, b::Real) =
-    QuadraticValue(idxs = a.idxs, weights = a.weights ./ b)
+Base.:/(a::QuadraticValue, b::Real) = QuadraticValue(idxs = a.idxs, weights = a.weights ./ b)
 
 """
 $(TYPEDSIGNATURES)
@@ -143,9 +139,7 @@ function add_sparse_quadratic_combination(
     return (r_idxs, r_weights)
 end
 
-Base.:+(a::QuadraticValue, b::QuadraticValue) =
-let (idxs, weights) =
-        add_sparse_quadratic_combination(a.idxs, a.weights, b.idxs, b.weights)
+Base.:+(a::QuadraticValue, b::QuadraticValue) = let (idxs, weights) = add_sparse_quadratic_combination(a.idxs, a.weights, b.idxs, b.weights)
     QuadraticValue(; idxs, weights)
 end
 
@@ -178,9 +172,7 @@ function multiply_sparse_linear_combination(
     )
 end
 
-Base.:*(a::LinearValue, b::LinearValue) =
-let (idxs, weights) =
-        multiply_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
+Base.:*(a::LinearValue, b::LinearValue) = let (idxs, weights) = multiply_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
     QuadraticValue(; idxs, weights)
 end
 
@@ -213,8 +205,7 @@ $(TYPEDSIGNATURES)
 Shortcut for making a [`QuadraticValue`](@ref) out of a square sparse matrix. The
 matrix is force-symmetrized by calculating `x' + x`.
 """
-QuadraticValue(x::SparseMatrixCSC{Float64}) =
-let
+QuadraticValue(x::SparseMatrixCSC{Float64}) = let
     rs, cs, vals = findnz(x' + x)
     # Note: Correctness of this now relies on (row,col) index pairs coming
     # from `findnz` in correct (co-lexicographical) order. Might be worth

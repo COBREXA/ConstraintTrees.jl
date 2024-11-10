@@ -41,17 +41,12 @@ Base.@kwdef mutable struct Constraint
 end
 
 Constraint(v::T, b::Real) where {T <: Value} = Constraint(v, EqualTo(b))
-Constraint(v::T, b::Tuple{X, Y}) where {T <: Value, X <: Real, Y <: Real} =
-    Constraint(v, Between(Float64.(b)...))
+Constraint(v::T, b::Tuple{X, Y}) where {T <: Value, X <: Real, Y <: Real} = Constraint(v, Between(Float64.(b)...))
 
-Base.:-(a::Constraint) =
-    Constraint(value = -a.value, bound = isnothing(a.bound) ? nothing : -a.bound)
-Base.:*(a::Real, b::Constraint) =
-    Constraint(value = a * b.value, bound = isnothing(b.bound) ? nothing : a * b.bound)
-Base.:*(a::Constraint, b::Real) =
-    Constraint(value = a.value * b, bound = isnothing(a.bound) ? nothing : a.bound * b)
-Base.:/(a::Constraint, b::Real) =
-    Constraint(value = a.value / b, bound = isnothing(a.bound) ? nothing : a.bound / b)
+Base.:-(a::Constraint) = Constraint(value = -a.value, bound = isnothing(a.bound) ? nothing : -a.bound)
+Base.:*(a::Real, b::Constraint) = Constraint(value = a * b.value, bound = isnothing(b.bound) ? nothing : a * b.bound)
+Base.:*(a::Constraint, b::Real) = Constraint(value = a.value * b, bound = isnothing(a.bound) ? nothing : a.bound * b)
+Base.:/(a::Constraint, b::Real) = Constraint(value = a.value / b, bound = isnothing(a.bound) ? nothing : a.bound / b)
 
 """
 $(TYPEDSIGNATURES)

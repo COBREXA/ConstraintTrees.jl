@@ -142,8 +142,7 @@ $(TYPEDSIGNATURES)
 Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
 increment.
 """
-increase_variable_indexes(x::ConstraintTree, incr::Int) =
-    ConstraintTree(k => increase_variable_indexes(v, incr) for (k, v) in x)
+increase_variable_indexes(x::ConstraintTree, incr::Int) = ConstraintTree(k => increase_variable_indexes(v, incr) for (k, v) in x)
 
 """
 $(TYPEDSIGNATURES)
@@ -151,16 +150,14 @@ $(TYPEDSIGNATURES)
 Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
 increment.
 """
-increase_variable_indexes(x::Constraint, incr::Int) =
-    Constraint(value = increase_variable_indexes(x.value, incr), bound = x.bound)
+increase_variable_indexes(x::Constraint, incr::Int) = Constraint(value = increase_variable_indexes(x.value, incr), bound = x.bound)
 
 """
 $(TYPEDSIGNATURES)
 
 Offset all variable indexes in a [`LinearValue`](@ref) by the given increment.
 """
-increase_variable_indexes(x::LinearValue, incr::Int) =
-    LinearValue(idxs = increase_variable_index.(x.idxs, incr), weights = x.weights)
+increase_variable_indexes(x::LinearValue, incr::Int) = LinearValue(idxs = increase_variable_index.(x.idxs, incr), weights = x.weights)
 
 """
 $(TYPEDSIGNATURES)
@@ -187,16 +184,13 @@ Push all variable indexes found in `x` to the `out` container.
 (The container needs to support the standard `push!`.)
 """
 collect_variables!(x::Constraint, out) = collect_variables!(x.value, out)
-collect_variables!(x::LinearValue, out) =
-    for idx in x.idxs
+collect_variables!(x::LinearValue, out) = for idx in x.idxs
     push!(out, idx)
 end
-collect_variables!(x::QuadraticValue, out) =
-    for (idx, idy) in x.idxs
+collect_variables!(x::QuadraticValue, out) = for (idx, idy) in x.idxs
     push!(out, idx, idy)
 end
-collect_variables!(x::Tree{T}, out::C) where {T, C} =
-    collect_variables!.(values(x), Ref(out))
+collect_variables!(x::Tree{T}, out::C) where {T, C} = collect_variables!.(values(x), Ref(out))
 
 """
 $(TYPEDSIGNATURES)
@@ -228,12 +222,9 @@ This does not run any consistency checks on the result; the `mapping` must
 therefore be monotonically increasing, and the zero index must map to itself,
 otherwise invalid [`Value`](@ref)s will be produced.
 """
-renumber_variables(x::Tree{T}, mapping) where {T} =
-    ConstraintTree(k => renumber_variables(v, mapping) for (k, v) in x)
-renumber_variables(x::Constraint, mapping) =
-    Constraint(renumber_variables(x.value, mapping), x.bound)
-renumber_variables(x::LinearValue, mapping) =
-    LinearValue(idxs = [mapping[idx] for idx in x.idxs], weights = x.weights)
+renumber_variables(x::Tree{T}, mapping) where {T} = ConstraintTree(k => renumber_variables(v, mapping) for (k, v) in x)
+renumber_variables(x::Constraint, mapping) = Constraint(renumber_variables(x.value, mapping), x.bound)
+renumber_variables(x::LinearValue, mapping) = LinearValue(idxs = [mapping[idx] for idx in x.idxs], weights = x.weights)
 renumber_variables(x::QuadraticValue, mapping) = QuadraticValue(
     idxs = [(mapping[idx], mapping[idy]) for (idx, idy) in x.idxs],
     weights = x.weights,
@@ -247,10 +238,8 @@ Remove variable references from all [`Value`](@ref)s in the given object
 """
 drop_zeros(x::Tree{T}) where {T} = ConstraintTree(k => drop_zeros(v) for (k, v) in x)
 drop_zeros(x::Constraint) = Constraint(drop_zeros(x.value), x.bound)
-drop_zeros(x::LinearValue) =
-    LinearValue(idxs = x.idxs[x.weights .!= 0], weights = x.weights[x.idxs .!= 0])
-drop_zeros(x::QuadraticValue) =
-    QuadraticValue(idxs = x.idxs[x.weights .!= 0], weights = x.weights[x.weights .!= 0])
+drop_zeros(x::LinearValue) = LinearValue(idxs = x.idxs[x.weights .!= 0], weights = x.weights[x.idxs .!= 0])
+drop_zeros(x::QuadraticValue) = QuadraticValue(idxs = x.idxs[x.weights .!= 0], weights = x.weights[x.weights .!= 0])
 
 #
 # Algebraic construction
@@ -263,10 +252,8 @@ function Base.:+(a::ConstraintTree, b::ConstraintTree)
     return a * increase_variable_indexes(b, offset)
 end
 
-Base.:*(a::ConstraintTree, b::Constraint) =
-    error("Unable to merge a constraint directory with a constraint.")
-Base.:*(a::Constraint, b::ConstraintTree) =
-    error("Unable to merge a constraint with a constraint directory.")
+Base.:*(a::ConstraintTree, b::Constraint) = error("Unable to merge a constraint directory with a constraint.")
+Base.:*(a::Constraint, b::ConstraintTree) = error("Unable to merge a constraint with a constraint directory.")
 Base.:*(a::Constraint, b::Constraint) = error("Unable to merge two constraints.")
 
 #
@@ -279,8 +266,7 @@ $(TYPEDSIGNATURES)
 Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
-variable(; bound = nothing, idx = 1) =
-    Constraint(value = LinearValue(Int[idx], Float64[1.0]); bound)
+variable(; bound = nothing, idx = 1) = Constraint(value = LinearValue(Int[idx], Float64[1.0]); bound)
 
 """
 $(TYPEDSIGNATURES)
@@ -297,8 +283,7 @@ The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To pass
 a single bound for all variables, use e.g. `bounds = EqualTo(0)`.
 """
 function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
-    bs =
-        isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
+    bs = isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
         length(bounds) == 1 ? Base.Iterators.cycle(tuple(bounds)) :
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
@@ -354,8 +339,7 @@ effectively remove them from the problem.
 Cf. [`substitute_values`](@ref), which creates a tree of "plain" values with
 no constraints.
 """
-substitute(x::ConstraintTree, y::AbstractVector) =
-    map(x) do c
+substitute(x::ConstraintTree, y::AbstractVector) = map(x) do c
     substitute(c, y)
 end
 
@@ -371,7 +355,6 @@ The third argument forces the output type (it is forwarded to
 
 To preserve the constraints in the tree, use [`substitute`](@ref).
 """
-substitute_values(x::Tree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
-    map(x, T) do c
+substitute_values(x::Tree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} = map(x, T) do c
     substitute_values(c, y)
 end

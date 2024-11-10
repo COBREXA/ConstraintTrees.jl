@@ -24,8 +24,7 @@ Base.isempty(x::ADWrap) = isempty(x.x)
 Base.length(x::ADWrap) = length(x.x)
 Base.iterate(x::ADWrap, y...) = iterate(x.x, y...)
 Base.summary(io::IO, x::ADWrap) = summary(io, x.x)
-Base.summary(io::IO, x::Tree{X}) where {X} =
-    print(io, "$(Tree{X}) with ", length(x), length(x) == 1 ? " element" : " elements")
+Base.summary(io::IO, x::Tree{X}) where {X} = print(io, "$(Tree{X}) with ", length(x), length(x) == 1 ? " element" : " elements")
 
 function Base.show(io::IO, mime::MIME"text/plain", x::Tree{X}) where {X}
     return show(io, mime, ADWrap(x))

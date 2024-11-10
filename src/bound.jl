@@ -62,8 +62,7 @@ Base.@kwdef mutable struct Between <: Bound
     "Upper bound"
     upper::Float64 = Inf
 
-    Between(x::Real, y::Real) =
-        x < y ? new(Float64(x), Float64(y)) : new(Float64(y), Float64(x))
+    Between(x::Real, y::Real) = x < y ? new(Float64(x), Float64(y)) : new(Float64(y), Float64(x))
 end
 
 Base.:-(x::Between) = -1 * x

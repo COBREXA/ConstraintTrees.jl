@@ -39,8 +39,7 @@ qv = system.x.value * (system.y.value + 2 * system.z.value)
 # As with `LinearValue`s, the `QuadraticValue`s can be easily combined, giving
 # a nice way to specify e.g. weighted sums of squared errors with respect to
 # various directions. We can thus represent common formulas for error values:
-error_val =
-    C.squared(system.x.value + system.y.value - 1) +
+error_val = C.squared(system.x.value + system.y.value - 1) +
     C.squared(system.y.value + 5 * system.z.value - 3)
 
 # This allows us to naturally express quadratic constraint (e.g., that an error
@@ -82,8 +81,7 @@ ellipse_system = C.ConstraintTree(
 # definite quadratic forms as constraints). Instead, let's use a
 # single-variable-parametrized line equation.
 line_param = C.variable().value
-line_system =
-    :point^C.ConstraintTree(
+line_system = :point^C.ConstraintTree(
     :x => C.Constraint(0 + 2 * line_param),
     :y => C.Constraint(0 + 1 * line_param),
 )
@@ -92,8 +90,7 @@ line_system =
 # that would minimize the distance of the points:
 s = :ellipse^ellipse_system + :line^line_system
 
-s *=
-    :objective^C.Constraint(
+s *= :objective^C.Constraint(
     C.squared(s.ellipse.point.x.value - s.line.point.x.value) +
         C.squared(s.ellipse.point.y.value - s.line.point.y.value),
 )

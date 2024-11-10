@@ -92,8 +92,7 @@ s *= :total_area^total_area_constraint
 # [`ConstraintTree`](@ref ConstraintTrees.ConstraintTree) structures like
 # dictionaries in place, as follows:
 
-s *=
-    :resources^C.ConstraintTree(
+s *= :resources^C.ConstraintTree(
     :fertilizer =>
         C.Constraint(s.area.wheat.value * 6 + s.area.barley.value * 2, (0, 500)),
     :insecticide =>
@@ -172,16 +171,14 @@ optimal_s.resources
 # example, we can use the actual prices for our resources (30🪙 and 110🪙 for a
 # kilo of fertilizer and insecticide, respectively) to make a corrected profit:
 
-s *=
-    :actual_profit^C.Constraint(
+s *= :actual_profit^C.Constraint(
     s.profit.value - 30 * s.resources.fertilizer.value -
         110 * s.resources.insecticide.value,
 )
 
 # Is the result going to change if we optimize for the corrected profit?
 
-realistically_optimal_s =
-    C.substitute_values(s, optimized_vars(s, s.actual_profit.value, GLPK.Optimizer))
+realistically_optimal_s = C.substitute_values(s, optimized_vars(s, s.actual_profit.value, GLPK.Optimizer))
 
 #
 
@@ -207,8 +204,7 @@ f += :materials^C.variables(keys = [:wheat, :barley], bounds = C.Between(0, Inf)
 
 # How much resources are consumed by each product, with a limit on each:
 
-f *=
-    :resources^C.ConstraintTree(
+f *= :resources^C.ConstraintTree(
     :heat => C.Constraint(
         5 * f.products.bread.value + 3 * f.products.weizen.value,
         (0, 1000),
@@ -221,8 +217,7 @@ f *=
 
 # How much raw materials are required for each product:
 
-f *=
-    :material_allocation^C.ConstraintTree(
+f *= :material_allocation^C.ConstraintTree(
     :wheat => C.Constraint(
         8 * f.products.bread.value + 2 * f.products.weizen.value -
             f.materials.wheat.value,
@@ -260,8 +255,7 @@ end
 # Finally, let's see how much money can we make from having the factory
 # supported by our fields in total!
 
-optimal_c =
-    C.substitute_values(c, optimized_vars(c, c.factory.profit.value, GLPK.Optimizer))
+optimal_c = C.substitute_values(c, optimized_vars(c, c.factory.profit.value, GLPK.Optimizer))
 
 # How much field area did we allocate?
 

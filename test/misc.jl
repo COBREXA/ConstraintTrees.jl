@@ -16,8 +16,7 @@ import ConstraintTrees as C
 import SparseArrays as SP
 
 @testset "Values" begin
-    x =
-        C.LinearValue(SP.sparse([5.0, 0, 6.0, 0])) +
+    x = C.LinearValue(SP.sparse([5.0, 0, 6.0, 0])) +
         C.LinearValue(idxs = [2, 3], weights = [5.0, 4.0])
     @test x.idxs == [1, 2, 3]
     @test x.weights == [5.0, 5.0, 10.0]
@@ -36,8 +35,7 @@ end
         ) + convert(C.QuadraticValue, 123.0)
     ).idxs == [(0, 0)]
     @test convert(C.QuadraticValue, C.variable().value).idxs == [(0, 1)]
-    x =
-        C.LinearValue(SP.sparse(Float64[])) +
+    x = C.LinearValue(SP.sparse(Float64[])) +
         C.QuadraticValue(SP.sparse([1.0 0 1; 0 0 3; 1 0 0])) -
         C.LinearValue(SP.sparse([1.0, 2.0])) - 1.0
     @test x.idxs == [(0, 0), (0, 1), (1, 1), (0, 2), (1, 3), (2, 3)]
@@ -49,8 +47,7 @@ end
 @testset "Constraints" begin
     @test C.bound(C.variable(bound = 123.0)).equal_to == 123.0
     @test C.value(C.variable(bound = 123.0)).idxs == [1]
-    @test C.bound(-convert(C.Constraint, (C.variable(bound = 123.0))) * 2 / 2).equal_to ==
-        -123.0
+    @test C.bound(-convert(C.Constraint, (C.variable(bound = 123.0))) * 2 / 2).equal_to == -123.0
     @test let x = C.bound(-convert(C.Constraint, (C.variable(bound = (-1, 2))) * 2 / 2))
         (x.lower, x.upper) == (-2.0, 1.0)
     end
