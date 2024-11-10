@@ -142,7 +142,7 @@ end
     @test occursin("[2]", s(ct.x.b))
     @test occursin("[1.0]", s(ct.x.a))
 
-    vt = C.substitute_values(ct, [1.0, 2.0])
+    vt = C.substitute_values(ct, [1.0, 2.0, 3.0, 4.0])
     @test occursin("Tree{Float64}", s(vt))
 
     p(x) = iob(C.pretty, x)
