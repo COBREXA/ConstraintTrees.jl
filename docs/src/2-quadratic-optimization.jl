@@ -116,7 +116,7 @@ C.pretty(s; format_label = x -> join(x, '.'))
 import JuMP
 function quad_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
-    JuMP.@variable(model, x[1:C.var_count(cs)])
+    JuMP.@variable(model, x[1:C.variable_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     C.traverse(cs) do c
         b = c.bound

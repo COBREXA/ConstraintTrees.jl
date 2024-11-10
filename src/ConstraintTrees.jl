@@ -68,4 +68,20 @@ include("tree.jl")
 include("constraint_tree.jl")
 include("pretty.jl")
 
+# API definition
+#
+# ConstraintTrees export only the main used type names (they generally don't
+# collide and `using ConstraintTrees` would help a lot with neater formatting
+# of data print-outs)
+
+export LinearValue, QuadraticValue
+export Between, EqualTo
+export Constraint, Tree, ConstraintTree
+
+# For sufficiently new Julias, we also include the `public` markers for
+# non-exported but used names.
+if VERSION >= v"1.11"
+    include("public_api.jl")
+end
+
 end # module ConstraintTrees
