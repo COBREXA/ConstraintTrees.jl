@@ -74,8 +74,8 @@ include("pretty.jl")
 # collide and `using ConstraintTrees` would help a lot with neater formatting
 # of data print-outs)
 
-export LinearValue, QuadraticValue
-export Between, EqualTo
+export Value, LinearValue, QuadraticValue
+export Bound, Between, EqualTo
 export Constraint, Tree, ConstraintTree
 
 # For sufficiently new Julias, we also include the `public` markers for
