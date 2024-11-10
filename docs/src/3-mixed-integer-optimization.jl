@@ -128,15 +128,14 @@ triangle_system =
 
 # We will need a solver that supports both quadratic and integer optimization:
 import SCIP
-triangle_sides =
-    C.substitute_values(
+triangle_sides = C.substitute_values(
+    triangle_system,
+    milp_optimized_vars(
         triangle_system,
-        milp_optimized_vars(
-            triangle_system,
-            -triangle_system.circumference.value,
-            SCIP.Optimizer,
-        ),
-    ).sides
+        -triangle_system.circumference.value,
+        SCIP.Optimizer,
+    ),
+).sides
 
 @test isapprox(triangle_sides.a, 3.0) #src
 @test isapprox(triangle_sides.b, 4.0) #src
