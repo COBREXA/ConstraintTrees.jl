@@ -215,7 +215,7 @@ function prune_variables(x)
     push!(vars, 0)
     vv = collect(vars)
     @assert vv[1] == 0 "variable indexes are broken"
-    return renumber_variables(x, SortedDict(vv .=> 0:length(vv)-1))
+    return renumber_variables(x, SortedDict(vv .=> 0:(length(vv)-1)))
 end
 
 """
