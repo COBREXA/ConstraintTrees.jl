@@ -38,13 +38,10 @@ public merge, imerge
 
 # constraint-tree things
 public variable_count
-public increase_variable_idx
-public increase_variable_idxs
+public increase_variable_index, increase_variable_indexes
 public collect_variables!
 public prune_variables
 public renumber_variables
 public drop_zeros
-public variable
-public variables
-public variables_for
-public variables_ifor
+public variable, variables
+public variables_for, variables_ifor
