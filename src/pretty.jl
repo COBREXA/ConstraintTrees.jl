@@ -105,7 +105,7 @@ function pretty(io::IO, x::LinearValue)
     if isempty(x.idxs)
         print(io, "0")
     else
-        join(io, ("$w"*pretty_var(i) for (i, w) in Base.zip(x.idxs, x.weights)), " + ")
+        join(io, ("$w" * pretty_var(i) for (i, w) in Base.zip(x.idxs, x.weights)), " + ")
     end
 end
 
@@ -121,7 +121,7 @@ function pretty(io::IO, x::QuadraticValue)
         join(
             io,
             (
-                "$w"*pretty_var(i)*pretty_var(j) for
+                "$w" * pretty_var(i) * pretty_var(j) for
                 ((i, j), w) in Base.zip(x.idxs, x.weights)
             ),
             " + ",
@@ -170,7 +170,7 @@ Internal helper for prettyprinting variable contributions. Does not print
 anything for the zero "affine" variable.
 """
 function pretty_var(i)
-    if i==0
+    if i == 0
         return ""
     else
         return "*x[$i]"
@@ -195,8 +195,8 @@ function pretty_tree(io::IO, x::Tree, pfx0::String, pfx::String)
         print(io, pfx, "├─", k)
         pretty_tree(io, v, pfx * "│ ╰─", pfx * "│   ")
     end
-    if length(es)>0
-        (k, v)=es[end]
+    if length(es) > 0
+        (k, v) = es[end]
         print(io, pfx, "╰─", k)
         pretty_tree(io, v, pfx * "  ╰─", pfx * "    ")
     end
