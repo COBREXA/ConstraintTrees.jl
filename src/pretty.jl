@@ -56,3 +56,161 @@ function Base.show(io::IO, x::Constraint)
         Base.show_default(io, x)
     end
 end
+
+#
+# Pretty-printing interface
+#
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print a given object via other overloads of [`pretty`](@ref), defaulting
+the output stream to standard output.
+"""
+pretty(x) = pretty(stdout, x)
+
+"""
+$(TYPEDSIGNATURES)
+
+Default implementation of [`pretty`](@ref) defaults to `Base.show`.
+"""
+pretty(io::IO, x) = show(io, x)
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print a nested tree into the `io`. This is the only overload of
+[`pretty`](@ref) that is allowed to break lines.
+
+The printing assumes a Unicode-capable stdout.
+"""
+pretty(io::IO, x::Tree) = pretty_tree(io, x, "", "")
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print a constraint into the `io`.
+"""
+function pretty(io::IO, x::Constraint)
+    pretty(io, x.value)
+    isnothing(x.bound) || pretty(io, x.bound)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print a linear value into the `io`.
+"""
+function pretty(io::IO, x::LinearValue)
+    if isempty(x.idxs)
+        print(io, "0")
+    else
+        join(io, ("$w"*pretty_var(i) for (i, w) in Base.zip(x.idxs, x.weights)), " + ")
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print a quadratic value into the `io`.
+"""
+function pretty(io::IO, x::QuadraticValue)
+    if isempty(x.idxs)
+        print(io, "0")
+    else
+        join(
+            io,
+            (
+                "$w"*pretty_var(i)*pretty_var(j) for
+                ((i, j), w) in Base.zip(x.idxs, x.weights)
+            ),
+            " + ",
+        )
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Default pretty-printing of a [`Bound`](@ref). Overloads that print bounds
+should expect that they are ran right after printing of the [`Value`](@ref)s,
+on the same line.
+"""
+function pretty(io::IO, x::Bound)
+    print(io, "; ")
+    show(io, x)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print an equality bound into the `io`.
+"""
+function pretty(io::IO, x::EqualTo)
+    print(io, " = $(x.equal_to)")
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-print an interval bound into the `io`.
+"""
+function pretty(io::IO, x::Between)
+    print(io, " ∈ [$(x.lower), $(x.upper)]")
+end
+
+#
+# Pretty-printing helpers
+#
+
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper for prettyprinting variable contributions. Does not print
+anything for the zero "affine" variable.
+"""
+function pretty_var(i)
+    if i==0
+        return ""
+    else
+        return "*x[$i]"
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper for recursive prettyprinting of tree structures. Adds a
+relatively legible Unicode scaffolding to highlight the tree structure.
+"""
+function pretty_tree(io::IO, x::Tree, pfx0::String, pfx::String)
+    isempty(pfx0) || print(io, "\n")
+    es = collect(elems(x))
+    if length(es) > 1
+        (k, v) = es[begin]
+        print(io, pfx0, "┬─", k)
+        pretty_tree(io, v, pfx * "│ ╰─", pfx * "│   ")
+    end
+    for (k, v) in es[(begin+1):(end-1)]
+        print(io, pfx, "├─", k)
+        pretty_tree(io, v, pfx * "│ ╰─", pfx * "│   ")
+    end
+    if length(es)>0
+        (k, v)=es[end]
+        print(io, pfx, "╰─", k)
+        pretty_tree(io, v, pfx * "  ╰─", pfx * "    ")
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Overload of [`pretty_tree`](@ref) for anything except [`Tree`](@ref)s -- this
+utilizes [`pretty`](@ref) to finish a line with the "contents" of the tree
+leaf.
+"""
+function pretty_tree(io::IO, x, pfx0::String, pfx::String)
+    print(io, ": ")
+    pretty(io, x)
+    print(io, "\n")
+end
