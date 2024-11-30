@@ -74,7 +74,7 @@ $(TYPEDSIGNATURES)
 
 Default implementation of [`pretty`](@ref) defaults to `Base.show`.
 """
-pretty(io::IO, x; kwargs...) = show(io, x; kwargs...)
+pretty(io::IO, x; kwargs...) = show(io, x)
 
 """
 $(TYPEDSIGNATURES)
