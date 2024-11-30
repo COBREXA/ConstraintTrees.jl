@@ -61,6 +61,9 @@ end
 # Pretty-printing interface
 #
 
+explain(io::IO, x::ConstraintTree, args...) = pretty(io, relate_trees(args...))
+explain(x::ConstraintTree, args...) = explain(stdout, x, args...)
+
 """
 $(TYPEDSIGNATURES)
 

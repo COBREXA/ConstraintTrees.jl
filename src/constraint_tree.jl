@@ -355,3 +355,46 @@ substitute_values(x::Tree, y::AbstractVector, ::Type{T} = eltype(y)) where {T} =
     map(x, T) do c
         substitute_values(c, y)
     end
+
+#
+# Finding similarities between trees (mainly for debugging)
+#
+
+function relate_trees(x::C.ConstraintTree, ref::C.ConstraintTree)
+    pick(t, k, ks...) = pick(t[k], ks...)
+    pick(t, k) = t[k]
+    function patch(f, t::T, k, ks...) where T
+        if !haskey(t,k)
+            t[k] = T()
+        end
+        patch(f, t[k], ks...)
+    end
+    function patch(f, t, k)
+        t[k] = f(get(t, k, missing))
+    end
+    iidx = Dict{Int, Set{Tuple}}()
+    C.itraverse(x) do i,c
+        C.collect_variables(c) do idx
+            if !haskey(iidx, idx)
+                iidx[idx] = Set{Tuple}()
+            end
+            push!(iidx[idx], i)
+        end
+    end
+    res = C.map(_ -> C.Tree{Nothing}(), x, Nothing)
+    C.itraverse(ref) do ri,rc
+        C.collect_variables(rc) do ridx
+            for xi in get(iidx, ridx, Set{Tuple}())
+                xt = pick(res, xi...)
+                patch(xt, ri...) do o
+                    if ismissing(o)
+
+                    else
+
+                    end
+                end
+            end
+        end
+    end
+    return res
+end
