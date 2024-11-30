@@ -218,7 +218,7 @@ function pretty_tree(
     child_first_indent = "│ ╰─",
     child_indent = "│   ",
     lastchild_first_indent = "  ╰─",
-    lastchild_indent = "   ",
+    lastchild_indent = "    ",
     kwargs...,
 )
     isempty(pfx0) || print(io, "\n")
