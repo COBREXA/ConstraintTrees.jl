@@ -67,14 +67,14 @@ $(TYPEDSIGNATURES)
 Pretty-print a given object via other overloads of [`pretty`](@ref), defaulting
 the output stream to standard output.
 """
-pretty(x) = pretty(stdout, x)
+pretty(x; kwargs...) = pretty(stdout, x; kwargs...)
 
 """
 $(TYPEDSIGNATURES)
 
 Default implementation of [`pretty`](@ref) defaults to `Base.show`.
 """
-pretty(io::IO, x) = show(io, x)
+pretty(io::IO, x; kwargs...) = show(io, x; kwargs...)
 
 """
 $(TYPEDSIGNATURES)
@@ -82,18 +82,20 @@ $(TYPEDSIGNATURES)
 Pretty-print a nested tree into the `io`. This is the only overload of
 [`pretty`](@ref) that is allowed to break lines.
 
-The printing assumes a Unicode-capable stdout.
+The printing assumes a Unicode-capable `stdout` by default; the formatting can
+be customized via keyword arguments (see other overloads of [`pretty`](@ref)
+and [`pretty_tree`](@ref)).
 """
-pretty(io::IO, x::Tree) = pretty_tree(io, x, "", "")
+pretty(io::IO, x::Tree; kwargs...) = pretty_tree(io, x, "", ""; kwargs...)
 
 """
 $(TYPEDSIGNATURES)
 
 Pretty-print a constraint into the `io`.
 """
-function pretty(io::IO, x::Constraint)
-    pretty(io, x.value)
-    isnothing(x.bound) || pretty(io, x.bound)
+function pretty(io::IO, x::Constraint; kwargs...)
+    pretty(io, x.value; kwargs...)
+    isnothing(x.bound) || pretty(io, x.bound; kwargs...)
 end
 
 """
@@ -101,7 +103,7 @@ $(TYPEDSIGNATURES)
 
 Pretty-print a linear value into the `io`.
 """
-function pretty(io::IO, x::LinearValue)
+function pretty(io::IO, x::LinearValue; kwargs...)
     if isempty(x.idxs)
         print(io, "0")
     else
@@ -114,7 +116,7 @@ $(TYPEDSIGNATURES)
 
 Pretty-print a quadratic value into the `io`.
 """
-function pretty(io::IO, x::QuadraticValue)
+function pretty(io::IO, x::QuadraticValue; kwargs...)
     if isempty(x.idxs)
         print(io, "0")
     else
@@ -136,8 +138,8 @@ Default pretty-printing of a [`Bound`](@ref). Overloads that print bounds
 should expect that they are ran right after printing of the [`Value`](@ref)s,
 on the same line.
 """
-function pretty(io::IO, x::Bound)
-    print(io, "; ")
+function pretty(io::IO, x::Bound; bound_separator = "; ")
+    print(io, bound_separator)
     show(io, x)
 end
 
@@ -146,8 +148,8 @@ $(TYPEDSIGNATURES)
 
 Pretty-print an equality bound into the `io`.
 """
-function pretty(io::IO, x::EqualTo)
-    print(io, " = $(x.equal_to)")
+function pretty(io::IO, x::EqualTo; equal_to_sign = "=")
+    print(io, " $equal_sign $(x.equal_to)")
 end
 
 """
@@ -155,8 +157,8 @@ $(TYPEDSIGNATURES)
 
 Pretty-print an interval bound into the `io`.
 """
-function pretty(io::IO, x::Between)
-    print(io, " ∈ [$(x.lower), $(x.upper)]")
+function pretty(io::IO, x::Between; in_interval_sign = "∈")
+    print(io, " $between_sign [$(x.lower), $(x.upper)]")
 end
 
 #
@@ -181,24 +183,49 @@ end
 $(TYPEDSIGNATURES)
 
 Internal helper for recursive prettyprinting of tree structures. Adds a
-relatively legible Unicode scaffolding to highlight the tree structure.
+relatively legible Unicode scaffolding to highlight the tree structure. The
+scaffolding can be customized via keyword arguments (which are passed here from
+[`pretty`](@ref)).
 """
-function pretty_tree(io::IO, x::Tree, pfx0::String, pfx::String)
+function pretty_tree(
+    io::IO,
+    x::Tree,
+    pfx0::String,
+    pfx::String;
+    first_branch = "┬─",
+    middle_branch = "├─",
+    last_branch = "╰─",
+    child_first_indent = "│ ╰─",
+    child_indent = "│   ",
+    lastchild_first_indent = "  ╰─",
+    lastchild_indent = "   ",
+    kwargs...,
+)
     isempty(pfx0) || print(io, "\n")
     es = collect(elems(x))
+    argpack = (;
+        first_branch,
+        middle_branch,
+        last_branch,
+        child_first_indent,
+        child_indent,
+        lastchild_first_indent,
+        lastchild_indent,
+        kwargs...,
+    )
     if length(es) > 1
         (k, v) = es[begin]
-        print(io, pfx0, "┬─", k)
-        pretty_tree(io, v, pfx * "│ ╰─", pfx * "│   ")
+        print(io, pfx0, first_branch, k)
+        pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
     end
     for (k, v) in es[(begin+1):(end-1)]
-        print(io, pfx, "├─", k)
-        pretty_tree(io, v, pfx * "│ ╰─", pfx * "│   ")
+        print(io, pfx, middle_branch, k)
+        pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
     end
     if length(es) > 0
         (k, v) = es[end]
-        print(io, pfx, "╰─", k)
-        pretty_tree(io, v, pfx * "  ╰─", pfx * "    ")
+        print(io, pfx, last_branch, k)
+        pretty_tree(io, v, pfx * lastchild_first_indent, pfx * lastchild_indent; argpack...)
     end
 end
 
@@ -209,8 +236,8 @@ Overload of [`pretty_tree`](@ref) for anything except [`Tree`](@ref)s -- this
 utilizes [`pretty`](@ref) to finish a line with the "contents" of the tree
 leaf.
 """
-function pretty_tree(io::IO, x, pfx0::String, pfx::String)
-    print(io, ": ")
-    pretty(io, x)
+function pretty_tree(io::IO, x, pfx0::String, pfx::String; leaf_separator = ": ", kwargs...)
+    print(io, leaf_separator)
+    pretty(io, x; leaf_separator, kwargs...)
     print(io, "\n")
 end
