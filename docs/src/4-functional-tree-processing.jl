@@ -64,7 +64,7 @@ import ConstraintTrees as C
 
 constraints = :point^C.variables(keys = [:x, :y], bounds = C.Between(0, 1))
 
-C.pretty(constriants)
+C.pretty(constraints)
 
 # ## Transforming trees with `map`
 #
