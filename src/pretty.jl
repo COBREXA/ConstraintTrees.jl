@@ -183,7 +183,7 @@ $(TYPEDSIGNATURES)
 Pretty-print an equality bound into the `io`.
 """
 function pretty(io::IO, x::EqualTo; equal_to_sign = "=", kwargs...)
-    print(io, " $equal_sign $(x.equal_to)")
+    print(io, " $equal_to_sign $(x.equal_to)")
 end
 
 """
