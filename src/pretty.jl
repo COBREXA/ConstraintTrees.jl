@@ -101,13 +101,41 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Internal helper for prettyprinting variable contributions; default value of
+`format_variable` keyword argument in [`pretty`](@ref).
+
+If there should be multiplication operators, the implementation `format_variable` is
+supposed to prefix the variable contribution. This should not print anything
+for the zero "affine" variable.
+"""
+function default_pretty_var(i::Int)
+    if i == 0
+        return ""
+    else
+        return "*x[$i]"
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Pretty-print a linear value into the `io`.
 """
-function pretty(io::IO, x::LinearValue; kwargs...)
+function pretty(
+    io::IO,
+    x::LinearValue;
+    format_variable = default_pretty_var,
+    plus_sign = " + ",
+    kwargs...,
+)
     if isempty(x.idxs)
         print(io, "0")
     else
-        join(io, ("$w" * pretty_var(i) for (i, w) in Base.zip(x.idxs, x.weights)), " + ")
+        join(
+            io,
+            (string(w) * format_variable(i) for (i, w) in Base.zip(x.idxs, x.weights)),
+            plus_sign,
+        )
     end
 end
 
@@ -116,17 +144,23 @@ $(TYPEDSIGNATURES)
 
 Pretty-print a quadratic value into the `io`.
 """
-function pretty(io::IO, x::QuadraticValue; kwargs...)
+function pretty(
+    io::IO,
+    x::QuadraticValue;
+    format_variable = default_pretty_var,
+    plus_sign = " + ",
+    kwargs...,
+)
     if isempty(x.idxs)
         print(io, "0")
     else
         join(
             io,
             (
-                "$w" * pretty_var(i) * pretty_var(j) for
+                string(w) * format_variable(i) * format_variable(j) for
                 ((i, j), w) in Base.zip(x.idxs, x.weights)
             ),
-            " + ",
+            plus_sign,
         )
     end
 end
@@ -162,22 +196,8 @@ function pretty(io::IO, x::Between; in_interval_sign = "∈", kwargs...)
 end
 
 #
-# Pretty-printing helpers
+# Drawing of the pretty tree structure
 #
-
-"""
-$(TYPEDSIGNATURES)
-
-Internal helper for prettyprinting variable contributions. Does not print
-anything for the zero "affine" variable.
-"""
-function pretty_var(i)
-    if i == 0
-        return ""
-    else
-        return "*x[$i]"
-    end
-end
 
 """
 $(TYPEDSIGNATURES)
