@@ -235,18 +235,22 @@ function pretty_tree(
         lastchild_indent,
         kwargs...,
     )
-    if length(es) > 1
+    if length(es) == 1
+        (k, v) = es[end]
+        print(io, pfx0, singleton_branch, k)
+        pretty_tree(io, v, pfx * lastchild_first_indent, pfx * lastchild_indent; argpack...)
+    elseif length(es) > 1
         (k, v) = es[begin]
         print(io, pfx0, first_branch, k)
         pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
-    end
-    for (k, v) in es[(begin+1):(end-1)]
-        print(io, pfx, middle_branch, k)
-        pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
-    end
-    if length(es) > 0
+
+        for (k, v) in es[(begin+1):(end-1)]
+            print(io, pfx, middle_branch, k)
+            pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
+        end
+
         (k, v) = es[end]
-        print(io, pfx, length(es) == 1 ? singleton_branch : last_branch, k)
+        print(io, pfx, last_branch, k)
         pretty_tree(io, v, pfx * lastchild_first_indent, pfx * lastchild_indent; argpack...)
     end
 end
