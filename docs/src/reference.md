@@ -50,3 +50,10 @@ Pages = ["src/tree.jl"]
 Modules = [ConstraintTrees]
 Pages = ["src/constraint_tree.jl"]
 ```
+
+## Pretty-printing
+
+```@autodocs
+modules=[ConstraintTrees]
+Pages = ["src/pretty.jl"]
+```
