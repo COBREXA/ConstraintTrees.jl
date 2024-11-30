@@ -64,6 +64,8 @@ import ConstraintTrees as C
 
 constraints = :point^C.variables(keys = [:x, :y], bounds = C.Between(0, 1))
 
+C.pretty(constriants)
+
 # ## Transforming trees with `map`
 #
 # Let's make a tree where the bounds are 2 times bigger and negated:
@@ -72,7 +74,7 @@ x = C.map(constraints) do x
     C.Constraint(x.value, -2 * x.bound)
 end
 
-x.point.x
+C.pretty(x)
 
 @test x.point.x.bound.lower == -2.0 #src
 
@@ -87,7 +89,7 @@ x = C.imap(constraints) do path, x
     end
 end
 
-[x.point.x, x.point.y]
+C.pretty(x)
 
 @test x.point.x.bound.upper == 100 #src
 
@@ -135,7 +137,7 @@ x = C.zip(s1, s2, Float64) do x, y
     (x - y)^2
 end
 
-x.point
+C.pretty(x)
 
 @test isapprox(x.point.x, 0.09^2) #src
 
@@ -149,7 +151,7 @@ x = C.izip(s1, s2, Float64) do path, x, y
     end * (x - y)^2
 end
 
-x.point
+C.pretty(x)
 
 @test isapprox(x.point.x, 10 * 0.09^2) #src
 @test C.reduce(&, C.izip((_, a, _, c) -> a == c, s1, s2, s1, Bool), init = true) #src
@@ -167,9 +169,9 @@ x.point
 #
 # Let's make some very heterogeneous trees and try to combine them:
 
-t1 = :x^s1.point * :y^s2.point
-t2 = :x^s2.point * :z^s1.point
-t3 = :y^s2.point
+t1 = :x^s1.point * :y^s2.point;
+t2 = :x^s2.point * :z^s1.point;
+t3 = :y^s2.point;
 
 # As a nice combination function, we can try to compute an average on all
 # positions from the first 2 trees:
@@ -180,11 +182,7 @@ t = C.merge(t1, t2, Float64) do x, y
     (x + y) / 2
 end
 
-t.x
-
-t.y
-
-t.z
+C.pretty(t)
 
 @test isapprox(t.x.x, 0.945) #src
 @test isapprox(t.x.y, 0.79) #src
@@ -199,7 +197,8 @@ tz = C.merge(t1, t2, t3, Float64) do x, y, z
     (x + y) / 2
 end
 
-tz.y
+C.pretty(tz)
+
 @test isapprox(tz.y.x, 0.99) #src
 @test isapprox(tz.y.y, 0.78) #src
 
@@ -213,7 +212,7 @@ tx = C.imerge(t1, t2, Float64) do path, x, y
     (x + y) / 2
 end
 
-tx.x
+C.pretty(tx)
 
 @test tx.y.x == tz.y.x #src
 
@@ -230,7 +229,7 @@ tx = C.imerge(t1, t2, t3, Float64) do path, x, y, z
     sum(first.(tmp)) / sum(last.(tmp))
 end
 
-tx.y
+C.pretty(tx)
 
 @test isapprox(tx.y.x, 0.99) #src
 @test !haskey(tx.y, :y) #src
@@ -245,22 +244,21 @@ tx.y
 # element of the given tree, and allows you to create bounds for the variables
 # via the given function:
 
+C.pretty(t)
+
+#
+
 x = C.variables_for(t) do a
     C.Between(a - 1, a + 1)
 end
 
-t.x.x
-
-x.x.x
-
-# Note that the variables for the other subtrees are different now:
-
-x.x.x.value
-
-x.y.x.value
+C.pretty(x)
 
 @test C.var_count(x) == 6 #src
 @test isapprox(x.x.x.bound.lower, -0.055) #src
+
+# (Note that the variable indexes in subtrees are now different from each
+# other!)
 
 # As in all cases with indexes, you may match the tree path to do a special
 # action. For example, to make sure that all `y` coordinates are exact in the
@@ -274,9 +272,7 @@ x = C.variables_ifor(t) do path, a
     end
 end
 
-x.x
-
-C.bound.(values(x.x))
+C.pretty(x)
 
 @test isapprox(x.x.x.bound.upper, 1.945) #src
 @test isapprox(x.x.y.bound.equal_to, 0.79) #src
@@ -331,7 +327,7 @@ filtered = C.ifilter(x) do ix, c
     return c isa C.ConstraintTree || last(ix) != :y
 end
 
-filtered.z
+C.pretty(filtered)
 
 @test !haskey(filtered.x, :y) #src
 
@@ -346,7 +342,7 @@ filtered = C.ifilter_leaves(x) do ix, c
     last(ix) != :y
 end
 
-filtered.z
+C.pretty(filtered)
 
 @test !haskey(filtered.x, :y) #src
 
@@ -355,6 +351,8 @@ filtered.z
 filtered = C.filter_leaves(x) do c
     all(>=(4), c.value.idxs)
 end
+
+C.pretty(filtered)
 
 # ### Pruning unused variable references
 #
@@ -384,7 +382,7 @@ pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)
 # This value now corresponds to a completely different value in the original
 # tree! Compare:
 
-(pruned_qv, x.x.x.value * x.x.y.value)
+(pruned_qv, x.y.x.value * x.z.y.value)
 
 @test C.var_count(pruned_qv) == 2 #src
 @test pruned_qv.idxs == (x.x.x.value * x.x.y.value).idxs #src
@@ -402,6 +400,8 @@ pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)
 # variable:
 
 x.x.y.value = x.x.y.value + x.x.x.value * x.x.x.value - x.x.y.value
+
+#
 
 C.var_count(C.prune_variables(x))
 
