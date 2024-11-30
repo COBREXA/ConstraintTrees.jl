@@ -102,9 +102,8 @@ s *=
 # definition of `point` would not be duplicated, and various non-interesting
 # logic errors would follow.)
 
-# The complete system (with slightly humanized variable formatting) now looks
-# like this:
-C.pretty(s, format_variable = i -> i == 0 ? "" : " " * ('a' + i - 1))
+# The complete system now looks like this:
+C.pretty(s)
 
 # ## Solving quadratic systems with JuMP
 #

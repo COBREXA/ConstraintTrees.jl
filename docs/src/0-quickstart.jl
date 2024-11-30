@@ -273,9 +273,10 @@ end
 #md # !!! info "High-level constraint tree manipulation"
 #md #     There is also a [dedicated example](4-functional-tree-processing.md) with many more useful functions like [`zip`](@ref ConstraintTrees.zip) above.
 
-# The complete system now looks like this:
+# The complete system (with a slightly humanized variable formatting added for
+# legibility) now looks like this:
 
-C.pretty(c)
+C.pretty(c, format_variable = i -> i == 0 ? "" : " " * ('a' + i - 1))
 
 # Finally, let's see how much money can we make from having the factory
 # supported by our fields in total!
