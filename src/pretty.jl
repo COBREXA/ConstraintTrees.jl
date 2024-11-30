@@ -212,6 +212,7 @@ function pretty_tree(
     x::Tree,
     pfx0::String,
     pfx::String;
+    singleton_branch = "──",
     first_branch = "┬─",
     middle_branch = "├─",
     last_branch = "╰─",
@@ -224,6 +225,7 @@ function pretty_tree(
     isempty(pfx0) || print(io, "\n")
     es = collect(elems(x))
     argpack = (;
+        singleton_branch,
         first_branch,
         middle_branch,
         last_branch,
@@ -244,7 +246,7 @@ function pretty_tree(
     end
     if length(es) > 0
         (k, v) = es[end]
-        print(io, pfx, last_branch, k)
+        print(io, pfx, length(es) == 1 ? singleton_branch : last_branch, k)
         pretty_tree(io, v, pfx * lastchild_first_indent, pfx * lastchild_indent; argpack...)
     end
 end
