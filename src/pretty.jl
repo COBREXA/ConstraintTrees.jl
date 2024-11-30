@@ -173,7 +173,7 @@ should expect that they are ran right after printing of the [`Value`](@ref)s,
 on the same line.
 """
 function pretty(io::IO, x::Bound; default_bound_separator = "; ", kwargs...)
-    print(io, bound_separator)
+    print(io, default_bound_separator)
     show(io, x)
 end
 
