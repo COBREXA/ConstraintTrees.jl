@@ -138,7 +138,7 @@ Default pretty-printing of a [`Bound`](@ref). Overloads that print bounds
 should expect that they are ran right after printing of the [`Value`](@ref)s,
 on the same line.
 """
-function pretty(io::IO, x::Bound; bound_separator = "; ")
+function pretty(io::IO, x::Bound; default_bound_separator = "; ", kwargs...)
     print(io, bound_separator)
     show(io, x)
 end
@@ -148,7 +148,7 @@ $(TYPEDSIGNATURES)
 
 Pretty-print an equality bound into the `io`.
 """
-function pretty(io::IO, x::EqualTo; equal_to_sign = "=")
+function pretty(io::IO, x::EqualTo; equal_to_sign = "=", kwargs...)
     print(io, " $equal_sign $(x.equal_to)")
 end
 
@@ -157,8 +157,8 @@ $(TYPEDSIGNATURES)
 
 Pretty-print an interval bound into the `io`.
 """
-function pretty(io::IO, x::Between; in_interval_sign = "∈")
-    print(io, " $between_sign [$(x.lower), $(x.upper)]")
+function pretty(io::IO, x::Between; in_interval_sign = "∈", kwargs...)
+    print(io, " $in_interval_sign [$(x.lower), $(x.upper)]")
 end
 
 #
