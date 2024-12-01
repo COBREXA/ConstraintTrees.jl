@@ -150,14 +150,17 @@ C.sum(C.value.(values(c.fluxes)))
 # To demonstrate, let's make a small system with 2 variables.
 system = C.variables(keys = [:x, :y])
 
-# To add an affine element to a `LinearValue`, simply add it as a `Real`
-# number, as in the linear transformations below:
+# To add an affine element to a [`LinearValue`](@ref
+# ConstraintTrees.LinearValue), simply add it as a `Real` number using `+`, as
+# in the linear transformations below:
 system =
     :original_coords^system *
     :transformed_coords^C.ConstraintTree(
         :xt => C.Constraint(1 + system.x.value + 4 + system.y.value),
         :yt => C.Constraint(0.1 * (3 - system.y.value)),
     )
+
+C.pretty(system)
 
 # ## Adding combined constraints
 
