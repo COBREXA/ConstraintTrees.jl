@@ -126,10 +126,11 @@ function pretty(
     x::LinearValue;
     format_variable = default_pretty_var,
     plus_sign = " + ",
+    zero_value = "0",
     kwargs...,
 )
     if isempty(x.idxs)
-        print(io, "0")
+        print(io, zero_value)
     else
         join(
             io,
@@ -149,10 +150,11 @@ function pretty(
     x::QuadraticValue;
     format_variable = default_pretty_var,
     plus_sign = " + ",
+    zero_value = "0",
     kwargs...,
 )
     if isempty(x.idxs)
-        print(io, "0")
+        print(io, zero_value)
     else
         join(
             io,
