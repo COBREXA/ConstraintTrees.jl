@@ -102,6 +102,9 @@ s *=
 # definition of `point` would not be duplicated, and various non-interesting
 # logic errors would follow.)
 
+# The complete system now looks like this:
+C.pretty(s)
+
 # ## Solving quadratic systems with JuMP
 #
 # To solve the above system, we need a matching solver that can work with

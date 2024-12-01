@@ -125,11 +125,13 @@ end
     ct = C.variables(keys = [:a, :b])
     ct = :x^ct + :y^ct
 
-    s(x) = begin
-        iob = IOBuffer()
-        show(iob, MIME"text/plain"(), x)
-        String(take!(iob))
+    function iob(f, args...)
+        buf = IOBuffer()
+        f(buf, args...)
+        String(take!(buf))
     end
+
+    s(x) = iob(show, MIME"text/plain"(), x)
 
     @test length(C.ADWrap(ct)) == length(ct)
     @test occursin(":x", s(ct))
@@ -139,4 +141,8 @@ end
     @test occursin(":a", s(ct.x))
     @test occursin("[2]", s(ct.x.b))
     @test occursin("[1.0]", s(ct.x.a))
+
+    p(x) = iob(C.pretty, x)
+    @test p(zero(C.LinearValue)) == "0"
+    @test p(zero(C.QuadraticValue)) == "0"
 end

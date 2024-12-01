@@ -108,6 +108,24 @@ dices_thrown = C.substitute_values(
 @test isapprox(dices_thrown.first_dice, 6.0) #src
 @test isapprox(dices_thrown.second_dice, 4.0) #src
 
+# ## A note on pretty-printing of custom extensions
+#
+# By default, pretty-printing via [`pretty`](@ref ConstraintTrees.pretty)
+# attempts to fall back to `Base.show` for any value which has no explicit
+# overload of `pretty`. In particular, the bounds in our MILP system are
+# formatted as follows:
+
+C.pretty(dice_system)
+
+# To provide a prettier rendering, it is sufficient to provide a matching
+# overload of [`pretty`](@ref ConstraintTrees.pretty):
+
+function C.pretty(io::IO, x::IntegerFromTo; style_args...)
+    print(io, " ∈ {$(x.from) … $(x.to)}")
+end
+
+C.pretty(dice_system)
+
 # ## A more realistic example with geometry
 #
 # Let's find the size of the smallest right-angled triangle with integer side
@@ -125,6 +143,8 @@ triangle_system =
     :a_less_than_b^C.Constraint(v.b - v.a, (0, Inf)) *
     :b_less_than_c^C.Constraint(v.c - v.b, (0, Inf)) *
     :right_angled^C.Constraint(C.squared(v.a) + C.squared(v.b) - C.squared(v.c), 0.0)
+
+C.pretty(triangle_system, format_variable = i -> ["", "A", "B", "C"][i+1])
 
 # We will need a solver that supports both quadratic and integer optimization:
 import SCIP
