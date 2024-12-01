@@ -125,10 +125,10 @@ end
     ct = C.variables(keys = [:a, :b])
     ct = :x^ct + :y^ct
 
-    iob(f, args...) = begin
-        iob = IOBuffer()
-        f(iob, args...)
-        String(take!(iob))
+    function iob(f, args...)
+        buf = IOBuffer()
+        f(buf, args...)
+        String(take!(buf))
     end
 
     s(x) = iob(show, MIME"text/plain"(), x)
