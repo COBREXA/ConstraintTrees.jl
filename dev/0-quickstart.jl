@@ -77,6 +77,13 @@ s[:area].barley
 
 s["area"]["barley"]
 
+# The default rendering of constraint trees is mildly inconvenient because of
+# efficiency constraints and the amount of structural and type information that
+# it must convey. To see the data structure at full scale, we can use
+# [`pretty`](@ref ConstraintTrees.pretty):
+
+C.pretty(s)
+
 # Now let's start rewriting the problem into the constraint-tree-ish
 # description. First, we only have 100 square kilometers of area:
 
@@ -105,6 +112,10 @@ s *=
 # need to actually put a constraint bound there):
 
 s *= :profit^C.Constraint(s.area.wheat.value * 350 + s.area.barley.value * 550)
+
+# Finally, the whole system looks like this:
+
+C.pretty(s)
 
 # ## Solving the system with JuMP
 #
@@ -157,13 +168,17 @@ optimal_s.profit
 
 @test isapprox(optimal_s.profit, 48333.33333333334) #src
 
-# The occupied area for each crop:
+# ...as well as the occupied area for each crop:
 
 optimal_s.area
 
-# The consumed resources:
+# ...and the consumed resources:
 
 optimal_s.resources
+
+# Pretty-printing works also for trees with results:
+
+C.pretty(optimal_s)
 
 # ## Increasing the complexity
 #
@@ -257,6 +272,11 @@ end
 
 #md # !!! info "High-level constraint tree manipulation"
 #md #     There is also a [dedicated example](4-functional-tree-processing.md) with many more useful functions like [`zip`](@ref ConstraintTrees.zip) above.
+
+# The complete system (with a slightly humanized variable formatting added for
+# legibility) now looks like this:
+
+C.pretty(c, format_variable = i -> i == 0 ? "" : " " * ('a' + i - 1))
 
 # Finally, let's see how much money can we make from having the factory
 # supported by our fields in total!
