@@ -228,14 +228,14 @@ solution = [1.0, 5.0] # corresponds to :x and :y in order given in `variables`
 # A value tree for this solution is constructed in a straightforward manner:
 st = C.substitute_values(system, solution)
 
-# We can now check the values of the original coordinates
+# We can now check the values of the "original" coordinates:
 st.original_coords
 
 @test isapprox(st.original_coords.x, 1.0) #src
 @test isapprox(st.original_coords.y, 5.0) #src
 
-# The other constraints automatically get their values that correspond to the
-# overall variable assignment:
+# The more complex constraints get their values computed automatically from the
+# variable assignment:
 st.transformed_coords
 
 @test isapprox(st.transformed_coords.xt, 11.0) #src
