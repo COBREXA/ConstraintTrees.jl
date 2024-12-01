@@ -30,13 +30,14 @@ demonstrations, but any other solver framework will do just as well.
 The package is structured as follows:
 
 - There is no representation for variables in the model; instead, values depend
-  on anonymous numbered variables, and, if suitable, special named values may
-  "implicitly" serve as representations for variables. This assumption erases
-  the distinction between a "simple" variable and a complex derived linear
-  combination, allowing more freedom in model construction.
+  on anonymous numbered variables that are mostly hidden in normal use.  This
+  assumption erases the distinction between a "simple" variable and a complex
+  derived linear combination, allowing more freedom in model construction. If
+  required, named values may still "implicitly" serve as representations for
+  variables.
 - Variables may be combined into [`LinearValue`](@ref)s and
   [`QuadraticValue`](@ref)s, which are affine combinations and quadratic-affine
-  combinations (respecitively) of values of some selected variables.
+  combinations (respectively) of values of some selected variables.
 - Values may be bounded to an interval or exact value using a
   [`Constraint`](@ref)
 - A collection of named [`Constraint`](@ref)s is called a
@@ -47,8 +48,8 @@ The package is structured as follows:
   -- this forms the basis of the "tidy" algebra of constraints.
 - A variable assignment, which is typically the "solution" for a given
   constraint tree, can be combined with a [`ConstraintTree`](@ref) to create a
-  "value tree" via [`substitute_values`](@ref), which enables browsing of the
-  optimization results in the very same structure as the input
+  "value tree" via [`substitute_values`](@ref). Value trees enable browsing of
+  the optimization results in the very same structure as the input
   [`ConstraintTree`](@ref).
 
 You can follow the examples in documentation and the docstrings of package
