@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Example: Metabolic modeling · ConstraintTrees.jl</title><meta name="title" content="Example: Metabolic modeling · ConstraintTrees.jl"/><meta property="og:title" content="Example: Metabolic modeling · ConstraintTrees.jl"/><meta property="twitter:title" content="Example: Metabolic modeling · ConstraintTrees.jl"/><meta name="description" content="Documentation for ConstraintTrees.jl."/><meta property="og:description" content="Documentation for ConstraintTrees.jl."/><meta property="twitter:description" content="Documentation for ConstraintTrees.jl."/><meta property="og:url" content="https://cobrexa.github.io/ConstraintTrees.jl/stable/1-metabolic-modeling/"/><meta property="twitter:url" content="https://cobrexa.github.io/ConstraintTrees.jl/stable/1-metabolic-modeling/"/><link rel="canonical" href="https://cobrexa.github.io/ConstraintTrees.jl/stable/1-metabolic-modeling/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ConstraintTrees.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">README</a></li><li><a class="tocitem" href="../0-quickstart/">Quick start</a></li><li class="is-active"><a class="tocitem" href>Example: Metabolic modeling</a><ul class="internal"><li><a class="tocitem" href="#Allocating-and-constraining-variables"><span>Allocating and constraining variables</span></a></li><li><a class="tocitem" href="#Adding-single-variable-constraints"><span>Adding single-variable constraints</span></a></li><li><a class="tocitem" href="#Value-and-constraint-arithmetics"><span>Value and constraint arithmetics</span></a></li><li><a class="tocitem" href="#Adding-combined-constraints"><span>Adding combined constraints</span></a></li><li><a class="tocitem" href="#Saving-the-objective"><span>Saving the objective</span></a></li><li><a class="tocitem" href="#Constrained-system-solutions-and-value-trees"><span>Constrained system solutions and value trees</span></a></li><li><a class="tocitem" href="#Solving-the-constraint-system-using-JuMP"><span>Solving the constraint system using JuMP</span></a></li><li><a class="tocitem" href="#Combining-and-extending-constraint-systems"><span>Combining and extending constraint systems</span></a></li><li><a class="tocitem" href="#Modifying-constraint-systems-in-place"><span>Modifying constraint systems in-place</span></a></li><li><a class="tocitem" href="#Seeing-the-differences-between-the-results"><span>Seeing the differences between the results</span></a></li><li><a class="tocitem" href="#Simplifying-the-modified-constraint-systems"><span>Simplifying the modified constraint systems</span></a></li></ul></li><li><a class="tocitem" href="../2-quadratic-optimization/">Example: Quadratic optimization</a></li><li><a class="tocitem" href="../3-mixed-integer-optimization/">Example: Mixed integer optimization (MILP)</a></li><li><a class="tocitem" href="../4-functional-tree-processing/">Example: Processing the trees functionally</a></li><li><a class="tocitem" href="../5-jump-integration/">Better integration with JuMP</a></li><li><a class="tocitem" href="../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Example: Metabolic modeling</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Example: Metabolic modeling</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/COBREXA/ConstraintTrees.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/COBREXA/ConstraintTrees.jl/blob/master/docs/src/1-metabolic-modeling.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Example:-Metabolic-modeling"><a class="docs-heading-anchor" href="#Example:-Metabolic-modeling">Example: Metabolic modeling</a><a id="Example:-Metabolic-modeling-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-Metabolic-modeling" title="Permalink"></a></h1><p>In this example we demonstrate the use of <code>ConstraintTree</code> structure for solving the metabolic modeling tasks. At the same time, we show how to export the structure to JuMP, and use value trees to find useful information about the result.</p><p>First, let&#39;s import some packages:</p><pre><code class="language-julia hljs">import ConstraintTrees as C</code></pre><p>We will need a constraint-based metabolic model; for this test we will use the usual &quot;E. Coli core metabolism&quot; model as available from BiGG:</p><pre><code class="language-julia hljs">import Downloads: download
+
+download(&quot;http://bigg.ucsd.edu/static/models/e_coli_core.xml&quot;, &quot;e_coli_core.xml&quot;)
+
+import SBML
+ecoli = SBML.readSBML(&quot;e_coli_core.xml&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SBML.Model with 95 reactions, 72 species, and 5 parameters.</code></pre><h2 id="Allocating-and-constraining-variables"><a class="docs-heading-anchor" href="#Allocating-and-constraining-variables">Allocating and constraining variables</a><a id="Allocating-and-constraining-variables-1"></a><a class="docs-heading-anchor-permalink" href="#Allocating-and-constraining-variables" title="Permalink"></a></h2><p>Let&#39;s first build the constrained representation of the problem. First, we will need a variable for each of the reactions in the model.</p><pre><code class="language-julia hljs">c = C.variables(keys = Symbol.(keys(ecoli.reactions)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 95 elements:
+  :R_ACALD                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ACALDt                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ACKr                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ACONTa                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ACONTb                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ACt2r                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ADK1                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_AKGDH                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_AKGt2r                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ALCD2x                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ATPM                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ATPS4r                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_BIOMASS_Ecoli_core_w_GAM =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_CO2t                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_CS                       =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_CYTBD                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_D_LACt2                  =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ENO                      =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :R_ETOHt2r                  =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  ⋮                           =&gt; ⋮</code></pre><div class="admonition is-info"><header class="admonition-header">Pretty-printing</header><div class="admonition-body"><p>By default, Julia shows relatively long namespace prefixes before all identifiers, which clutters the output. You can import individual names form <code>ConstraintTrees</code> package to improve the pretty-printing, using e.g.: <code>import ConstraintTrees: Constraint, Tree, LinearValue</code>.</p></div></div><p>The above operation returns a <a href="../reference/#ConstraintTrees.ConstraintTree"><code>ConstraintTree</code></a>. You can browse these as a dictionary:</p><pre><code class="language-julia hljs">c[:R_PFK]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([49], [1.0]), nothing)</code></pre><p>...or much more conveniently using the record dot syntax as properties:</p><pre><code class="language-julia hljs">c.R_PFK</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([49], [1.0]), nothing)</code></pre><p>The individual <a href="../reference/#ConstraintTrees.LinearValue"><code>LinearValue</code></a>s in constraints behave like sparse vectors that refer to variables: The first field represents the referenced variable indexes, and the second field represents the coefficients. Compared to the sparse vectors, information about the total number of variables is not stored explicitly.</p><p>Operator <code>^</code> is used to name individual constraints and directories in the hierarchy. Let us name our constraints as &quot;fluxes&quot; (which is a common name in metabolic modeling) and explore the result:</p><pre><code class="language-julia hljs">c = :fluxes^c</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 1 element:
+  :fluxes =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)</code></pre><p>We can see that there is now only a single &quot;top-level directory&quot; in the constraint system, which can be explored with the dot access again:</p><pre><code class="language-julia hljs">c.fluxes.R_PFK</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([49], [1.0]), nothing)</code></pre><p>Indexing via values is again possible via the usual bracket notation, and can be freely combined with the dot notation:</p><pre><code class="language-julia hljs">c[:fluxes][:R_PFK]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([49], [1.0]), nothing)</code></pre><h2 id="Adding-single-variable-constraints"><a class="docs-heading-anchor" href="#Adding-single-variable-constraints">Adding single-variable constraints</a><a id="Adding-single-variable-constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-single-variable-constraints" title="Permalink"></a></h2><p>Each element in the constraint tree consists of a linear combination of the variables, which can be freely used to construct (and constraint) new linear combinations of variables. As the simplest use, we can constraint the variables (using <a href="../reference/#ConstraintTrees.Constraint"><code>Constraint</code></a>s) to their valid bounds as defined by the model:</p><pre><code class="language-julia hljs">rxn_constraints =
+    let rxn_bounds = Symbol.(keys(ecoli.reactions)) .=&gt; zip(SBML.flux_bounds(ecoli)...)
+        C.ConstraintTree(
+            r =&gt; C.Constraint(value = c.fluxes[r].value, bound = (lb, ub)) for
+            (r, ((lb, _), (ub, _))) in rxn_bounds # SBML units are ignored for simplicity
+        )
+    end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 95 elements:
+  :R_ACALD                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ACALDt                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ACKr                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ACONTa                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ACONTb                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ACt2r                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ADK1                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_AKGDH                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(0.0, 1000.0))
+  :R_AKGt2r                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ALCD2x                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ATPM                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(8.39, 1000.0))
+  :R_ATPS4r                   =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_BIOMASS_Ecoli_core_w_GAM =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(0.0, 1000.0))
+  :R_CO2t                     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_CS                       =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(0.0, 1000.0))
+  :R_CYTBD                    =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(0.0, 1000.0))
+  :R_D_LACt2                  =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ENO                      =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  :R_ETOHt2r                  =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-1000.0, 1000.0))
+  ⋮                           =&gt; ⋮</code></pre><p>Note that in the example we use a simplified <code>Dict</code>-like construction of the <code>ConstraintTree</code>. You might equivalently write the code as a product (using <code>prod()</code>) of constraints that are individually labeled using the <code>^</code> operator, but the direct dictionary construction is faster because it skips many intermediate steps, and looks much more like idiomatic Julia code.</p><p>To combine the constraint trees, we can make a nice directory for the constraints and add them to the tree using operator <code>*</code>. Making &quot;products&quot; of constraint trees combines the trees in a way that they <em>share</em> their variables. In particular, using the values from <code>c.fluxes</code> in the constraints within <code>rxn_constraints</code> here will constraint precisely the same variables (and thus values) as the ones in the original system.</p><pre><code class="language-julia hljs">c = c * :constraints^rxn_constraints</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 2 elements:
+  :constraints =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)
+  :fluxes      =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)</code></pre><p>Our model representation now contains 2 &quot;directories&quot;:</p><pre><code class="language-julia hljs">collect(keys(c))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{Symbol}:
+ :constraints
+ :fluxes</code></pre><h2 id="Value-and-constraint-arithmetics"><a class="docs-heading-anchor" href="#Value-and-constraint-arithmetics">Value and constraint arithmetics</a><a id="Value-and-constraint-arithmetics-1"></a><a class="docs-heading-anchor-permalink" href="#Value-and-constraint-arithmetics" title="Permalink"></a></h2><p>Values may be combined additively and multiplied by real constants; which allows us to easily create more complex linear combination of any values already occurring in the model:</p><pre><code class="language-julia hljs">3 * c.fluxes.R_PFK.value - c.fluxes.R_ACALD.value / 2</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.LinearValue([49, 73], [3.0, -0.5])</code></pre><p>For simplicity, you can also scale whole constraints, but it is impossible to add them together because the meaning of the bounds would get broken:</p><pre><code class="language-julia hljs">(3 * c.fluxes.R_PFK, -c.fluxes.R_ACALD / 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(ConstraintTrees.Constraint(ConstraintTrees.LinearValue([49], [3.0]), nothing), ConstraintTrees.Constraint(ConstraintTrees.LinearValue([73], [-0.5]), nothing))</code></pre><p>To process constraints in bulk, you may use <code>C.value</code> for easier access to values when making new constraints:</p><pre><code class="language-julia hljs">sum(C.value.(values(c.fluxes)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.LinearValue([1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  86, 87, 88, 89, 90, 91, 92, 93, 94, 95], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0  …  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])</code></pre><p>Notably, ConstraintTrees provide their own implementation of <code>sum</code> which typically works faster when adding many <code>Value</code>s together. The basic interface and results are otherwise the same as with the <code>sum</code> from Base:</p><pre><code class="language-julia hljs">C.sum(C.value.(values(c.fluxes)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.LinearValue([1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  86, 87, 88, 89, 90, 91, 92, 93, 94, 95], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0  …  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])</code></pre><div class="admonition is-danger"><header class="admonition-header">`Base.sum` vs. `ConstraintTrees.sum`</header><div class="admonition-body"><p>Since the <code>sum</code> from Base package is usually implemented as a left fold, it does not behave optimally when the temporary sub-results grow during the computation (and thus their addition becomes gradually slower). In turn, using the <code>Base.sum</code> for summing up <a href="../reference/#ConstraintTrees.LinearValue"><code>LinearValue</code></a>s and <a href="../reference/#ConstraintTrees.QuadraticValue"><code>QuadraticValue</code></a>s may take time quadratic in the number of added items. <a href="../reference/#ConstraintTrees.sum-Tuple{Any}"><code>sum</code></a> from ConstraintTrees uses a different addition order which reduces the amount of large items added together (implemented by <a href="../reference/#ConstraintTrees.preduce-Tuple{Any, Any}">&quot;pairwise&quot; <code>preduce</code></a>), and in works in almost-linear time in most cases.</p></div></div><h3 id="Affine-values"><a class="docs-heading-anchor" href="#Affine-values">Affine values</a><a id="Affine-values-1"></a><a class="docs-heading-anchor-permalink" href="#Affine-values" title="Permalink"></a></h3><p>To simplify various modeling goals (mainly calculation of various kinds of &quot;distances&quot;), the values support inclusion of an affine element – the variable with index 0 is assumed to be the &quot;affine unit&quot;, and its assigned value is fixed at <code>1.0</code>.</p><p>To demonstrate, let&#39;s make a small system with 2 variables.</p><pre><code class="language-julia hljs">system = C.variables(keys = [:x, :y])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 2 elements:
+  :x =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :y =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))</code></pre><p>To add an affine element to a <a href="../reference/#ConstraintTrees.LinearValue"><code>LinearValue</code></a>, simply add it as a <code>Real</code> number using <code>+</code>, as in the linear transformations below:</p><pre><code class="language-julia hljs">system =
+    :original_coords^system *
+    :transformed_coords^C.ConstraintTree(
+        :xt =&gt; C.Constraint(1 + system.x.value + 4 + system.y.value),
+        :yt =&gt; C.Constraint(0.1 * (3 - system.y.value)),
+    )
+
+C.pretty(system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─original_coords
+│ ╰─┬─x: 1.0*x[1]
+│   ╰─y: 1.0*x[2]
+╰─transformed_coords
+  ╰─┬─xt: 5.0 + 1.0*x[1] + 1.0*x[2]
+    ╰─yt: 0.30000000000000004 + -0.1*x[2]</code></pre><h2 id="Adding-combined-constraints"><a class="docs-heading-anchor" href="#Adding-combined-constraints">Adding combined constraints</a><a id="Adding-combined-constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-combined-constraints" title="Permalink"></a></h2><p>Metabolic modeling relies on the fact that the total rates of any metabolite getting created and consumed by the reaction equals to zero (which corresponds to conservation of mass). We can now add corresponding &quot;stoichiometric&quot; network constraints by following the reactants and products in the SBML structure:</p><pre><code class="language-julia hljs">stoi_constraints = C.ConstraintTree(
+    Symbol(m) =&gt; C.Constraint(
+        value = -C.sum(
+            (
+                sr.stoichiometry * c.fluxes[Symbol(rid)].value for
+                (rid, r) in ecoli.reactions for sr in r.reactants if sr.species == m
+            ),
+            init = zero(C.LinearValue), # sometimes the sums are empty
+        ) + C.sum(
+            (
+                sr.stoichiometry * c.fluxes[Symbol(rid)].value for
+                (rid, r) in ecoli.reactions for sr in r.products if sr.species == m
+            ),
+            init = zero(C.LinearValue),
+        ),
+        bound = 0.0,
+    ) for m in keys(ecoli.species)
+);</code></pre><p>Let&#39;s have a closer look at one of the constraints:</p><pre><code class="language-julia hljs">stoi_constraints.M_acald_c</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([41, 73, 94], [1.0, -1.0, 1.0]), ConstraintTrees.EqualTo(0.0))</code></pre><p>Again, we can label the stoichiometry properly and add it to the bigger model representation:</p><pre><code class="language-julia hljs">c = c * :stoichiometry^stoi_constraints</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
+  :constraints   =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)
+  :fluxes        =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)
+  :stoichiometry =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 72 elements =#)</code></pre><h2 id="Saving-the-objective"><a class="docs-heading-anchor" href="#Saving-the-objective">Saving the objective</a><a id="Saving-the-objective-1"></a><a class="docs-heading-anchor-permalink" href="#Saving-the-objective" title="Permalink"></a></h2><p>Constraint based models typically optimize a certain linear formula. Constraint trees do not support setting objectives (they are not constraints), but we can save the objective as a harmless unconstrained &quot;constraint&quot; that can be used later to refer to the objective more easily. We can save that information into the constraint system immediately:</p><pre><code class="language-julia hljs">c *=
+    :objective^C.Constraint(
+        C.sum(
+            c.fluxes[Symbol(rid)].value * coeff for
+            (rid, coeff) in (keys(ecoli.reactions) .=&gt; SBML.flux_objective(ecoli)) if
+            coeff != 0.0;
+            init = 0.0,
+        ),
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 4 elements:
+  :constraints   =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)
+  :fluxes        =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 95 elements =#)
+  :objective     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#))
+  :stoichiometry =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 72 elements =#)</code></pre><h2 id="Constrained-system-solutions-and-value-trees"><a class="docs-heading-anchor" href="#Constrained-system-solutions-and-value-trees">Constrained system solutions and value trees</a><a id="Constrained-system-solutions-and-value-trees-1"></a><a class="docs-heading-anchor-permalink" href="#Constrained-system-solutions-and-value-trees" title="Permalink"></a></h2><p>To aid exploration of variable assignments in the constraint trees, we can convert them to <em>value trees</em>. These have the very same structure as constraint trees, but carry only the &quot;solved&quot; constraint values instead of full constraints.</p><p>Let&#39;s demonstrate this quickly on the example of <code>system</code> with affine variables from above. First, let&#39;s assume that someone solved the system (in some way) and produced a solution of variables as follows:</p><pre><code class="language-julia hljs">solution = [1.0, 5.0] # corresponds to :x and :y in order given in `variables`</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{Float64}:
+ 1.0
+ 5.0</code></pre><p>A value tree for this solution is constructed in a straightforward manner:</p><pre><code class="language-julia hljs">st = C.substitute_values(system, solution)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 2 elements:
+  :original_coords    =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)
+  :transformed_coords =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)</code></pre><p>We can now check the values of the &quot;original&quot; coordinates:</p><pre><code class="language-julia hljs">st.original_coords</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 2 elements:
+  :x =&gt; 1.0
+  :y =&gt; 5.0</code></pre><p>The more complex constraints get their values computed automatically from the variable assignment:</p><pre><code class="language-julia hljs">st.transformed_coords</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 2 elements:
+  :xt =&gt; 11.0
+  :yt =&gt; -0.2</code></pre><h2 id="Solving-the-constraint-system-using-JuMP"><a class="docs-heading-anchor" href="#Solving-the-constraint-system-using-JuMP">Solving the constraint system using JuMP</a><a id="Solving-the-constraint-system-using-JuMP-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-the-constraint-system-using-JuMP" title="Permalink"></a></h2><p>We can make a small function that throws our model into JuMP, optimizes it, and gives us back a variable assignment vector. This vector can then be used to determine and browse the values of constraints and variables using a <code>Float64</code>-valued tree.</p><pre><code class="language-julia hljs">import JuMP
+function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimizer)
+    model = JuMP.Model(optimizer)
+    JuMP.@variable(model, x[1:C.var_count(cs)])
+    JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
+    C.traverse(cs) do c
+        b = c.bound
+        if b isa C.EqualTo
+            JuMP.@constraint(model, C.substitute(c.value, x) == b.equal_to)
+        elseif b isa C.Between
+            val = C.substitute(c.value, x)
+            isinf(b.lower) || JuMP.@constraint(model, val &gt;= b.lower)
+            isinf(b.upper) || JuMP.@constraint(model, val &lt;= b.upper)
+        end
+    end
+    JuMP.optimize!(model)
+    JuMP.value.(model[:x])
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">optimized_vars (generic function with 1 method)</code></pre><p>With this in hand, we can use an external linear problem solver to find the optimum of the constrained system:</p><pre><code class="language-julia hljs">import GLPK
+optimal_variable_assignment = optimized_vars(c, c.objective.value, GLPK.Optimizer)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">95-element Vector{Float64}:
+   0.0
+   6.00724957535031
+   7.477381962160286
+  -5.064375661482085
+   0.22346172933182415
+  -3.2148950476847733
+   2.5043094703687165
+  21.799492655998776
+   4.959984944574683
+   1.4969837572615767
+   ⋮
+   0.0
+  29.175827135565836
+   0.0
+   0.0
+  -6.400958585906926e-15
+ -21.799492655998776
+  -1.776356839400254e-15
+   0.0
+   3.2148950476847733</code></pre><p>To explore the solution more easily, we can make a tree with values that correspond to ones in our constraint tree:</p><pre><code class="language-julia hljs">result = C.substitute_values(c, optimal_variable_assignment)
+
+result.fluxes.R_BIOMASS_Ecoli_core_w_GAM</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.8739215069684383</code></pre><pre><code class="language-julia hljs">result.fluxes.R_PFK</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">7.477381962160286</code></pre><p>Sometimes it is unnecessary to recover the values for all constraints, so we are better off selecting just the right subtree:</p><pre><code class="language-julia hljs">C.substitute_values(c.fluxes, optimal_variable_assignment)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 95 elements:
+  :R_ACALD                    =&gt; -1.98196e-15
+  :R_ACALDt                   =&gt; -1.98196e-15
+  :R_ACKr                     =&gt; -2.38143e-14
+  :R_ACONTa                   =&gt; 6.00725
+  :R_ACONTb                   =&gt; 6.00725
+  :R_ACt2r                    =&gt; -2.38143e-14
+  :R_ADK1                     =&gt; 8.88178e-16
+  :R_AKGDH                    =&gt; 5.06438
+  :R_AKGt2r                   =&gt; 0.0
+  :R_ALCD2x                   =&gt; 0.0
+  :R_ATPM                     =&gt; 8.39
+  :R_ATPS4r                   =&gt; 45.514
+  :R_BIOMASS_Ecoli_core_w_GAM =&gt; 0.873922
+  :R_CO2t                     =&gt; -22.8098
+  :R_CS                       =&gt; 6.00725
+  :R_CYTBD                    =&gt; 43.599
+  :R_D_LACt2                  =&gt; 1.95151e-14
+  :R_ENO                      =&gt; 14.7161
+  :R_ETOHt2r                  =&gt; 0.0
+  ⋮                           =&gt; ⋮</code></pre><pre><code class="language-julia hljs">C.substitute_values(c.objective, optimal_variable_assignment)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.8739215069684383</code></pre><p>We&#39;ll save the <code>result</code> for future use at the end of this example:</p><pre><code class="language-julia hljs">result_single_organism = result</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 4 elements:
+  :constraints   =&gt; ConstraintTrees.Tree{Float64}(#= 95 elements =#)
+  :fluxes        =&gt; ConstraintTrees.Tree{Float64}(#= 95 elements =#)
+  :objective     =&gt; 0.873922
+  :stoichiometry =&gt; ConstraintTrees.Tree{Float64}(#= 72 elements =#)</code></pre><h2 id="Combining-and-extending-constraint-systems"><a class="docs-heading-anchor" href="#Combining-and-extending-constraint-systems">Combining and extending constraint systems</a><a id="Combining-and-extending-constraint-systems-1"></a><a class="docs-heading-anchor-permalink" href="#Combining-and-extending-constraint-systems" title="Permalink"></a></h2><p>Constraint trees can be extended with new variables from another constraint trees using the <code>+</code> operator. Contrary to the <code>*</code> operator, adding the constraint trees does <em>not</em> share the variables between operands, and the resulting constraint tree will basically contain two disconnected trees that solve independently. The user is expected to create additional constraints to connect the independent parts.</p><p>Here, we demonstrate this by creating a community of two slightly different E. Coli species: First, we disable functionality of a different reaction in each of the models to create a diverse group of differently handicapped organisms:</p><pre><code class="language-julia hljs">c =
+    :community^(
+        :species1^(c * :handicap^C.Constraint(c.fluxes.R_PFK.value, 0)) +
+        :species2^(c * :handicap^C.Constraint(c.fluxes.R_ACALD.value, 0))
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 1 element:
+  :community =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>We can create additional variables that represent total community intake of oxygen, and total community production of biomass:</p><pre><code class="language-julia hljs">c += :exchanges^C.variables(keys = [:oxygen, :biomass], bounds = [(-10.0, 10.0), nothing])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 2 elements:
+  :community =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchanges =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>These can be constrained so that the total influx (or outflux) of each of the registered metabolites is in fact equal to total consumption or production by each of the species:</p><pre><code class="language-julia hljs">c *=
+    :exchange_constraints^C.ConstraintTree(
+        :oxygen =&gt; C.Constraint(
+            value = c.exchanges.oxygen.value - c.community.species1.fluxes.R_EX_o2_e.value -
+                    c.community.species2.fluxes.R_EX_o2_e.value,
+            bound = 0.0,
+        ),
+        :biomass =&gt; C.Constraint(
+            value = c.exchanges.biomass.value -
+                    c.community.species1.fluxes.R_BIOMASS_Ecoli_core_w_GAM.value -
+                    c.community.species2.fluxes.R_BIOMASS_Ecoli_core_w_GAM.value,
+            bound = 0.0,
+        ),
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>Let&#39;s see how much biomass are the two species capable of producing together:</p><pre><code class="language-julia hljs">result =
+    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+result.exchanges</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 2 elements:
+  :biomass =&gt; 0.469658
+  :oxygen  =&gt; -10.0</code></pre><p>Finally, we can iterate over all species in the small community and see how much biomass was actually contributed by each:</p><pre><code class="language-julia hljs">Dict(k =&gt; v.fluxes.R_BIOMASS_Ecoli_core_w_GAM for (k, v) in result.community)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Dict{Symbol, Float64} with 2 entries:
+  :species2 =&gt; 0.442232
+  :species1 =&gt; 0.027425</code></pre><h2 id="Modifying-constraint-systems-in-place"><a class="docs-heading-anchor" href="#Modifying-constraint-systems-in-place">Modifying constraint systems in-place</a><a id="Modifying-constraint-systems-in-place-1"></a><a class="docs-heading-anchor-permalink" href="#Modifying-constraint-systems-in-place" title="Permalink"></a></h2><p>Constraint trees can be modified in-place in a way that allows you to easily change small values in the trees without reconstructing them from the ground up.</p><p>Although in-place modification is extremely convenient and looks much easier than rebuilding the tree, it may be very detrimental to the robustness and efficiency of the programs, for several reasons:</p><ul><li>changing any data breaks assumptions on anything that was already derived from the data</li><li>for efficiency, the tree structures are <em>not copied</em> by default if there&#39;s no need to do it, and only shared by references; which means that a naive change at a single place of the tree may easily change values also in other parts of any trees, including completely different trees</li><li>the &quot;convenient way&quot; of making sure that the above problem never happens is to copy-on-write the whole tree structure, which is typically quite detrimental to memory use and program efficiency</li></ul><div class="admonition is-danger"><header class="admonition-header">Rules of thumb for safe use of in-place modification</header><div class="admonition-body"><p>Only use the in-place modifications if:</p><ul><li>there is code that explicitly makes sure there is no false sharing via references, e.g. using a deep copy</li><li>the in-place modifications are the last thing happening to the constraint tree before it is used by the solver</li><li>the in-place modification code is not a part of a re-usable library</li><li>you are using a suitable wrapper interface such as <a href="https://github.com/JuliaObjects/Accessors.jl">Accessors.jl</a></li></ul></div></div><p>Now, if you are completely sure that ignoring the robustness guidelines will help your code, you can do the in-place tree modifications quite easily using both dot-access and array-index syntax.</p><p>You can thus, e.g., set a single bound:</p><pre><code class="language-julia hljs">c.exchanges.oxygen.bound = C.Between(-20.0, 20.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Between(-20.0, 20.0)</code></pre><p>...or rebuild a whole constraint (using a tuple shortcut for <a href="../reference/#ConstraintTrees.Between"><code>Between</code></a>):</p><pre><code class="language-julia hljs">c.exchanges.biomass = C.Constraint(c.exchanges.biomass.value, (-20, 20))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([192], [1.0]), ConstraintTrees.Between(-20.0, 20.0))</code></pre><p>...or even add new constraints, here using the index syntax for demonstration:</p><pre><code class="language-julia hljs">c[:exchanges][:production_is_zero] = C.Constraint(c.exchanges.biomass.value, 0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([192], [1.0]), ConstraintTrees.EqualTo(0.0))</code></pre><p>...or remove some constraints (this erases the constraint that was added just above):</p><pre><code class="language-julia hljs">delete!(c.exchanges, :production_is_zero)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">DataStructures.SortedDict{Symbol, Union{ConstraintTrees.Constraint, ConstraintTrees.Tree{ConstraintTrees.Constraint}}, Base.Order.ForwardOrdering} with 2 entries:
+  :biomass =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-20.0, 20.0))
+  :oxygen  =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(-20.0, 20.0))</code></pre><p>In the end, the flux optimization yields an expectably different result:</p><pre><code class="language-julia hljs">result_with_more_oxygen =
+    C.substitute_values(c, optimized_vars(c, c.exchanges.biomass.value, GLPK.Optimizer))
+result.exchanges</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 2 elements:
+  :biomass =&gt; 0.469658
+  :oxygen  =&gt; -10.0</code></pre><h3 id="Alternative:-Using-Accessors.jl"><a class="docs-heading-anchor" href="#Alternative:-Using-Accessors.jl">Alternative: Using Accessors.jl</a><a id="Alternative:-Using-Accessors.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Alternative:-Using-Accessors.jl" title="Permalink"></a></h3><p>Accessors.jl implement a &quot;lensy&quot; way to update immutable data structures. That comes with a nice outcome of doing the right amount of shallow copyies for you automatically, thus avoiding much of the technical danger of in-place modifications. (You still lose the equational reasoning on your code, but that may not be an issue at all in usual codebases.)</p><p>Accessors interface is used simply through macros <code>@set</code> (which sets a deeply nested field in a structure, returning a modified copy), or with <code>@reset</code> which automatically &quot;assigns&quot; the result back to the original variable:</p><pre><code class="language-julia hljs">using Accessors
+
+c = @set c.exchanges.biomass.bound = C.Between(-50, 50)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>The above code is equivalent to:</p><pre><code class="language-julia hljs">@reset c.exchanges.biomass.bound = C.Between(-50, 50)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>...and it is also possible to use string and symbol indexes to pick the individual tree items:</p><pre><code class="language-julia hljs">@reset c[:exchanges][&quot;biomass&quot;].bound = C.Between(-50, 50)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>All of these operations give us:</p><pre><code class="language-julia hljs">c.exchanges.biomass</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([192], [1.0]), ConstraintTrees.Between(-50.0, 50.0))</code></pre><h2 id="Seeing-the-differences-between-the-results"><a class="docs-heading-anchor" href="#Seeing-the-differences-between-the-results">Seeing the differences between the results</a><a id="Seeing-the-differences-between-the-results-1"></a><a class="docs-heading-anchor-permalink" href="#Seeing-the-differences-between-the-results" title="Permalink"></a></h2><p>ConstraintTrees.jl defines its own version of <code>zip</code> function that can apply a function to the contents of several trees, &quot;zipping&quot; them over the same keys in the structure. This is vaguely similar but otherwise not related to the <code>zip</code> from Julia base (similarly, ConstraintTrees.jl have their own specific <code>map</code>).</p><p>In practice, this allows you to create combined trees with various nice properties very quickly. For example, you can find how much the values have changed between our two communities:</p><pre><code class="language-julia hljs">C.zip((x, y) -&gt; y - x, result, result_with_more_oxygen, Float64)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)</code></pre><p>The result is again a <code>Tree</code>, with the contained type specified by the last argument (<code>Float64</code> in this case). We can explore it right away as the other result trees. Also, it is possible to call this kind of function using the Julia <code>do</code> notation, making the syntax a bit neater:</p><pre><code class="language-julia hljs">difference = C.zip(result, result_with_more_oxygen, Float64) do x, y
+    y - x
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{Float64}(#= 2 elements =#)</code></pre><p>Exploring the difference works as expected:</p><pre><code class="language-julia hljs">difference.community.species1.fluxes</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 95 elements:
+  :R_ACALD                    =&gt; 0.0
+  :R_ACALDt                   =&gt; 0.0
+  :R_ACKr                     =&gt; 0.614082
+  :R_ACONTa                   =&gt; 0.272252
+  :R_ACONTb                   =&gt; 0.272252
+  :R_ACt2r                    =&gt; 0.614082
+  :R_ADK1                     =&gt; 1.65141
+  :R_AKGDH                    =&gt; 1.70003e-16
+  :R_AKGt2r                   =&gt; 0.0
+  :R_ALCD2x                   =&gt; 0.0
+  :R_ATPM                     =&gt; 0.0
+  :R_ATPS4r                   =&gt; 16.5237
+  :R_BIOMASS_Ecoli_core_w_GAM =&gt; 0.252343
+  :R_CO2t                     =&gt; -6.96009
+  :R_CS                       =&gt; 0.272252
+  :R_CYTBD                    =&gt; 14.6871
+  :R_D_LACt2                  =&gt; 0.0
+  :R_ENO                      =&gt; 2.17284
+  :R_ETOHt2r                  =&gt; 0.0
+  ⋮                           =&gt; ⋮</code></pre><p>For convenience in special cases, <code>zip</code> is also overloaded for 3 arguments. We can, for a completely artificial example, check if the absolute flux change was bigger in the first or in the second organism in the community when compared to the original single-organism flux (which we luckily saved above):</p><pre><code class="language-julia hljs">changes = C.zip(
+    result.community.species1,
+    result.community.species2,
+    result_single_organism,
+    Bool,
+) do s1, s2, orig
+    abs(s1 - orig) &gt; abs(s2 - orig)
+end
+
+changes.fluxes</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Bool} with 95 elements:
+  :R_ACALD                    =&gt; false
+  :R_ACALDt                   =&gt; false
+  :R_ACKr                     =&gt; false
+  :R_ACONTa                   =&gt; true
+  :R_ACONTb                   =&gt; true
+  :R_ACt2r                    =&gt; false
+  :R_ADK1                     =&gt; true
+  :R_AKGDH                    =&gt; false
+  :R_AKGt2r                   =&gt; false
+  :R_ALCD2x                   =&gt; false
+  :R_ATPM                     =&gt; false
+  :R_ATPS4r                   =&gt; false
+  :R_BIOMASS_Ecoli_core_w_GAM =&gt; true
+  :R_CO2t                     =&gt; false
+  :R_CS                       =&gt; true
+  :R_CYTBD                    =&gt; true
+  :R_D_LACt2                  =&gt; false
+  :R_ENO                      =&gt; true
+  :R_ETOHt2r                  =&gt; false
+  ⋮                           =&gt; ⋮</code></pre><p>More high-level functions like <code>zip</code> are described in <a href="../4-functional-tree-processing/">an example on functional tree processing</a>.</p><h2 id="Simplifying-the-modified-constraint-systems"><a class="docs-heading-anchor" href="#Simplifying-the-modified-constraint-systems">Simplifying the modified constraint systems</a><a id="Simplifying-the-modified-constraint-systems-1"></a><a class="docs-heading-anchor-permalink" href="#Simplifying-the-modified-constraint-systems" title="Permalink"></a></h2><p>We may notice that some constraints that we placed on the community make solving of some variables quite trivial. For example, we knocked out PFK in <code>species1</code>:</p><pre><code class="language-julia hljs">c.community.species1.handicap</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([49], [1.0]), ConstraintTrees.EqualTo(0.0))</code></pre><p>Obviously, the variable at index <code>49</code> must be equal to zero in the whole model, and we could completely remove it from the model. Unfortunately, just removing the constraint will not help: The variable is also referenced from elsewhere (e.g., from stoichiometry) and removing the constraints actually creates additional feasible solutions for the model, leaving us with possibly invalid solutions!</p><p>Instead of that, we can substitute a literal zero value into the variable in the whole model, and then use a pruning function to get rid of the (now unused) variable index.</p><p>First, let&#39;s create a list of all variables in the model that we can use for substitution:</p><pre><code class="language-julia hljs">vars = [C.variable(; idx).value for idx = 1:C.var_count(c)]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">192-element Vector{ConstraintTrees.LinearValue}:
+ ConstraintTrees.LinearValue([1], [1.0])
+ ConstraintTrees.LinearValue([2], [1.0])
+ ConstraintTrees.LinearValue([3], [1.0])
+ ConstraintTrees.LinearValue([4], [1.0])
+ ConstraintTrees.LinearValue([5], [1.0])
+ ConstraintTrees.LinearValue([6], [1.0])
+ ConstraintTrees.LinearValue([7], [1.0])
+ ConstraintTrees.LinearValue([8], [1.0])
+ ConstraintTrees.LinearValue([9], [1.0])
+ ConstraintTrees.LinearValue([10], [1.0])
+ ⋮
+ ConstraintTrees.LinearValue([184], [1.0])
+ ConstraintTrees.LinearValue([185], [1.0])
+ ConstraintTrees.LinearValue([186], [1.0])
+ ConstraintTrees.LinearValue([187], [1.0])
+ ConstraintTrees.LinearValue([188], [1.0])
+ ConstraintTrees.LinearValue([189], [1.0])
+ ConstraintTrees.LinearValue([190], [1.0])
+ ConstraintTrees.LinearValue([191], [1.0])
+ ConstraintTrees.LinearValue([192], [1.0])</code></pre><p>Now we use a bit of the knowledge about the model structure – the handicaps constraint single variables, so we can substitute for them directly. (If the handicaps constrained larger linear combinations of variables, we would have to resort to algebra.)</p><pre><code class="language-julia hljs">vars[c.community.species1.handicap.value.idxs[1]] = zero(C.LinearValue)
+vars[c.community.species2.handicap.value.idxs[1]] = zero(C.LinearValue)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.LinearValue(Int64[], Float64[])</code></pre><p><a href="../reference/#ConstraintTrees.substitute-Tuple{ConstraintTrees.LinearValue, Any}"><code>substitute</code></a> can be used to feed these new variables into all variables in the existing constraint system, which we immediately follow by pruning of the variables (pruning is described closer in the <a href="../4-functional-tree-processing/">functional tree processing example</a>).</p><pre><code class="language-julia hljs">c_simplified = C.prune_variables(C.substitute(c, vars))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
+  :community            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchange_constraints =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)
+  :exchanges            =&gt; ConstraintTrees.Tree{ConstraintTrees.Constraint}(#= 2 elements =#)</code></pre><p>The result contains exactly 2 variables less than the original community:</p><pre><code class="language-julia hljs">(C.var_count(c), C.var_count(c_simplified))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(192, 190)</code></pre><p>The constraints that were substituted for are, at this point, roughly equivalent to saying <code>0 == 0</code>, and most solvers will simply drop them as tautologies:</p><pre><code class="language-julia hljs">c_simplified.community.species1.handicap</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue(Int64[], Float64[]), ConstraintTrees.EqualTo(0.0))</code></pre><p>Finally, the variables are properly substituted for in the other equations, including the stoichiometry: We can compare e.g. the original balance of metabolite f6p (which is consumed by PFK):</p><pre><code class="language-julia hljs">c.community.species1.stoichiometry.M_f6p_c</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([10, 42, 49, 72, 77, 82, 93], [1.0, 1.0, -1.0, 1.0, 1.0, -0.0709, 1.0]), ConstraintTrees.EqualTo(0.0))</code></pre><p>...to the simplified stoichiometry, which no longer refers to the PFK reaction:</p><pre><code class="language-julia hljs">c_simplified.community.species1.stoichiometry.M_f6p_c</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Constraint(ConstraintTrees.LinearValue([10, 42, 71, 76, 81, 92], [1.0, 1.0, 1.0, 1.0, -0.0709, 1.0]), ConstraintTrees.EqualTo(0.0))</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../0-quickstart/">« Quick start</a><a class="docs-footer-nextpage" href="../2-quadratic-optimization/">Example: Quadratic optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Sunday 1 December 2024 15:36">Sunday 1 December 2024</span>. Using Julia version 1.11.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
