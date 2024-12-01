@@ -305,7 +305,6 @@ constraint_count
 
 C.itraverse(x) do ix, c
     path = join(String.(ix), '/')
-    return #src
     println("$path = $c")
 end;
 
