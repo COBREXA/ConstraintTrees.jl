@@ -103,7 +103,9 @@ s *=
 # logic errors would follow.)
 
 # The complete system now looks like this:
-C.pretty(s)
+C.pretty(s; format_label = x -> join(x, '.'))
+
+# (We changed the tree formatting to show full paths, for clarity.)
 
 # ## Solving quadratic systems with JuMP
 #

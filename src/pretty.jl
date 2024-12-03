@@ -208,6 +208,10 @@ Internal helper for recursive prettyprinting of tree structures. Adds a
 relatively legible Unicode scaffolding to highlight the tree structure. The
 scaffolding can be customized via keyword arguments (which are passed here from
 [`pretty`](@ref)).
+
+Specifically, `format_label` argument can be used convert a tuple with the
+"path" in the tree (as with e.g. [`imap`](@ref)) into a suitable tree branch
+label.
 """
 function pretty_tree(
     io::IO,
