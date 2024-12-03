@@ -86,7 +86,7 @@ The printing assumes a Unicode-capable `stdout` by default; the formatting can
 be customized via keyword arguments (see other overloads of [`pretty`](@ref)
 and [`pretty_tree`](@ref)).
 """
-pretty(io::IO, x::Tree; kwargs...) = pretty_tree(io, x, "", ""; kwargs...)
+pretty(io::IO, x::Tree; kwargs...) = pretty_tree(io, x, tuple(), "", ""; kwargs...)
 
 """
 $(TYPEDSIGNATURES)
@@ -208,12 +208,18 @@ Internal helper for recursive prettyprinting of tree structures. Adds a
 relatively legible Unicode scaffolding to highlight the tree structure. The
 scaffolding can be customized via keyword arguments (which are passed here from
 [`pretty`](@ref)).
+
+Specifically, `format_label` argument can be used convert a tuple with the
+"path" in the tree (as with e.g. [`imap`](@ref)) into a suitable tree branch
+label.
 """
 function pretty_tree(
     io::IO,
     x::Tree,
+    ctxt0::Tuple,
     pfx0::String,
     pfx::String;
+    format_label = x -> String(last(x)),
     singleton_branch = "──",
     first_branch = "┬─",
     middle_branch = "├─",
@@ -227,6 +233,7 @@ function pretty_tree(
     isempty(pfx0) || print(io, "\n")
     es = collect(elems(x))
     argpack = (;
+        format_label,
         singleton_branch,
         first_branch,
         middle_branch,
@@ -239,21 +246,46 @@ function pretty_tree(
     )
     if length(es) == 1
         (k, v) = es[end]
-        print(io, pfx0, singleton_branch, k)
-        pretty_tree(io, v, pfx * lastchild_first_indent, pfx * lastchild_indent; argpack...)
+        ctxt = tuple(ctxt0..., k)
+        print(io, pfx0, singleton_branch, format_label(ctxt))
+        pretty_tree(
+            io,
+            v,
+            ctxt,
+            pfx * lastchild_first_indent,
+            pfx * lastchild_indent;
+            argpack...,
+        )
     elseif length(es) > 1
         (k, v) = es[begin]
-        print(io, pfx0, first_branch, k)
-        pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
+        ctxt = tuple(ctxt0..., k)
+        print(io, pfx0, first_branch, format_label(ctxt))
+        pretty_tree(io, v, ctxt, pfx * child_first_indent, pfx * child_indent; argpack...)
 
         for (k, v) in es[(begin+1):(end-1)]
-            print(io, pfx, middle_branch, k)
-            pretty_tree(io, v, pfx * child_first_indent, pfx * child_indent; argpack...)
+            ctxt = tuple(ctxt0..., k)
+            print(io, pfx, middle_branch, format_label(ctxt))
+            pretty_tree(
+                io,
+                v,
+                ctxt,
+                pfx * child_first_indent,
+                pfx * child_indent;
+                argpack...,
+            )
         end
 
         (k, v) = es[end]
-        print(io, pfx, last_branch, k)
-        pretty_tree(io, v, pfx * lastchild_first_indent, pfx * lastchild_indent; argpack...)
+        ctxt = tuple(ctxt0..., k)
+        print(io, pfx, last_branch, format_label(ctxt))
+        pretty_tree(
+            io,
+            v,
+            ctxt,
+            pfx * lastchild_first_indent,
+            pfx * lastchild_indent;
+            argpack...,
+        )
     end
 end
 
@@ -264,7 +296,15 @@ Overload of [`pretty_tree`](@ref) for anything except [`Tree`](@ref)s -- this
 utilizes [`pretty`](@ref) to finish a line with the "contents" of the tree
 leaf.
 """
-function pretty_tree(io::IO, x, pfx0::String, pfx::String; leaf_separator = ": ", kwargs...)
+function pretty_tree(
+    io::IO,
+    x,
+    ctxt0::Tuple,
+    pfx0::String,
+    pfx::String;
+    leaf_separator = ": ",
+    kwargs...,
+)
     print(io, leaf_separator)
     pretty(io, x; leaf_separator, kwargs...)
     print(io, "\n")
