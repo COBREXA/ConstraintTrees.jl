@@ -126,52 +126,21 @@ const var_count = variable_count
 """
 $(TYPEDSIGNATURES)
 
-Internal helper for manipulating variable indices.
-"""
-increase_variable_index(x::Int, incr::Int) = x == 0 ? 0 : x + incr
+Offset all variable indexes in a structure `x` by the given increment.
 
-"""
-Old name for [`increase_variable_index`](@ref).
+Internally, this uses [`renumber_variables`](@ref).
 
-**Deprecation warning:** This will be removed in a future release.
-"""
-const incr_var_idx = increase_variable_index
+# Extensibility note
 
+If you extend the functionality of ConstraintTrees by overloading
+[`increase_variable_indexes`](@ref), consider instead providing the overload
+for [`renumber_variables`](@ref) which grants more functionality, mainly
+variable pruning.
 """
-$(TYPEDSIGNATURES)
-
-Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
-increment.
-"""
-increase_variable_indexes(x::ConstraintTree, incr::Int) =
-    ConstraintTree(k => increase_variable_indexes(v, incr) for (k, v) in x)
-
-"""
-$(TYPEDSIGNATURES)
-
-Offset all variable indexes in a [`ConstraintTree`](@ref) by the given
-increment.
-"""
-increase_variable_indexes(x::Constraint, incr::Int) =
-    Constraint(value = increase_variable_indexes(x.value, incr), bound = x.bound)
-
-"""
-$(TYPEDSIGNATURES)
-
-Offset all variable indexes in a [`LinearValue`](@ref) by the given increment.
-"""
-increase_variable_indexes(x::LinearValue, incr::Int) =
-    LinearValue(idxs = increase_variable_index.(x.idxs, incr), weights = x.weights)
-
-"""
-$(TYPEDSIGNATURES)
-
-Offset all variable indexes in a [`QuadraticValue`](@ref) by the given increment.
-"""
-increase_variable_indexes(x::QuadraticValue, incr::Int) = QuadraticValue(
-    idxs = broadcast(ii -> increase_variable_index.(ii, incr), x.idxs),
-    weights = x.weights,
-)
+increase_variable_indexes(x, incr::Int) =
+    renumber_variables(x) do idx
+        idx == 0 ? 0 : idx + incr
+    end
 
 """
 Old name for [`increase_variable_indexes`](@ref).
@@ -199,6 +168,21 @@ collect_variables!(x::QuadraticValue, out) =
 collect_variables!(x::Tree{T}, out::C) where {T,C} =
     collect_variables!.(values(x), Ref(out))
 
+# helpers for the overload of collect_variables! below:
+struct ContainerF{F}
+    f::F
+end
+
+Base.push!(x::ContainerF, vs...) = x.f.(vs)
+
+"""
+$(TYPEDSIGNATURES)
+
+Overload of [`collect_variables!`](@ref) that calls a given function with all
+variable indexes found in `x`.
+"""
+collect_variables!(out::Function, x) = collect_variables!(x, ContainerF(out))
+
 """
 $(TYPEDSIGNATURES)
 
@@ -225,9 +209,16 @@ Renumber all variables in an object (such as [`ConstraintTree`](@ref)). The new
 variable indexes are taken from the `mapping` parameter at the index of the old
 variable's index.
 
-This does not run any consistency checks on the result; the `mapping` must
-therefore be monotonically increasing, and the zero index must map to itself,
-otherwise invalid [`Value`](@ref)s will be produced.
+The `mapping` is assumed to be an array-like object (i.e., it must support
+`getindex`, which is used to retrieve the new index for each original variable
+index).
+
+!!! warning "The variable index mapping must be monotonic!"
+
+    [`renumber_variables`](@ref) does **not** run any consistency checks on the
+    result. The `mapping` must therefore be monotonically increasing, and the
+    zero index must map to itself, otherwise invalid [`Value`](@ref)s will be
+    produced.
 """
 renumber_variables(x::Tree{T}, mapping) where {T} =
     ConstraintTree(k => renumber_variables(v, mapping) for (k, v) in x)
@@ -239,6 +230,17 @@ renumber_variables(x::QuadraticValue, mapping) = QuadraticValue(
     idxs = [(mapping[idx], mapping[idy]) for (idx, idy) in x.idxs],
     weights = x.weights,
 )
+
+"""
+$(TYPEDSIGNATURES)
+
+An overload of [`renumber_variables`](@ref) that allows `mapping` to be a
+single-parameter `Function`.
+"""
+renumber_variables(mapping::Function, x) = renumber_variables(x, ContainerF(mapping))
+
+# helper for above
+Base.getindex(x::ContainerF{F}, idx) where {F} = x.f(idx)
 
 """
 $(TYPEDSIGNATURES)
