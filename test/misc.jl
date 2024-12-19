@@ -89,7 +89,7 @@ end
     @test_throws ErrorException ct1 * ct1
     @test_throws ErrorException :a^ct1 * ct1
     @test_throws ErrorException ct1 * :a^ct1
-    @test C.var_count(C.variables_for(_ -> C.EqualTo(0.0), ct1 + ct2)) == 4
+    @test C.variable_count(C.variables_for(_ -> C.EqualTo(0.0), ct1 + ct2)) == 4
 
     delete!(ct1, "a")
     ct2["a"] = ct1["b"]
@@ -136,11 +136,14 @@ end
     @test length(C.ADWrap(ct)) == length(ct)
     @test occursin(":x", s(ct))
     @test occursin(":y", s(ct))
-    @test occursin(r"Tree{[a-zA-Z.]*Constraint}", s(ct))
+    @test occursin("ConstraintTree(", s(ct))
     @test occursin("2 elements", s(ct.x))
     @test occursin(":a", s(ct.x))
     @test occursin("[2]", s(ct.x.b))
     @test occursin("[1.0]", s(ct.x.a))
+
+    vt = C.substitute_values(ct, [1.0, 2.0, 3.0, 4.0])
+    @test occursin("Tree{Float64}", s(vt))
 
     p(x) = iob(C.pretty, x)
     @test p(zero(C.LinearValue)) == "0"

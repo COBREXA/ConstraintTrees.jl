@@ -42,11 +42,7 @@ ecoli = SBML.readSBML("e_coli_core.xml")
 c = C.variables(keys = Symbol.(keys(ecoli.reactions)))
 
 #md # !!! info "Pretty-printing"
-#md #     By default, Julia shows relatively long namespace prefixes before all
-#md #     identifiers, which clutters the output. You can import individual
-#md #     names form `ConstraintTrees` package to improve the pretty-printing,
-#md #     using e.g.:
-#md #     `import ConstraintTrees: Constraint, Tree, LinearValue`.
+#md #     By default, Julia shows relatively long namespace prefixes before all identifiers, which substantially clutters the output. To improve the pretty-printing, all type names are marked as exported from the package, and you can import them via `using ConstraintTrees`.
 
 @test length(C.elems(c)) == length(ecoli.reactions) #src
 
@@ -250,7 +246,7 @@ st.transformed_coords
 import JuMP
 function optimized_vars(cs::C.ConstraintTree, objective::C.LinearValue, optimizer)
     model = JuMP.Model(optimizer)
-    JuMP.@variable(model, x[1:C.var_count(cs)])
+    JuMP.@variable(model, x[1:C.variable_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     C.traverse(cs) do c
         b = c.bound
@@ -499,7 +495,7 @@ c.community.species1.handicap
 # First, let's create a list of all variables in the model that we can use for
 # substitution:
 
-vars = [C.variable(; idx).value for idx = 1:C.var_count(c)]
+vars = [C.variable(; idx).value for idx = 1:C.variable_count(c)]
 
 # Now we use a bit of the knowledge about the model structure -- the handicaps
 # constraint single variables, so we can substitute for them directly. (If the
@@ -522,9 +518,9 @@ c_simplified = C.prune_variables(C.substitute(c, vars))
 
 # The result contains exactly 2 variables less than the original community:
 
-(C.var_count(c), C.var_count(c_simplified))
+(C.variable_count(c), C.variable_count(c_simplified))
 
-@test C.var_count(c) == C.var_count(c_simplified) + 2 #src
+@test C.variable_count(c) == C.variable_count(c_simplified) + 2 #src
 
 # The constraints that were substituted for are, at this point, roughly
 # equivalent to saying `0 == 0`, and most solvers will simply drop them as

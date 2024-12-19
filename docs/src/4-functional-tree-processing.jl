@@ -254,7 +254,7 @@ end
 
 C.pretty(x)
 
-@test C.var_count(x) == 6 #src
+@test C.variable_count(x) == 6 #src
 @test isapprox(x.x.x.bound.lower, -0.055) #src
 
 # (Note that the variable indexes in subtrees are now different from each
@@ -359,16 +359,16 @@ C.pretty(filtered)
 # state, where there are indexes allocated for variables that are no longer
 # used!
 
-C.var_count(filtered)
+C.variable_count(filtered)
 
 # To fix the issue, it is possible to "squash" the variable indexes using
 # [`prune_variables`](@ref ConstraintTrees.prune_variables):
 
 pruned = C.prune_variables(filtered)
 
-C.var_count(pruned)
+C.variable_count(pruned)
 
-@test C.var_count(pruned) == 3 #src
+@test C.variable_count(pruned) == 3 #src
 
 # Note that after the pruning and renumbering, the involved constraint trees
 # are no longer compatible, and should not be combined with `*`. As an
@@ -383,7 +383,7 @@ pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)
 
 (pruned_qv, x.y.x.value * x.z.y.value)
 
-@test C.var_count(pruned_qv) == 2 #src
+@test C.variable_count(pruned_qv) == 2 #src
 @test pruned_qv.idxs == (x.x.x.value * x.x.y.value).idxs #src
 @test pruned_qv.weights == (x.x.x.value * x.x.y.value).weights #src
 
@@ -402,13 +402,13 @@ x.x.y.value = x.x.y.value + x.x.x.value * x.x.x.value - x.x.y.value
 
 #
 
-C.var_count(C.prune_variables(x))
+C.variable_count(C.prune_variables(x))
 
-@test C.var_count(C.prune_variables(x)) == 6 #src
+@test C.variable_count(C.prune_variables(x)) == 6 #src
 
 # After the zero-weight variable references are dropped, the pruning behaves as
 # desired:
 
-C.var_count(C.prune_variables(C.drop_zeros(x)))
+C.variable_count(C.prune_variables(C.drop_zeros(x)))
 
-@test C.var_count(C.prune_variables(C.drop_zeros(x))) == 5 #src
+@test C.variable_count(C.prune_variables(C.drop_zeros(x))) == 5 #src
