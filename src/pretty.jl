@@ -61,13 +61,16 @@ end
 # Pretty-printing interface
 #
 
+# This is used in tests to disable pretty-printing output
+DEFAULT_PRETTY_OUTPUT = stdout
+
 """
 $(TYPEDSIGNATURES)
 
 Pretty-print a given object via other overloads of [`pretty`](@ref), defaulting
 the output stream to standard output.
 """
-pretty(x; kwargs...) = pretty(stdout, x; kwargs...)
+pretty(x; kwargs...) = pretty(DEFAULT_PRETTY_OUTPUT, x; kwargs...)
 
 """
 $(TYPEDSIGNATURES)
