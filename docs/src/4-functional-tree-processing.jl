@@ -361,6 +361,15 @@ C.pretty(filtered)
 
 C.variable_count(filtered)
 
+# To investigate, it is possible to calculate a "reference count" for each
+# variable:
+
+variable_ref_counts = zero(Int, C.variable_count(filtered))
+C.collect_variables!(filtered) do idx
+    idx > 0 && variable_ref_counts[idx] += 1
+end
+variable_ref_counts
+
 # To fix the issue, it is possible to "squash" the variable indexes using
 # [`prune_variables`](@ref ConstraintTrees.prune_variables):
 
