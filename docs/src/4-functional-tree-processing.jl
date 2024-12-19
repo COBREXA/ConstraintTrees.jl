@@ -305,6 +305,7 @@ constraint_count
 
 C.itraverse(x) do ix, c
     path = join(String.(ix), '/')
+    return #src
     println("$path = $c")
 end;
 
@@ -364,9 +365,11 @@ C.variable_count(filtered)
 # To investigate, it is possible to calculate a "reference count" for each
 # variable:
 
-variable_ref_counts = zero(Int, C.variable_count(filtered))
+variable_ref_counts = zeros(Int, C.variable_count(filtered))
 C.collect_variables!(filtered) do idx
-    idx > 0 && variable_ref_counts[idx] += 1
+    if idx > 0
+        variable_ref_counts[idx] += 1
+    end
 end
 variable_ref_counts
 

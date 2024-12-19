@@ -21,7 +21,6 @@ using Test
     # disable mangling the output of tests by stuff that's printed in docs
     @test ConstraintTrees.default_pretty_output_io() === Base.stdout
     ConstraintTrees.default_pretty_output_io() = IOBuffer()
-    println(args...) = nothing
 
     @testset "Metabolic modeling" begin
         include("../docs/src/1-metabolic-modeling.jl")
