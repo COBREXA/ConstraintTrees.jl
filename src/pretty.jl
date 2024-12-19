@@ -61,13 +61,16 @@ end
 # Pretty-printing interface
 #
 
+# This can be redefined in tests to disable pretty-printing output
+default_pretty_output_io() = return Base.stdout
+
 """
 $(TYPEDSIGNATURES)
 
 Pretty-print a given object via other overloads of [`pretty`](@ref), defaulting
 the output stream to standard output.
 """
-pretty(x; kwargs...) = pretty(stdout, x; kwargs...)
+pretty(x; kwargs...) = pretty(default_pretty_output_io(), x; kwargs...)
 
 """
 $(TYPEDSIGNATURES)

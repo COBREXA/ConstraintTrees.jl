@@ -38,7 +38,7 @@ public merge, imerge
 
 # constraint-tree things
 public variable_count
-public increase_variable_index, increase_variable_indexes
+public increase_variable_indexes
 public collect_variables!
 public prune_variables
 public renumber_variables

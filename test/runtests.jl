@@ -16,37 +16,33 @@
 import ConstraintTrees
 using Test
 
-macro nostdout(x)
-    quote
-        orig_stdout = Base.stdout
-        Base.stdout = IOBuffer()
-        $x
-        Base.stdout = orig_stdout
-    end
-end
-
 @testset "ConstraintTrees tests" begin
+
+    # disable mangling the output of tests by stuff that's printed in docs
+    @test ConstraintTrees.default_pretty_output_io() === Base.stdout
+    ConstraintTrees.default_pretty_output_io() = IOBuffer()
+
     @testset "Metabolic modeling" begin
-        @nostdout include("../docs/src/1-metabolic-modeling.jl")
+        include("../docs/src/1-metabolic-modeling.jl")
     end
 
     @testset "Quadratic optimization" begin
-        @nostdout include("../docs/src/2-quadratic-optimization.jl")
+        include("../docs/src/2-quadratic-optimization.jl")
     end
 
     @testset "Mixed-integer optimization" begin
-        @nostdout include("../docs/src/3-mixed-integer-optimization.jl")
+        include("../docs/src/3-mixed-integer-optimization.jl")
     end
 
     @testset "Functional tree processing" begin
-        @nostdout include("../docs/src/4-functional-tree-processing.jl")
+        include("../docs/src/4-functional-tree-processing.jl")
     end
 
     @testset "JuMP integration improvements" begin
-        @nostdout include("../docs/src/5-jump-integration.jl")
+        include("../docs/src/5-jump-integration.jl")
     end
 
     @testset "Miscellaneous methods" begin
-        @nostdout include("misc.jl")
+        include("misc.jl")
     end
 end
