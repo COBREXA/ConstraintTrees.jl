@@ -4,9 +4,9 @@
 mutable struct IntegerFromTo &lt;: C.Bound
     from::Int
     to::Int
-end</code></pre><p>We can now write e.g. a bound on the number on a thrown six-sided die as follows:</p><pre><code class="language-julia hljs">IntegerFromTo(1, 6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.var&quot;Main&quot;.IntegerFromTo(1, 6)</code></pre><p>...and include this bound in constraints and variables:</p><pre><code class="language-julia hljs">dice_system = C.variables(keys = [:first_dice, :second_dice], bounds = IntegerFromTo(1, 6))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 2 elements:
-  :first_dice  =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.Integ…
-  :second_dice =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.Integ…</code></pre><p>Now the main thing that is left is to be able to translate this bound to JuMP for solving. We can slightly generalize our constraint-translation system from the previous examples for this purpose, by separating out the functions that create the constraints:</p><pre><code class="language-julia hljs">import JuMP
+end</code></pre><p>We can now write e.g. a bound on the number on a thrown six-sided die as follows:</p><pre><code class="language-julia hljs">IntegerFromTo(1, 6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.var&quot;Main&quot;.IntegerFromTo(1, 6)</code></pre><p>...and include this bound in constraints and variables:</p><pre><code class="language-julia hljs">dice_system = C.variables(keys = [:first_dice, :second_dice], bounds = IntegerFromTo(1, 6))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTree with 2 elements:
+  :first_dice  =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))
+  :second_dice =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))</code></pre><p>Now the main thing that is left is to be able to translate this bound to JuMP for solving. We can slightly generalize our constraint-translation system from the previous examples for this purpose, by separating out the functions that create the constraints:</p><pre><code class="language-julia hljs">import JuMP
 
 function jump_constraint(m, x, v::C.Value, b::C.EqualTo)
     JuMP.@constraint(m, C.substitute(v, x) == b.equal_to)
@@ -24,7 +24,7 @@ end
 
 function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
     model = JuMP.Model(optimizer)
-    JuMP.@variable(model, x[1:C.var_count(cs)])
+    JuMP.@variable(model, x[1:C.variable_count(cs)])
     JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
     C.traverse(cs) do c
         isnothing(c.bound) || jump_constraint(model, x, c.value, c.bound)
@@ -36,10 +36,10 @@ end</code></pre><pre class="documenter-example-output"><code class="nohighlight 
     :points_distance^C.Constraint(
         dice_system.first_dice.value - dice_system.second_dice.value,
         C.Between(1.5, Inf),
-    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
-  :first_dice      =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.I…
-  :points_distance =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), ConstraintTrees.Between(1.5, Inf))
-  :second_dice     =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.I…</code></pre><p>For solving, we use GLPK (it has MILP capabilities).</p><pre><code class="language-julia hljs">import GLPK
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTree with 3 elements:
+  :first_dice      =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))
+  :points_distance =&gt; Constraint(LinearValue(#= ... =#), Between(1.5, Inf))
+  :second_dice     =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))</code></pre><p>For solving, we use GLPK (it has MILP capabilities).</p><pre><code class="language-julia hljs">import GLPK
 dices_thrown = C.substitute_values(
     dice_system,
     milp_optimized_vars(
@@ -47,7 +47,7 @@ dices_thrown = C.substitute_values(
         dice_system.first_dice.value + dice_system.second_dice.value,
         GLPK.Optimizer,
     ),
-)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 3 elements:
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Float64} with 3 elements:
   :first_dice      =&gt; 6.0
   :points_distance =&gt; 2.0
   :second_dice     =&gt; 4.0</code></pre><h2 id="A-note-on-pretty-printing-of-custom-extensions"><a class="docs-heading-anchor" href="#A-note-on-pretty-printing-of-custom-extensions">A note on pretty-printing of custom extensions</a><a id="A-note-on-pretty-printing-of-custom-extensions-1"></a><a class="docs-heading-anchor-permalink" href="#A-note-on-pretty-printing-of-custom-extensions" title="Permalink"></a></h2><p>By default, pretty-printing via <a href="../reference/#ConstraintTrees.pretty-Tuple{Any}"><code>pretty</code></a> attempts to fall back to <code>Base.show</code> for any value which has no explicit overload of <code>pretty</code>. In particular, the bounds in our MILP system are formatted as follows:</p><pre><code class="language-julia hljs">C.pretty(dice_system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─first_dice: 1.0*x[1]; Main.var&quot;Main&quot;.IntegerFromTo(1, 6)
@@ -58,10 +58,10 @@ end
 
 C.pretty(dice_system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─first_dice: 1.0*x[1] ∈ {1 … 6}
 ├─points_distance: 1.0*x[1] + -1.0*x[2] ∈ [1.5, Inf]
-╰─second_dice: 1.0*x[2] ∈ {1 … 6}</code></pre><h2 id="A-more-realistic-example-with-geometry"><a class="docs-heading-anchor" href="#A-more-realistic-example-with-geometry">A more realistic example with geometry</a><a id="A-more-realistic-example-with-geometry-1"></a><a class="docs-heading-anchor-permalink" href="#A-more-realistic-example-with-geometry" title="Permalink"></a></h2><p>Let&#39;s find the size of the smallest right-angled triangle with integer side sizes (aka a Pythagorean triple).</p><pre><code class="language-julia hljs">vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Constraint} with 3 elements:
-  :a =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1…
-  :b =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1…
-  :c =&gt; ConstraintTrees.Constraint(ConstraintTrees.LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1…</code></pre><p>For simpliclty, we make a shortcut for &quot;values&quot; in all variables:</p><pre><code class="language-julia hljs">v = C.map(C.value, vars, C.Value)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{ConstraintTrees.Value} with 3 elements:
+╰─second_dice: 1.0*x[2] ∈ {1 … 6}</code></pre><h2 id="A-more-realistic-example-with-geometry"><a class="docs-heading-anchor" href="#A-more-realistic-example-with-geometry">A more realistic example with geometry</a><a id="A-more-realistic-example-with-geometry-1"></a><a class="docs-heading-anchor-permalink" href="#A-more-realistic-example-with-geometry" title="Permalink"></a></h2><p>Let&#39;s find the size of the smallest right-angled triangle with integer side sizes (aka a Pythagorean triple).</p><pre><code class="language-julia hljs">vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTree with 3 elements:
+  :a =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 100))
+  :b =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 100))
+  :c =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 100))</code></pre><p>For simpliclty, we make a shortcut for &quot;values&quot; in all variables:</p><pre><code class="language-julia hljs">v = C.map(C.value, vars, C.Value)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Value} with 3 elements:
   :a =&gt; LinearValue([1], [1.0])
   :b =&gt; LinearValue([2], [1.0])
   :c =&gt; LinearValue([3], [1.0])</code></pre><p>With that shortcut, the constraint tree constructs quite easily:</p><pre><code class="language-julia hljs">triangle_system =
@@ -87,7 +87,7 @@ triangle_sides =
             -triangle_system.circumference.value,
             SCIP.Optimizer,
         ),
-    ).sides</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTrees.Tree{Float64} with 3 elements:
+    ).sides</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Float64} with 3 elements:
   :a =&gt; 3.0
   :b =&gt; 4.0
-  :c =&gt; 5.0</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../2-quadratic-optimization/">« Example: Quadratic optimization</a><a class="docs-footer-nextpage" href="../4-functional-tree-processing/">Example: Processing the trees functionally »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Tuesday 3 December 2024 11:50">Tuesday 3 December 2024</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  :c =&gt; 5.0</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../2-quadratic-optimization/">« Example: Quadratic optimization</a><a class="docs-footer-nextpage" href="../4-functional-tree-processing/">Example: Processing the trees functionally »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Thursday 19 December 2024 11:56">Thursday 19 December 2024</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
