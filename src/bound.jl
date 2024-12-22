@@ -49,6 +49,11 @@ Shortcut for a `Float64`-typed equality bound implemented by
 """
 const EqualTo = EqualToT{Float64}
 
+"""
+$(TYPEDSIGNATURES)
+
+Construct an [`EqualTo`](@ref) bound.
+"""
 EqualTo(x::Real) = EqualToT(Float64(x))
 
 Base.:-(x::EqualToT) = -1 * x
@@ -72,16 +77,29 @@ Base.@kwdef mutable struct BetweenT{T} <: Bound
     upper::T = typemax(T)
 end
 
+"""
+$(TYPEDEF)
+
+Shortcut for a `Float64`-typed interval bound implemented by
+[`BetweenT`](@ref).
+"""
 const Between = BetweenT{Float64}
 
-BetweenT(x::T, y::T) where {T} = x < y ? BetweenT(x, y) : BetweenT(y, x)
+"""
+$(TYPEDSIGNATURES)
 
-Between(x::Real, y::Real) = BetweenT(Float64(x), Float64(y))
+Construct a [`Between`](@ref) bound. Additionally, this checks the order of the
+values and puts them into a correct order.
+"""
+Between(x::Real, y::Real) =
+    x < y ? BetweenT(Float64(x), Float64(y)) : BetweenT(Float64(y), Float64(x))
 
-Base.:-(x::BetweenT) - 1 * x
+Base.:-(x::BetweenT) = -1 * x
 Base.:*(a::BetweenT, b::Real) = b * a
-Base.:/(a::BetweenT, b::Real) = BetweenT(a.lower / b, a.upper / b)
-Base.:*(a::Real, b::BetweenT) = BetweenT(a * b.lower, a * b.upper)
+Base.:*(a::Real, b::BetweenT) =
+    a > 0 ? BetweenT(a * b.lower, a * b.upper) : BetweenT(a * b.upper, a * b.lower)
+Base.:/(a::BetweenT, b::Real) =
+    b > 0 ? BetweenT(a.lower / b, a.upper / b) : BetweenT(a.upper / b, a.lower / b)
 
 """
 $(TYPEDEF)
