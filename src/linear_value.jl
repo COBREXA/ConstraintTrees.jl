@@ -53,7 +53,8 @@ const LinearValue = LinearCombination{Float64}
 """
 $(TYPEDSIGNATURES)
 
-Construct a constant [`LinearCombinatino`](@ref) with a single affine element.
+Construct a constant-valued [`LinearCombination`](@ref) with a single affine
+element.
 """
 LinearCombination(x::R) where {R<:Real} =
     iszero(x) ? LinearCombination(idxs = Int[], weights = R[]) :
