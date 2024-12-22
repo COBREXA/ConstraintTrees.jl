@@ -75,7 +75,7 @@ include("pretty.jl")
 # of data print-outs)
 
 export Value, LinearValue, LinearValueT, QuadraticValue, QuadraticValueT
-export Bound, Between, EqualTo
+export Bound, Between, BetweenT, EqualTo, EqualToT
 export Constraint, Tree, ConstraintTree
 
 # For sufficiently new Julias, we also include the `public` markers for

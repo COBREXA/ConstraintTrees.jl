@@ -33,7 +33,7 @@ Base.@kwdef mutable struct Constraint
     value::Value
     "A bound that the `value` must satisfy. Should be a subtype of
     [`MaybeBound`](@ref): Either `nothing` if there's no bound, or e.g.
-    [`EqualTo`](@ref), [`Between`](@ref) or similar structs."
+    [`EqualToT`](@ref), [`BetweenT`](@ref) or similar structs."
     bound::MaybeBound = nothing
 
     function Constraint(v::Value, b::MaybeBound = nothing)
@@ -43,7 +43,7 @@ end
 
 Constraint(v::T, b::Real) where {T<:Value} = Constraint(v, EqualTo(b))
 Constraint(v::T, b::Tuple{X,Y}) where {T<:Value,X<:Real,Y<:Real} =
-    Constraint(v, Between(Float64.(b)...))
+    Constraint(v, Between(b...))
 
 Base.:-(a::Constraint) =
     Constraint(value = -a.value, bound = isnothing(a.bound) ? nothing : -a.bound)
