@@ -47,8 +47,8 @@ EqualTo(x::Real) = EqualToT(Float64(x))
 
 Base.:-(x::EqualToT{T}) where {T} = -1 * x
 Base.:*(a::EqualToT{T}, b::Real) where {T} = b * a
-Base.:/(a::EqualToT{T}, b::Real) where {T} = EqualToT(a.equal_to / b)
-Base.:*(a::Real, b::EqualToT{T}) where {T} = EqualToT(a * b.equal_to)
+Base.:/(a::EqualToT{T}, b::Real) where {T} = EqualToT{T}(a.equal_to / b)
+Base.:*(a::Real, b::EqualToT{T}) where {T} = EqualToT{T}(a * b.equal_to)
 
 """
 $(TYPEDEF)
@@ -66,14 +66,14 @@ Base.@kwdef mutable struct BetweenT{T} <: Bound
     upper::T
 end
 
-const Between = BetweenT{Float64} # for compatibility, rm in 2.0
+const Between = BetweenT{Float64,Float64} # for compatibility, rm in 2.0
 
-Between(x::Real, y::Real) = x < y ? EqualToT(Float64(x), Float64(y)) : EqualToT(Float64(y), Float64(x))
+Between(x::Real, y::Real) = x < y ? EqualToT{Float64}(Float64(x), Float64(y)) : EqualToT(Float64(y), Float64(x))
 
 Base.:-(x::BetweenT{T}) where {T} = -1 * x
 Base.:*(a::BetweenT{T}, b::Real) where {T} = b * a
-Base.:/(a::BetweenT{T}, b::Real) where {T} = BetweenT(a.lower / b, a.upper / b)
-Base.:*(a::Real, b::BetweenT{T}) where {T} = BetweenT(a * b.lower, a * b.upper)
+Base.:/(a::BetweenT{T}, b::Real) where {T} = BetweenT{T}(a.lower / b, a.upper / b)
+Base.:*(a::Real, b::BetweenT{T}) where {T} = BetweenT{T}(a * b.lower, a * b.upper)
 
 """
 $(TYPEDEF)
