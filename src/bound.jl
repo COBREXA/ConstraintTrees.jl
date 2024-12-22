@@ -36,12 +36,13 @@ value.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct EqualTo <: Bound
+Base.@kwdef mutable struct EqualTo{T} <: Bound
     "Equality bound value"
-    equal_to::Float64
-
-    EqualTo(x::Real) = new(Float64(x))
+    equal_to::T
 end
+
+# Convenience constructors
+EqualTo(x::Union{AbstractFloat, Int}) = new(Float64(x))
 
 Base.:-(x::EqualTo) = -1 * x
 Base.:*(a::EqualTo, b::Real) = b * a
@@ -57,15 +58,14 @@ value.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct Between <: Bound
+Base.@kwdef mutable struct Between{T} <: Bound
     "Lower bound"
-    lower::Float64 = -Inf
+    lower::T
     "Upper bound"
-    upper::Float64 = Inf
-
-    Between(x::Real, y::Real) =
-        x < y ? new(Float64(x), Float64(y)) : new(Float64(y), Float64(x))
+    upper::T
 end
+
+Between(x::Union{AbstractFloat, Int}, y::Union{AbstractFloat, Int}) = x < y ? new(Float64(x), Float64(y)) : new(Float64(y), Float64(x))
 
 Base.:-(x::Between) = -1 * x
 Base.:*(a::Between, b::Real) = b * a
