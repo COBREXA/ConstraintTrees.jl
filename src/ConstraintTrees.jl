@@ -74,7 +74,7 @@ include("pretty.jl")
 # collide and `using ConstraintTrees` would help a lot with neater formatting
 # of data print-outs)
 
-export Value, LinearValue, QuadraticValue
+export Value, LinearValue, LinearValueT, QuadraticValue, QuadraticValueT
 export Bound, Between, EqualTo
 export Constraint, Tree, ConstraintTree
 

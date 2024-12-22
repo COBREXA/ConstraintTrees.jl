@@ -126,7 +126,8 @@ Pretty-print a linear value into the `io`.
 """
 function pretty(
     io::IO,
-    x::LinearValue;
+    x::LinearValueT;
+    format_coefficient = string,
     format_variable = default_pretty_var,
     plus_sign = " + ",
     zero_value = "0",
@@ -137,7 +138,10 @@ function pretty(
     else
         join(
             io,
-            (string(w) * format_variable(i) for (i, w) in Base.zip(x.idxs, x.weights)),
+            (
+                format_coefficient(w) * format_variable(i) for
+                (i, w) in Base.zip(x.idxs, x.weights)
+            ),
             plus_sign,
         )
     end
@@ -150,7 +154,8 @@ Pretty-print a quadratic value into the `io`.
 """
 function pretty(
     io::IO,
-    x::QuadraticValue;
+    x::QuadraticValueT;
+    format_coefficient = string,
     format_variable = default_pretty_var,
     plus_sign = " + ",
     zero_value = "0",
@@ -162,7 +167,7 @@ function pretty(
         join(
             io,
             (
-                string(w) * format_variable(i) * format_variable(j) for
+                format_coefficient(w) * format_variable(i) * format_variable(j) for
                 ((i, j), w) in Base.zip(x.idxs, x.weights)
             ),
             plus_sign,
