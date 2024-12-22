@@ -106,7 +106,7 @@ $(TYPEDSIGNATURES)
 Find the expected count of variables in a [`LinearValue`](@ref). (This is a
 O(1) operation, relying on the ordering of the indexes.)
 """
-variable_count(x::LinearValue) = isempty(x.idxs) ? 0 : last(x.idxs)
+variable_count(x::LinearValueT) = isempty(x.idxs) ? 0 : last(x.idxs)
 
 """
 $(TYPEDSIGNATURES)
@@ -114,7 +114,7 @@ $(TYPEDSIGNATURES)
 Find the expected count of variables in a [`QuadraticValue`](@ref). (This is a
 O(1) operation, relying on the co-lexicographical ordering of indexes.)
 """
-variable_count(x::QuadraticValue) = isempty(x.idxs) ? 0 : last(last(x.idxs))
+variable_count(x::QuadraticValueT) = isempty(x.idxs) ? 0 : last(last(x.idxs))
 
 """
 Old name for [`variable_count`](@ref).
@@ -157,11 +157,11 @@ Push all variable indexes found in `x` to the `out` container.
 (The container needs to support the standard `push!`.)
 """
 collect_variables!(x::Constraint, out) = collect_variables!(x.value, out)
-collect_variables!(x::LinearValue, out) =
+collect_variables!(x::LinearValueT, out) =
     for idx in x.idxs
         push!(out, idx)
     end
-collect_variables!(x::QuadraticValue, out) =
+collect_variables!(x::QuadraticValueT, out) =
     for (idx, idy) in x.idxs
         push!(out, idx, idy)
     end
@@ -224,9 +224,9 @@ renumber_variables(x::Tree{T}, mapping) where {T} =
     ConstraintTree(k => renumber_variables(v, mapping) for (k, v) in x)
 renumber_variables(x::Constraint, mapping) =
     Constraint(renumber_variables(x.value, mapping), x.bound)
-renumber_variables(x::LinearValue, mapping) =
-    LinearValue(idxs = [mapping[idx] for idx in x.idxs], weights = x.weights)
-renumber_variables(x::QuadraticValue, mapping) = QuadraticValue(
+renumber_variables(x::LinearValueT, mapping) =
+    LinearValueT(idxs = [mapping[idx] for idx in x.idxs], weights = x.weights)
+renumber_variables(x::QuadraticValueT, mapping) = QuadraticValueT(
     idxs = [(mapping[idx], mapping[idy]) for (idx, idy) in x.idxs],
     weights = x.weights,
 )
@@ -250,10 +250,10 @@ Remove variable references from all [`Value`](@ref)s in the given object
 """
 drop_zeros(x::Tree{T}) where {T} = ConstraintTree(k => drop_zeros(v) for (k, v) in x)
 drop_zeros(x::Constraint) = Constraint(drop_zeros(x.value), x.bound)
-drop_zeros(x::LinearValue) =
-    LinearValue(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.idxs.!=0])
-drop_zeros(x::QuadraticValue) =
-    QuadraticValue(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.weights.!=0])
+drop_zeros(x::LinearValueT) =
+    LinearValueT(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.idxs.!=0])
+drop_zeros(x::QuadraticValueT) =
+    QuadraticValueT(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.weights.!=0])
 
 #
 # Algebraic construction
@@ -282,8 +282,8 @@ $(TYPEDSIGNATURES)
 Allocate a single unnamed variable, returning a Constraint with an optionally
 specified `bound`.
 """
-variable(; bound = nothing, idx = 1) =
-    Constraint(value = LinearValue(Int[idx], Float64[1.0]); bound)
+variable(weight::T = 1.0; bound = nothing, idx = 1) where {T} =
+    Constraint(value = LinearValue(Int[idx], T[weight]); bound)
 
 """
 $(TYPEDSIGNATURES)
@@ -299,14 +299,15 @@ individual bounds for each variable in the same order as `keys`.
 The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To pass
 a single bound for all variables, use e.g. `bounds = EqualTo(0)`.
 """
-function variables(; keys::AbstractVector{Symbol}, bounds = nothing)
+function variables(weight = 1.0; keys::AbstractVector{Symbol}, bounds = nothing)
     bs =
         isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
         length(bounds) == 1 ? Base.Iterators.cycle(tuple(bounds)) :
         length(bounds) == length(keys) ? bounds :
         error("lengths of bounds and keys differ for allocated variables")
     ConstraintTree(
-        k => variable(idx = i, bound = b) for ((i, k), b) in Base.zip(enumerate(keys), bs)
+        k => variable(weight; idx = i, bound = b) for
+        ((i, k), b) in Base.zip(enumerate(keys), bs)
     )
 end
 
@@ -318,11 +319,11 @@ tree) and return a [`ConstraintTree`](@ref) with variables bounded by the
 `makebound` function, which converts a given tree element's value into a bound
 for the corresponding variable.
 """
-function variables_for(makebound, ts::Tree)
+function variables_for(makebound, ts::Tree, weight = 1.0)
     var_idx = 0
     map(ts, Constraint) do x
         var_idx += 1
-        variable(idx = var_idx, bound = makebound(x))
+        variable(weight; idx = var_idx, bound = makebound(x))
     end
 end
 
@@ -332,11 +333,11 @@ $(TYPEDSIGNATURES)
 Like [`variables_for`](@ref) but the `makebound` function also receives a path
 to the variable, as with [`imap`](@ref).
 """
-function variables_ifor(makebound, ts::Tree)
+function variables_ifor(makebound, ts::Tree, weight = 1.0)
     var_idx = 0
     imap(ts, Constraint) do path, x
         var_idx += 1
-        variable(idx = var_idx, bound = makebound(path, x))
+        variable(weight, idx = var_idx, bound = makebound(path, x))
     end
 end
 

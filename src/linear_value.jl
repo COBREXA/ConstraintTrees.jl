@@ -19,47 +19,61 @@ using SparseArrays
 $(TYPEDEF)
 
 A representation of a "value" in a linear constrained optimization problem. The
-value is an affine linear combination of several variables.
+value is an affine linear combination of several variables, weighted by
+coefficients of the parameter type `T`.
 
-`LinearValue`s can be combined additively and multiplied by real-number
-constants.
-
-Multiplying two `LinearValue`s yields a quadratic form (in a
-[`QuadraticValue`](@ref)).
+`LinearValueT`s can be combined additively and multiplied by real-number
+constants.  Multiplying two `LinearValueT`s yields a quadratic form (in a
+[`QuadraticValueT`](@ref)).
 
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct LinearValue <: Value
+Base.@kwdef struct LinearValueT{T} <: Value
     """
     Indexes of the variables used by the value. The indexes must always be
     sorted in strictly increasing order. The affine element has index 0.
     """
     idxs::Vector{Int}
     "Coefficients of the variables selected by `idxs`."
-    weights::Vector{Float64}
+    weights::Vector{T}
 end
+
+"""
+$(TYPEDEF)
+
+A shortcut for a [`LinearValueT`](@ref) over `Float64`s.
+"""
+const LinearValue = LinearValueT{Float64}
 
 """
 $(TYPEDSIGNATURES)
 
-Construct a constant [`LinearValue`](@ref) with a single affine element.
+Construct a constant-valued [`LinearValueT`](@ref) with a single affine
+element.
 """
-LinearValue(x::Real) =
-    iszero(x) ? LinearValue(idxs = [], weights = []) :
-    LinearValue(idxs = [0], weights = [x])
+LinearValueT(x::R) where {R<:Real} =
+    iszero(x) ? LinearValueT(idxs = Int[], weights = R[]) :
+    LinearValueT{R}(idxs = [0], weights = R[x])
 
-Base.convert(::Type{LinearValue}, x::Real) = LinearValue(x)
-Base.zero(::Type{LinearValue}) = LinearValue(idxs = [], weights = [])
-Base.:+(a::Real, b::LinearValue) = LinearValue(a) + b
-Base.:+(a::LinearValue, b::Real) = a + LinearValue(b)
-Base.:-(a::Real, b::LinearValue) = LinearValue(a) - b
-Base.:-(a::LinearValue, b::Real) = a - LinearValue(b)
-Base.:-(a::LinearValue, b::LinearValue) = a + (-1 * b)
-Base.:-(a::LinearValue) = -1 * a
-Base.:*(a::Real, b::LinearValue) = b * a
-Base.:*(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = b .* a.weights)
-Base.:/(a::LinearValue, b::Real) = LinearValue(idxs = a.idxs, weights = a.weights ./ b)
+"""
+$(TYPEDSIGNATURES)
+
+Construct a constant-valued [`LinearValue`](@ref) with a single affine element.
+"""
+LinearValue(x::Real) = LinearValueT(Float64(x))
+
+Base.convert(::Type{LinearValueT{T}}, x::Real) where {T} = LinearValueT{T}(convert(T, x))
+Base.zero(::Type{T}) where {T<:LinearValueT} = T(idxs = [], weights = [])
+Base.:+(a::Real, b::LinearValueT{T}) where {T} = LinearValueT{T}(a) + b
+Base.:+(a::LinearValueT{T}, b::Real) where {T} = a + LinearValueT{T}(b)
+Base.:-(a::Real, b::LinearValueT{T}) where {T} = LinearValueT{T}(a) - b
+Base.:-(a::LinearValueT{T}, b::Real) where {T} = a - LinearValueT{T}(b)
+Base.:-(a::LinearValueT, b::LinearValueT) = a + (-1 * b)
+Base.:-(a::LinearValueT) = -1 * a
+Base.:*(a::Real, b::LinearValueT) = b * a
+Base.:*(a::LinearValueT, b::Real) = LinearValueT(idxs = a.idxs, weights = b .* a.weights)
+Base.:/(a::LinearValueT, b::Real) = LinearValueT(idxs = a.idxs, weights = a.weights ./ b)
 
 """
 $(TYPEDSIGNATURES)
@@ -77,7 +91,7 @@ function add_sparse_linear_combination(
     b_weights::Vector{T},
 )::Tuple{Vector{Int},Vector{T}} where {T}
     r_idxs = Int[]
-    r_weights = Float64[]
+    r_weights = T[]
     ai = 1
     ae = length(a_idxs)
     bi = 1
@@ -115,20 +129,20 @@ function add_sparse_linear_combination(
     return (r_idxs, r_weights)
 end
 
-Base.:+(a::LinearValue, b::LinearValue) =
+Base.:+(a::LinearValueT{T}, b::LinearValueT{T}) where {T} =
     let
         (idxs, weights) =
             add_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
-        LinearValue(; idxs, weights)
+        LinearValueT{T}(; idxs, weights)
     end
 
 """
 $(TYPEDSIGNATURES)
 
-Substitute anything vector-like as variable values into a [`LinearValue`](@ref)
+Substitute anything vector-like as variable values into a [`LinearValueT`](@ref)
 and return the result.
 """
-substitute(x::LinearValue, y) = sum(
+substitute(x::LinearValueT, y) = sum(
     (idx == 0 ? x.weights[i] : x.weights[i] * y[idx] for (i, idx) in enumerate(x.idxs)),
     init = 0.0,
 )
@@ -139,7 +153,14 @@ $(TYPEDSIGNATURES)
 Shortcut for making a [`LinearValue`](@ref) out of a linear combination defined
 by the `SparseVector`.
 """
-LinearValue(x::SparseVector{Float64}) =
+LinearValue(x::SparseVector{Float64}) = LinearValueT(x)
+
+"""
+$(TYPEDSIGNATURES)
+
+Generalized constructor for [`LinearValueT`](@ref)s from sparse vectors.
+"""
+LinearValueT(x::SparseVector{T}) where {T} =
     let (idxs, weights) = findnz(x)
-        LinearValue(; idxs, weights)
+        LinearValueT{T}(; idxs, weights)
     end
