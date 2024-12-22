@@ -30,24 +30,25 @@ Base.length(x::Bound) = return 1
 """
 $(TYPEDEF)
 
-Representation of an "equality" bound; contains the single "equal to this"
+Representation of an "EqualToT" bound; contains the single "equal to this"
 value.
 
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct EqualTo{T} <: Bound
-    "Equality bound value"
+Base.@kwdef mutable struct EqualToT{T} <: Bound
+    "EqualToT bound value"
     equal_to::T
 end
 
-# Convenience constructors
-EqualTo(x::Union{AbstractFloat, Int}) = new(Float64(x))
+const EqualTo = EqualToT{Float64} # for compatibility, rm in 2.0
 
-Base.:-(x::EqualTo) = -1 * x
-Base.:*(a::EqualTo, b::Real) = b * a
-Base.:/(a::EqualTo, b::Real) = EqualTo(a.equal_to / b)
-Base.:*(a::Real, b::EqualTo) = EqualTo(a * b.equal_to)
+EqualTo(x::Real) = EqualToT(Float64(x))
+
+Base.:-(x::EqualToT{T}) where {T} = -1 * x
+Base.:*(a::EqualToT{T}, b::Real) where {T} = b * a
+Base.:/(a::EqualToT{T}, b::Real) where {T} = EqualToT(a.equal_to / b)
+Base.:*(a::Real, b::EqualToT{T}) where {T} = EqualToT(a * b.equal_to)
 
 """
 $(TYPEDEF)
@@ -58,19 +59,21 @@ value.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct Between{T} <: Bound
+Base.@kwdef mutable struct BetweenT{T} <: Bound
     "Lower bound"
     lower::T
     "Upper bound"
     upper::T
 end
 
-Between(x::Union{AbstractFloat, Int}, y::Union{AbstractFloat, Int}) = x < y ? new(Float64(x), Float64(y)) : new(Float64(y), Float64(x))
+const Between = BetweenT{Float64} # for compatibility, rm in 2.0
 
-Base.:-(x::Between) = -1 * x
-Base.:*(a::Between, b::Real) = b * a
-Base.:/(a::Between, b::Real) = Between(a.lower / b, a.upper / b)
-Base.:*(a::Real, b::Between) = Between(a * b.lower, a * b.upper)
+Between(x::Real, y::Real) = x < y ? EqualToT(Float64(x), Float64(y)) : EqualToT(Float64(y), Float64(x))
+
+Base.:-(x::BetweenT{T}) where {T} = -1 * x
+Base.:*(a::BetweenT{T}, b::Real) where {T} = b * a
+Base.:/(a::BetweenT{T}, b::Real) where {T} = BetweenT(a.lower / b, a.upper / b)
+Base.:*(a::Real, b::BetweenT{T}) where {T} = BetweenT(a * b.lower, a * b.upper)
 
 """
 $(TYPEDEF)
