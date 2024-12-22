@@ -43,7 +43,7 @@ end
 
 Constraint(v::T, b::Real) where {T<:Value} = Constraint(v, EqualToT(b))
 Constraint(v::T, b::Tuple{X,Y}) where {T<:Value,X<:Real,Y<:Real} =
-    Constraint(v, BetweenT(b...))
+    Constraint(v, BetweenT{promote_type(X, Y)}(b...))
 
 Base.:-(a::Constraint) =
     Constraint(value = -a.value, bound = isnothing(a.bound) ? nothing : -a.bound)

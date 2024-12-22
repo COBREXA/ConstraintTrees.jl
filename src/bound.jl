@@ -30,25 +30,31 @@ Base.length(x::Bound) = return 1
 """
 $(TYPEDEF)
 
-Representation of an "EqualToT" bound; contains the single "equal to this"
-value.
+Representation of an "equality" bound, which contains the single "equal to
+this" value.
 
 # Fields
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct EqualToT{T} <: Bound
-    "EqualToT bound value"
+    "Equality bound value"
     equal_to::T
 end
 
-const EqualTo = EqualToT{Float64} # for compatibility, rm in 2.0
+"""
+$(TYPEDEF)
 
-EqualTo(x::Real) = EqualTo(Float64(x))
+Shortcut for a `Float64`-typed equality bound implemented by
+[`EqualToT`](@ref).
+"""
+const EqualTo = EqualToT{Float64}
 
-Base.:-(x::EqualToT{T}) where {T} = -1 * x
-Base.:*(a::EqualToT{T}, b::Real) where {T} = b * a
-Base.:/(a::EqualToT{T}, b::Real) where {T} = EqualToT{T}(a.equal_to / b)
-Base.:*(a::Real, b::EqualToT{T}) where {T} = EqualToT{T}(a * b.equal_to)
+EqualTo(x::Real) = EqualToT(Float64(x))
+
+Base.:-(x::EqualToT) = -1 * x
+Base.:*(a::EqualToT, b::Real) = b * a
+Base.:*(a::Real, b::EqualToT) = EqualToT(a * b.equal_to)
+Base.:/(a::EqualToT, b::Real) = EqualToT(a.equal_to / b)
 
 """
 $(TYPEDEF)
@@ -59,21 +65,23 @@ value.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct BetweenT{T1, T2} <: Bound
+Base.@kwdef mutable struct BetweenT{T} <: Bound
     "Lower bound"
-    lower::T1
+    lower::T = typemin(T)
     "Upper bound"
-    upper::T2
+    upper::T = typemax(T)
 end
 
-const Between = BetweenT{Float64,Float64} # for compatibility, rm in 2.0
+const Between = BetweenT{Float64}
 
-Between(x::Real, y::Real) = x < y ? Between(Float64(x), Float64(y)) : Between(Float64(y), Float64(x))
+BetweenT(x::T, y::T) where {T} = x < y ? BetweenT(x, y) : BetweenT(y, x)
 
-Base.:-(x::BetweenT{T1, T2}) where {T1, T2} = -1 * x
-Base.:*(a::BetweenT{T1, T2}, b::Real) where {T1, T2} = b * a
-Base.:/(a::BetweenT{T1, T2}, b::Real) where {T1, T2} = BetweenT{T1, T2}(a.lower / b, a.upper / b)
-Base.:*(a::Real, b::BetweenT{T1, T2}) where {T1, T2} = BetweenT{T1, T2}(a * b.lower, a * b.upper)
+Between(x::Real, y::Real) = BetweenT(Float64(x), Float64(y))
+
+Base.:-(x::BetweenT) - 1 * x
+Base.:*(a::BetweenT, b::Real) = b * a
+Base.:/(a::BetweenT, b::Real) = BetweenT(a.lower / b, a.upper / b)
+Base.:*(a::Real, b::BetweenT) = BetweenT(a * b.lower, a * b.upper)
 
 """
 $(TYPEDEF)
