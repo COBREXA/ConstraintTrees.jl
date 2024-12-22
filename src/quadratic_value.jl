@@ -19,16 +19,18 @@ using SparseArrays
 $(TYPEDEF)
 
 A representation of a quadratic form in the constrained optimization problem.
-The `QuadraticValue` is an affine quadratic combination (i.e., a polynomial of maximum
-degree 2) over the variables.
+The `QuadraticValue` is an affine quadratic combination (i.e., a polynomial of
+maximum degree 2) over the variables, weighted by coefficients of the parameter
+type `T`.
 
-`QuadraticValue`s can be combined additively and multiplied by real-number constants.
-The cleanest way to construct a `QuadraticValue` is to multiply two [`LinearValue`](@ref)s.
+`QuadraticValue`s can be combined additively and multiplied by real-number
+constants. The cleanest way to construct a `QuadraticValue` is to multiply two
+[`LinearValue`](@ref)s.
 
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct QuadraticValue <: Value
+Base.@kwdef struct QuadraticValueT{T} <: Value
     """
     Indexes of variable pairs used by the value. The indexes must always be
     sorted in strictly co-lexicographically increasing order, and the second
@@ -39,48 +41,74 @@ Base.@kwdef struct QuadraticValue <: Value
     As an outcome, the second index of the last index pair can be used as the
     upper bound of all variable indexes.
 
-    As with [`LinearValue`](@ref), index `0` represents the
-    affine element.
+    As with [`LinearValueT`](@ref), index `0` represents the affine element.
     """
     idxs::Vector{Tuple{Int,Int}}
     "Coefficient of the variable pairs selected by `idxs`."
-    weights::Vector{Float64}
+    weights::Vector{T}
 end
 
 """
-$(TYPEDSIGNATURES)
+$(TYPEDEF)
 
-Construct a constant [`QuadraticValue`](@ref) with a single affine element.
+A shortcut for a [`QuadraticValueT`](@ref) over `Float64`s.
 """
-QuadraticValue(x::Real) =
-    iszero(x) ? QuadraticValue(idxs = [], weights = []) :
-    QuadraticValue(idxs = [(0, 0)], weights = [x])
+const QuadraticValue = QuadraticValueT{Float64}
 
 """
 $(TYPEDSIGNATURES)
 
-Construct a [`QuadraticValue`](@ref) that is equivalent to a given [`LinearValue`](@ref).
+Construct a constant-valued [`QuadraticValueT`](@ref) with a single affine
+element.
 """
-QuadraticValue(x::LinearValue) =
-    QuadraticValue(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
+QuadraticValueT(x::R) where {R<:Real} =
+    iszero(x) ? QuadraticValue(idxs = Int[], weights = R[]) :
+    QuadraticValueT{R}(idxs = [(0, 0)], weights = R[x])
 
-Base.convert(::Type{QuadraticValue}, x::Real) = QuadraticValue(x)
-Base.convert(::Type{QuadraticValue}, x::LinearValue) = QuadraticValue(x)
-Base.zero(::Type{QuadraticValue}) = QuadraticValue(idxs = [], weights = [])
-Base.:+(a::Real, b::QuadraticValue) = QuadraticValue(a) + b
-Base.:+(a::QuadraticValue, b::Real) = a + QuadraticValue(b)
-Base.:+(a::LinearValue, b::QuadraticValue) = QuadraticValue(a) + b
-Base.:+(a::QuadraticValue, b::LinearValue) = a + QuadraticValue(b)
-Base.:-(a::QuadraticValue) = -1 * a
-Base.:-(a::Real, b::QuadraticValue) = QuadraticValue(a) - b
-Base.:-(a::QuadraticValue, b::Real) = a - QuadraticValue(b)
-Base.:-(a::LinearValue, b::QuadraticValue) = QuadraticValue(a) - b
-Base.:-(a::QuadraticValue, b::LinearValue) = a - QuadraticValue(b)
-Base.:*(a::Real, b::QuadraticValue) = b * a
-Base.:*(a::QuadraticValue, b::Real) =
+"""
+$(TYPEDSIGNATURES)
+
+Construct a constant-valued [`QuadraticValue`](@ref) with a single affine
+element.
+"""
+QuadraticValue(x::Real) = QuadraticValueT(Float64(x))
+
+"""
+$(TYPEDSIGNATURES)
+
+Construct a [`QuadraticValueT`](@ref) that is equivalent to a given
+[`LinearValueT`](@ref).
+"""
+QuadraticValueT(x::LinearValueT) =
+    QuadraticValueT(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
+
+"""
+$(TYPEDSIGNATURES)
+
+Construct a [`QuadraticValue`](@ref) that is equivalent to a given
+[`LinearValue`](@ref).
+"""
+QuadraticValue(x::LinearValue) = QuadraticValueT(x)
+
+Base.convert(::Type{QuadraticValueT{T}}, x::Real) where {T} =
+    QuadraticValueT{T}(convert(T, x))
+Base.convert(::Type{QuadraticValueT{T}}, x::LinearValueT) where {T} = QuadraticValueT(x)
+Base.zero(::Type{QuadraticValueT{T}}) where {T} =
+    QuadraticValueT{T}(idxs = Int[], weights = T[])
+Base.:+(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) + b
+Base.:+(a::QuadraticValueT{T}, b::Real) where {T} = a + QuadraticValueT{T}(b)
+Base.:+(a::LinearValueT, b::QuadraticValueT) = QuadraticValue(a) + b # TODO
+Base.:+(a::QuadraticValueT, b::LinearValueT) = a + QuadraticValue(b) # TODO
+Base.:-(a::QuadraticValueT) = -1 * a
+Base.:-(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) - b
+Base.:-(a::QuadraticValueT{T}, b::Real) where {T} = a - QuadraticValueT{T}(b)
+Base.:-(a::LinearValueT, b::QuadraticValueT) = QuadraticValue(a) - b # TODO
+Base.:-(a::QuadraticValueT, b::LinearValueT) = a - QuadraticValue(b) # TODO
+Base.:-(a::QuadraticValueT, b::QuadraticValueT) = a + (-1 * b)
+Base.:*(a::Real, b::QuadraticValueT) = b * a
+Base.:*(a::QuadraticValueT, b::Real) =
     QuadraticValue(idxs = a.idxs, weights = b .* a.weights)
-Base.:-(a::QuadraticValue, b::QuadraticValue) = a + (-1 * b)
-Base.:/(a::QuadraticValue, b::Real) =
+Base.:/(a::QuadraticValueT, b::Real) =
     QuadraticValue(idxs = a.idxs, weights = a.weights ./ b)
 
 """
@@ -106,7 +134,7 @@ function add_sparse_quadratic_combination(
     b_weights::Vector{T},
 )::Tuple{Vector{Tuple{Int,Int}},Vector{T}} where {T}
     r_idxs = Tuple{Int,Int}[]
-    r_weights = Float64[]
+    r_weights = T[]
     ai = 1
     ae = length(a_idxs)
     bi = 1
@@ -144,10 +172,10 @@ function add_sparse_quadratic_combination(
     return (r_idxs, r_weights)
 end
 
-Base.:+(a::QuadraticValue, b::QuadraticValue) =
+Base.:+(a::QuadraticValueT{T}, b::QuadraticValueT{T}) where {T} =
     let (idxs, weights) =
             add_sparse_quadratic_combination(a.idxs, a.weights, b.idxs, b.weights)
-        QuadraticValue(; idxs, weights)
+        QuadraticValueT(; idxs, weights)
     end
 
 """
@@ -179,27 +207,27 @@ function multiply_sparse_linear_combination(
     )
 end
 
-Base.:*(a::LinearValue, b::LinearValue) =
+Base.:*(a::LinearValueT{T}, b::LinearValueT{T}) where {T} =
     let (idxs, weights) =
             multiply_sparse_linear_combination(a.idxs, a.weights, b.idxs, b.weights)
-        QuadraticValue(; idxs, weights)
+        QuadraticValueT(; idxs, weights)
     end
 
 """
 $(TYPEDSIGNATURES)
 
-Broadcastable shortcut for multiplying a [`LinearValue`](@ref) with itself.
-Produces a [`QuadraticValue`](@ref).
+Broadcastable shortcut for multiplying a [`LinearValueT`](@ref) with itself.
+Produces a [`QuadraticValueT`](@ref).
 """
-squared(a::LinearValue) = a * a
+squared(a::LinearValueT) = a * a
 
 """
 $(TYPEDSIGNATURES)
 
-Substitute anything vector-like as variable values into the [`QuadraticValue`](@ref)
-and return the result.
+Substitute anything vector-like as variable values into the
+[`QuadraticValueT`](@ref) and return the result.
 """
-substitute(x::QuadraticValue, y) = sum(
+substitute(x::QuadraticValueT, y) = sum(
     (
         let (idx1, idx2) = x.idxs[i]
             (idx1 == 0 ? 1.0 : y[idx1]) * (idx2 == 0 ? 1.0 : y[idx2]) * w
@@ -211,10 +239,19 @@ substitute(x::QuadraticValue, y) = sum(
 """
 $(TYPEDSIGNATURES)
 
-Shortcut for making a [`QuadraticValue`](@ref) out of a square sparse matrix. The
-matrix is force-symmetrized by calculating `x' + x`.
+Shortcut for making a [`QuadraticValue`](@ref) out of a square sparse matrix.
 """
-QuadraticValue(x::SparseMatrixCSC{Float64}) =
+QuadraticValue(x::SparseMatrixCSC{Float64}) = QuadraticValueT(x)
+
+"""
+$(TYPEDSIGNATURES)
+
+Generalized constructor for [`QuadraticValueT`](@ref) from square sparse
+matrices.
+
+The matrix is force-symmetrized by calculating `x' + x`.
+"""
+QuadraticValueT(x::SparseMatrixCSC{T}) where {T} =
     let
         rs, cs, vals = findnz(x' + x)
         # Note: Correctness of this now relies on (row,col) index pairs coming
