@@ -192,8 +192,14 @@ $(TYPEDSIGNATURES)
 
 Pretty-print an equality bound into the `io`.
 """
-function pretty(io::IO, x::EqualToT; equal_to_sign = "=", kwargs...)
-    print(io, " $equal_to_sign $(x.equal_to)")
+function pretty(
+    io::IO,
+    x::EqualToT;
+    equal_to_sign = "=",
+    format_bound_value = string,
+    kwargs...,
+)
+    print(io, " $equal_to_sign $(format_bound_value(x.equal_to))")
 end
 
 """
@@ -201,8 +207,17 @@ $(TYPEDSIGNATURES)
 
 Pretty-print an interval bound into the `io`.
 """
-function pretty(io::IO, x::BetweenT; in_interval_sign = "∈", kwargs...)
-    print(io, " $in_interval_sign [$(x.lower), $(x.upper)]")
+function pretty(
+    io::IO,
+    x::BetweenT;
+    in_interval_sign = "∈",
+    format_bound_value = string,
+    kwargs...,
+)
+    print(
+        io,
+        " $in_interval_sign [$(format_bound_value(x.lower)), $(format_bound_value(x.upper))]",
+    )
 end
 
 #
