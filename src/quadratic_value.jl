@@ -79,7 +79,7 @@ $(TYPEDSIGNATURES)
 Construct a [`QuadraticValueT`](@ref) that is equivalent to a given
 [`LinearValueT`](@ref).
 """
-QuadraticValueT(x::LinearValueT) =
+QuadraticValueT(x::LinearValueT{T}) where {T} =
     QuadraticValueT(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
 
 """
