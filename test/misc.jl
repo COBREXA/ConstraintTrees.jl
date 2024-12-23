@@ -45,6 +45,12 @@ end
     @test x.weights == [-1.0, -1.0, 2.0, -2.0, 2.0, 3.0]
     @test C.QuadraticValue(1.0).idxs == [(0, 0)]
     @test C.QuadraticValue(C.LinearValue(1.0)).idxs == [(0, 0)]
+
+    # zeroes should get eliminated
+    @test isempty(C.LinearValue(0).idxs)
+    @test isempty(C.LinearValueT(0.0).weights)
+    @test isempty(C.QuadraticValueT(0).idxs)
+    @test isempty(C.QuadraticValue(0.0).weights)
 end
 
 @testset "Constraints" begin
