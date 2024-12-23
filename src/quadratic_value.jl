@@ -79,7 +79,7 @@ $(TYPEDSIGNATURES)
 Construct a [`QuadraticValueT`](@ref) that is equivalent to a given
 [`LinearValueT`](@ref).
 """
-QuadraticValueT(x::LinearValueT{T}) where {T} =
+QuadraticValueT(x::LinearValueT) =
     QuadraticValueT(idxs = [(0, idx) for idx in x.idxs], weights = x.weights)
 
 """
@@ -97,13 +97,13 @@ Base.zero(::Type{QuadraticValueT{T}}) where {T} =
     QuadraticValueT{T}(idxs = Tuple{Int,Int}[], weights = T[])
 Base.:+(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) + b
 Base.:+(a::QuadraticValueT{T}, b::Real) where {T} = a + QuadraticValueT{T}(b)
-Base.:+(a::LinearValueT{T}, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) + b
-Base.:+(a::QuadraticValueT{T}, b::LinearValueT{T}) where {T} = a + QuadraticValueT{T}(b)
+Base.:+(a::LinearValueT, b::QuadraticValueT) = QuadraticValueT(a) + b
+Base.:+(a::QuadraticValueT, b::LinearValueT) = a + QuadraticValueT(b)
 Base.:-(a::QuadraticValueT) = -1 * a
 Base.:-(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) - b
 Base.:-(a::QuadraticValueT{T}, b::Real) where {T} = a - QuadraticValueT{T}(b)
-Base.:-(a::LinearValueT{T}, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) - b
-Base.:-(a::QuadraticValueT{T}, b::LinearValueT{T}) where {T} = a - QuadraticValueT{T}(b)
+Base.:-(a::LinearValueT, b::QuadraticValueT) = QuadraticValueT(a) - b
+Base.:-(a::QuadraticValueT, b::LinearValueT) = a - QuadraticValueT(b)
 Base.:-(a::QuadraticValueT, b::QuadraticValueT) = a + (-1 * b)
 Base.:*(a::Real, b::QuadraticValueT) = b * a
 Base.:*(a::QuadraticValueT, b::Real) =
