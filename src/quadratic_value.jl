@@ -94,7 +94,7 @@ Base.convert(::Type{QuadraticValueT{T}}, x::Real) where {T} =
     QuadraticValueT{T}(convert(T, x))
 Base.convert(::Type{QuadraticValueT{T}}, x::LinearValueT) where {T} = QuadraticValueT(x)
 Base.zero(::Type{QuadraticValueT{T}}) where {T} =
-    QuadraticValueT{T}(idxs = Int[], weights = T[])
+    QuadraticValueT{T}(idxs = Tuple{Int,Int}[], weights = T[])
 Base.:+(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) + b
 Base.:+(a::QuadraticValueT{T}, b::Real) where {T} = a + QuadraticValueT{T}(b)
 Base.:+(a::LinearValueT, b::QuadraticValueT) = QuadraticValue(a) + b # TODO
