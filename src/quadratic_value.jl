@@ -62,7 +62,7 @@ Construct a constant-valued [`QuadraticValueT`](@ref) with a single affine
 element.
 """
 QuadraticValueT(x::R) where {R<:Real} =
-    iszero(x) ? QuadraticValue(idxs = Vector{Tuple{Int,Int}}(), weights = R[]) :
+    iszero(x) ? zero(QuadraticValueT{R}) :
     QuadraticValueT{R}(idxs = [(0, 0)], weights = R[x])
 
 """

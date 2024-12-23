@@ -53,8 +53,7 @@ Construct a constant-valued [`LinearValueT`](@ref) with a single affine
 element.
 """
 LinearValueT(x::R) where {R<:Real} =
-    iszero(x) ? LinearValueT(idxs = Int[], weights = R[]) :
-    LinearValueT{R}(idxs = [0], weights = R[x])
+    iszero(x) ? zero(LinearValueT{R}) : LinearValueT{R}(idxs = [0], weights = R[x])
 
 """
 $(TYPEDSIGNATURES)
