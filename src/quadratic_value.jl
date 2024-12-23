@@ -97,17 +97,17 @@ Base.zero(::Type{QuadraticValueT{T}}) where {T} =
     QuadraticValueT{T}(idxs = Tuple{Int,Int}[], weights = T[])
 Base.:+(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) + b
 Base.:+(a::QuadraticValueT{T}, b::Real) where {T} = a + QuadraticValueT{T}(b)
-Base.:+(a::LinearValueT, b::QuadraticValueT) = QuadraticValue(a) + b # TODO
-Base.:+(a::QuadraticValueT, b::LinearValueT) = a + QuadraticValue(b) # TODO
+Base.:+(a::LinearValueT{T}, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) + b
+Base.:+(a::QuadraticValueT{T}, b::LinearValueT{T}) where {T} = a + QuadraticValueT{T}(b)
 Base.:-(a::QuadraticValueT) = -1 * a
 Base.:-(a::Real, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) - b
 Base.:-(a::QuadraticValueT{T}, b::Real) where {T} = a - QuadraticValueT{T}(b)
-Base.:-(a::LinearValueT, b::QuadraticValueT) = QuadraticValue(a) - b # TODO
-Base.:-(a::QuadraticValueT, b::LinearValueT) = a - QuadraticValue(b) # TODO
+Base.:-(a::LinearValueT{T}, b::QuadraticValueT{T}) where {T} = QuadraticValueT{T}(a) - b 
+Base.:-(a::QuadraticValueT{T}, b::LinearValueT{T}) where {T} = a - QuadraticValueT{T}(b) 
 Base.:-(a::QuadraticValueT, b::QuadraticValueT) = a + (-1 * b)
 Base.:*(a::Real, b::QuadraticValueT) = b * a
 Base.:*(a::QuadraticValueT, b::Real) =
-    QuadraticValue(idxs = a.idxs, weights = b .* a.weights)
+    QuadraticValueT(idxs = a.idxs, weights = b .* a.weights)
 Base.:/(a::QuadraticValueT, b::Real) =
     QuadraticValue(idxs = a.idxs, weights = a.weights ./ b)
 
