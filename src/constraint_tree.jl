@@ -251,7 +251,7 @@ Remove variable references from all [`Value`](@ref)s in the given object
 drop_zeros(x::Tree{T}) where {T} = ConstraintTree(k => drop_zeros(v) for (k, v) in x)
 drop_zeros(x::Constraint) = Constraint(drop_zeros(x.value), x.bound)
 drop_zeros(x::LinearValueT) =
-    LinearValueT(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.idxs.!=0])
+    LinearValueT(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.weights.!=0])
 drop_zeros(x::QuadraticValueT) =
     QuadraticValueT(idxs = x.idxs[x.weights.!=0], weights = x.weights[x.weights.!=0])
 
