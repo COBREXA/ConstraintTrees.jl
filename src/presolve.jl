@@ -17,7 +17,8 @@
 Internal presolver implementation is stashed away in this module so that it
 does not stand in the way of the "expected" use.
 
-It's suggested to use [`presolve!`](@ref) as a general front-end.
+It's suggested to use [`presolve!`](@ref ConstraintTrees.presolve!) as a
+general front-end.
 """
 module Presolver
 
