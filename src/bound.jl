@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg
+# Copyright (c) 2023-2025, University of Luxembourg
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,11 +20,18 @@ $(TYPEDEF)
 Abstract type of all bounds usable in constraints, including [`Between`](@ref)
 and [`EqualTo`](@ref).
 
-`length` of any `Bound` defaults to 1 in order to make broadcasting easier (in
-turn, one can write e.g. `Constraint.(some_values, EqualTo(0.0))`).
+All [`Bound`](@ref)s are broadcastable as scalars by default.
 """
 abstract type Bound end
 
+Base.Broadcast.broadcastable(x::Bound) = return Ref(x)
+
+"""
+$(TYPEDSIGNATURES)
+
+**Deprecation warning:** This is kept for backwards compatibility only, and
+will be removed in a future release.
+"""
 Base.length(x::Bound) = return 1
 
 """

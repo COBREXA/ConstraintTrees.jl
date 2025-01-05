@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg
+# Copyright (c) 2023-2025, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,12 @@ $(TYPEDEF)
 
 Abstract type of all values usable in constraints, including
 [`LinearValue`](@ref) and [`QuadraticValue`](@ref).
+
+All [`Value`](@ref)s are broadcastable as scalars by default.
 """
 abstract type Value end
+
+Base.Broadcast.broadcastable(x::Value) = return Ref(x)
 
 """
 $(TYPEDSIGNATURES)
