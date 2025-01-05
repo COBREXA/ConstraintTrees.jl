@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg
+# Copyright (c) 2023-2025, University of Luxembourg
 # Copyright (c) 2023, Heinrich-Heine University Duesseldorf
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,25 +291,14 @@ $(TYPEDSIGNATURES)
 Make a trivial constraint system that creates variables with indexes in range
 `1:length(keys)` named in order as given by `keys`.
 
-Parameter `bounds` is either `nothing` for creating variables without bounds
-assigned to them, a single bound for creating variables with the same constraint
-assigned to them all, or an iterable object of same length as `keys` with
-individual bounds for each variable in the same order as `keys`.
-
-The individual bounds should be subtypes of [`Bound`](@ref), or nothing. To pass
-a single bound for all variables, use e.g. `bounds = EqualTo(0)`.
+The individual bounds should be subtypes of [`Bound`](@ref), or nothing (which
+is the default). The bounds are broadcasted; to pass a single bound for all
+variables, one can use e.g. `bounds = EqualTo(0)`.
 """
-function variables(weight = 1.0; keys::AbstractVector{Symbol}, bounds = nothing)
-    bs =
-        isnothing(bounds) ? Base.Iterators.cycle(tuple(nothing)) :
-        length(bounds) == 1 ? Base.Iterators.cycle(tuple(bounds)) :
-        length(bounds) == length(keys) ? bounds :
-        error("lengths of bounds and keys differ for allocated variables")
-    ConstraintTree(
-        k => variable(weight; idx = i, bound = b) for
-        ((i, k), b) in Base.zip(enumerate(keys), bs)
-    )
-end
+variables(weight = 1.0; keys::AbstractVector{Symbol}, bounds = Ref(nothing)) =
+    let go((i, k), b) = k => variable(weight, idx = i, bound = b)
+        ConstraintTree(go.(enumerate(keys), bounds)...)
+    end
 
 """
 $(TYPEDSIGNATURES)
