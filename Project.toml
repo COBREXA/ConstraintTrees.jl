@@ -19,7 +19,7 @@ GLPK = "1"
 JuMP = "1"
 SBML = "1"
 SCIP = "0.11"
-julia = "1"
+julia = "1.10"
 
 [extras]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
