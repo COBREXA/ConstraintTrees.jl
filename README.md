@@ -3,7 +3,7 @@
 
 | Build status | Documentation |
 |:---:|:---:|
-| ![CI status](https://github.com/COBREXA/ConstraintTrees.jl/workflows/CI/badge.svg?branch=master) [![codecov](https://codecov.io/gh/COBREXA/ConstraintTrees.jl/branch/master/graph/badge.svg?token=A2ui7exGIH)](https://codecov.io/gh/COBREXA/ConstraintTrees.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://cobrexa.github.io/ConstraintTrees.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://cobrexa.github.io/ConstraintTrees.jl/dev) |
+| [![CI](https://github.com/COBREXA/ConstraintTrees.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/COBREXA/ConstraintTrees.jl/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/COBREXA/ConstraintTrees.jl/branch/master/graph/badge.svg?token=A2ui7exGIH)](https://codecov.io/gh/COBREXA/ConstraintTrees.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://cobrexa.github.io/ConstraintTrees.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://cobrexa.github.io/ConstraintTrees.jl/dev) |
 
 Package `ConstraintTrees.jl` provides a simple data structure `ConstraintTree`
 for organizing the contents of various constrained optimization problems. As a
