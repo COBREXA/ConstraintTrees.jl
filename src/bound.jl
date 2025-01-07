@@ -32,7 +32,10 @@ $(TYPEDSIGNATURES)
 **Deprecation warning:** This is kept for backwards compatibility only, and
 will be removed in a future release.
 """
-Base.length(x::Bound) = return 1
+function Base.length(x::Bound)
+    Base.depwarn("length(::Bound) will be removed in future release. Just use 1", :length) 
+    return 1
+end
 
 """
 $(TYPEDEF)
