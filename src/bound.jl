@@ -33,7 +33,10 @@ $(TYPEDSIGNATURES)
 will be removed in a future release.
 """
 function Base.length(x::Bound)
-    Base.depwarn("length(::Bound) will be removed in future release.", :length)
+    Base.depwarn(
+        "length(::Bound) is deprecated and will be removed in future release.",
+        :length,
+    )
     return 1
 end
 

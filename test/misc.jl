@@ -16,6 +16,12 @@
 import ConstraintTrees as C
 import SparseArrays as SP
 
+@testset "Bounds" begin
+    b = C.EqualTo(0)
+    @test_deprecated length(b)
+    @test length(b) == 1
+end
+
 @testset "Values" begin
     x =
         C.LinearValue(SP.sparse([5.0, 0, 6.0, 0])) +
