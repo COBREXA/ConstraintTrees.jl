@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg                        #src
+# Copyright (c) 2023-2025, University of Luxembourg                        #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
 # you may not use this file except in compliance with the License.         #src
@@ -84,10 +84,7 @@ ellipse_system = C.ConstraintTree(
 # single-variable-parametrized line equation.
 line_param = C.variable().value
 line_system =
-    :point^C.ConstraintTree(
-        :x => C.Constraint(0 + 2 * line_param),
-        :y => C.Constraint(0 + 1 * line_param),
-    )
+    :point^C.ConstraintTree([:x, :y] .=> C.Constraint.([0, 0] .+ [2, 1] .* line_param))
 
 # Finally, let's connect the systems using `+` operator and add the objective
 # that would minimize the distance of the points:

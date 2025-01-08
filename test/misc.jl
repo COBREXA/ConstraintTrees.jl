@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg
+# Copyright (c) 2023-2025, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
 
 import ConstraintTrees as C
 import SparseArrays as SP
+
+@testset "Bounds" begin
+    b = C.EqualTo(0)
+    @test (@test_deprecated length(b)) == 1
+end
 
 @testset "Values" begin
     x =
