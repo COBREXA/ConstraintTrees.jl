@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Example: Processing the trees functionally · ConstraintTrees.jl</title><meta name="title" content="Example: Processing the trees functionally · ConstraintTrees.jl"/><meta property="og:title" content="Example: Processing the trees functionally · ConstraintTrees.jl"/><meta property="twitter:title" content="Example: Processing the trees functionally · ConstraintTrees.jl"/><meta name="description" content="Documentation for ConstraintTrees.jl."/><meta property="og:description" content="Documentation for ConstraintTrees.jl."/><meta property="twitter:description" content="Documentation for ConstraintTrees.jl."/><meta property="og:url" content="https://cobrexa.github.io/ConstraintTrees.jl/stable/4-functional-tree-processing/"/><meta property="twitter:url" content="https://cobrexa.github.io/ConstraintTrees.jl/stable/4-functional-tree-processing/"/><link rel="canonical" href="https://cobrexa.github.io/ConstraintTrees.jl/stable/4-functional-tree-processing/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ConstraintTrees.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">README</a></li><li><a class="tocitem" href="../0-quickstart/">Quick start</a></li><li><a class="tocitem" href="../1-metabolic-modeling/">Example: Metabolic modeling</a></li><li><a class="tocitem" href="../2-quadratic-optimization/">Example: Quadratic optimization</a></li><li><a class="tocitem" href="../3-mixed-integer-optimization/">Example: Mixed integer optimization (MILP)</a></li><li class="is-active"><a class="tocitem" href>Example: Processing the trees functionally</a><ul class="internal"><li><a class="tocitem" href="#Transforming-trees-with-map"><span>Transforming trees with <code>map</code></span></a></li><li><a class="tocitem" href="#Summarizing-the-trees-with-mapreduce-and-reduce"><span>Summarizing the trees with <code>mapreduce</code> and <code>reduce</code></span></a></li><li><a class="tocitem" href="#Comparing-trees-with-zip"><span>Comparing trees with <code>zip</code></span></a></li><li><a class="tocitem" href="#Combining-trees-with-merge"><span>Combining trees with <code>merge</code></span></a></li><li><a class="tocitem" href="#Allocating-trees-of-variables-using-variables_for"><span>Allocating trees of variables using <code>variables_for</code></span></a></li><li><a class="tocitem" href="#Looping-through-the-trees-with-traverse"><span>Looping through the trees with <code>traverse</code></span></a></li><li><a class="tocitem" href="#Removing-constraints-with-filter"><span>Removing constraints with <code>filter</code></span></a></li></ul></li><li><a class="tocitem" href="../5-jump-integration/">Better integration with JuMP</a></li><li><a class="tocitem" href="../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Example: Processing the trees functionally</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Example: Processing the trees functionally</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/COBREXA/ConstraintTrees.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/COBREXA/ConstraintTrees.jl/blob/master/docs/src/4-functional-tree-processing.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Example:-Processing-the-trees-functionally"><a class="docs-heading-anchor" href="#Example:-Processing-the-trees-functionally">Example: Processing the trees functionally</a><a id="Example:-Processing-the-trees-functionally-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-Processing-the-trees-functionally" title="Permalink"></a></h1><p>The main goal of ConstraintTrees.jl is to make the constraint-manipulating code orderly and elegant, and preferably short. To improve the manipulation of large constraint trees, the package also provides a small functional-programming-inspired framework that allows one to easily transform, summarize and combine all kinds of trees without writing repetitive code.</p><p>You might already seen the <a href="../reference/#ConstraintTrees.zip-Union{Tuple{T}, Tuple{Any, Any, Any}, Tuple{Any, Any, Any, Type{T}}} where T"><code>zip</code></a> function in the <a href="../1-metabolic-modeling/">metabolic modeling example</a>. There are more functions that behave like <code>zip</code>, so let&#39;s have a little summary here:</p><ul><li><a href="../reference/#ConstraintTrees.map-Union{Tuple{T}, Tuple{Any, Any}, Tuple{Any, Any, Type{T}}} where T"><code>map</code></a> applies a function to all elements (including the nested ones) of a tree</li><li><a href="../reference/#ConstraintTrees.mapreduce-Tuple{Any, Any, Any}"><code>mapreduce</code></a> transforms all elements of a tree using a given function (first parameter) and then combines the result using the second function (a binary operator); <a href="../reference/#ConstraintTrees.reduce-Tuple{Any, Any}"><code>reduce</code></a> is a shortcut where the <code>map</code> function is an identity</li><li><a href="../reference/#ConstraintTrees.zip-Union{Tuple{T}, Tuple{Any, Any, Any}, Tuple{Any, Any, Any, Type{T}}} where T"><code>zip</code></a> combines elements common to both trees using a given zipping function</li><li><a href="../reference/#ConstraintTrees.merge-Union{Tuple{T}, Tuple{Any, Any, Any}, Tuple{Any, Any, Any, Type{T}}} where T"><code>merge</code></a> combines all elements in both trees (including the ones present in only one tree) using a given merging function</li><li><a href="../reference/#ConstraintTrees.variables_for"><code>variables_for</code></a> allocates a variable for each constraint in the tree and allows the user to specify bounds</li></ul><p>Additionally, all these have their &quot;indexed&quot; variant which allows the user to know the path where the tree elements are being merged. The path is passed to the handling function as a tuple of symbols. The variants are prefixed with <code>i</code>:</p><ul><li><a href="../reference/#ConstraintTrees.imap-Union{Tuple{T}, Tuple{Any, Any}, Tuple{Any, Any, Type{T}}} where T"><code>imap</code></a></li><li><a href="../reference/#ConstraintTrees.ireduce-Tuple{Any, Any}"><code>imapreduce</code></a> (here the path refers to the common directory of the reduced elements) together with the shortcut <a href="../reference/#ConstraintTrees.ireduce-Tuple{Any, Any}"><code>ireduce</code></a></li><li><a href="../reference/#ConstraintTrees.izip-Union{Tuple{T}, Tuple{Any, Any, Any}, Tuple{Any, Any, Any, Type{T}}} where T"><code>izip</code></a></li><li><a href="../reference/#ConstraintTrees.imerge-Union{Tuple{T}, Tuple{Any, Any, Any}, Tuple{Any, Any, Any, Type{T}}} where T"><code>imerge</code></a></li><li><a href="../reference/#ConstraintTrees.variables_ifor"><code>variables_ifor</code></a></li></ul><div class="admonition is-danger"><header class="admonition-header">Naming conflicts with Julia base</header><div class="admonition-body"><p>Names of some of the higher-order function conflict with Julia base package and are not compatible. We recommend using them with named imports, such as by <code>import ConstraintTrees as C</code> and then <code>C.zip</code> and <code>C.merge</code>.</p></div></div><p>For demonstration, let&#39;s make a very simple constrained system.</p><pre><code class="language-julia hljs">import ConstraintTrees as C
+
+constraints = :point^C.variables(keys = [:x, :y], bounds = C.Between(0, 1))
+
+C.pretty(constraints)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">──point
+  ╰─┬─x: 1.0*x[1] ∈ [0.0, 1.0]
+    ╰─y: 1.0*x[2] ∈ [0.0, 1.0]</code></pre><h2 id="Transforming-trees-with-map"><a class="docs-heading-anchor" href="#Transforming-trees-with-map">Transforming trees with <code>map</code></a><a id="Transforming-trees-with-map-1"></a><a class="docs-heading-anchor-permalink" href="#Transforming-trees-with-map" title="Permalink"></a></h2><p>Let&#39;s make a tree where the bounds are 2 times bigger and negated:</p><pre><code class="language-julia hljs">x = C.map(constraints) do x
+    C.Constraint(x.value, -2 * x.bound)
+end
+
+C.pretty(x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">──point
+  ╰─┬─x: 1.0*x[1] ∈ [-2.0, -0.0]
+    ╰─y: 1.0*x[2] ∈ [-2.0, -0.0]</code></pre><p>With <code>imap</code>, we can detect that we are working on a specific constraint and do something entirely different:</p><pre><code class="language-julia hljs">x = C.imap(constraints) do path, x
+    if path == (:point, :x)
+        C.Constraint(x.value, 100 * x.bound)
+    else
+        x
+    end
+end
+
+C.pretty(x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">──point
+  ╰─┬─x: 1.0*x[1] ∈ [0.0, 100.0]
+    ╰─y: 1.0*x[2] ∈ [0.0, 1.0]</code></pre><h2 id="Summarizing-the-trees-with-mapreduce-and-reduce"><a class="docs-heading-anchor" href="#Summarizing-the-trees-with-mapreduce-and-reduce">Summarizing the trees with <code>mapreduce</code> and <code>reduce</code></a><a id="Summarizing-the-trees-with-mapreduce-and-reduce-1"></a><a class="docs-heading-anchor-permalink" href="#Summarizing-the-trees-with-mapreduce-and-reduce" title="Permalink"></a></h2><p>How many constraints are there in the tree?</p><pre><code class="language-julia hljs">x = C.mapreduce(init = 0, _ -&gt; 1, +, constraints)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2</code></pre><p>What if we want to sum all constraints&#39; values?</p><pre><code class="language-julia hljs">x = C.reduce(constraints, init = C.Constraint(zero(C.LinearValue))) do x, y
+    C.Constraint(value = x.value + y.value)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constraint(LinearValue([1, 2], [1.0, 1.0]), nothing)</code></pre><p>What if we want to reduce the <code>point</code> specially?</p><pre><code class="language-julia hljs">x = C.ireduce(constraints, init = C.Constraint(zero(C.LinearValue))) do path, x, y
+    if path == (:point,)
+        println(&quot;reducing in point/ subtree: $(x.value) + $(y.value)&quot;)
+    end
+    C.Constraint(value = x.value + y.value)
+end;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">reducing in point/ subtree: LinearValue(Int64[], Float64[]) + LinearValue([1], [1.0])
+reducing in point/ subtree: LinearValue([1], [1.0]) + LinearValue([2], [1.0])</code></pre><pre><code class="language-julia hljs">x</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constraint(LinearValue([1, 2], [1.0, 1.0]), nothing)</code></pre><h2 id="Comparing-trees-with-zip"><a class="docs-heading-anchor" href="#Comparing-trees-with-zip">Comparing trees with <code>zip</code></a><a id="Comparing-trees-with-zip-1"></a><a class="docs-heading-anchor-permalink" href="#Comparing-trees-with-zip" title="Permalink"></a></h2><p>Assume we have two solutions of the constraint system above, as follows:</p><pre><code class="language-julia hljs">s1 = C.substitute_values(constraints, [0.9, 0.8])
+s2 = C.substitute_values(constraints, [0.99, 0.78])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Float64} with 1 element:
+  :point =&gt; Tree{Float64}(#= 2 elements =#)</code></pre><p>Let&#39;s compute the squared distance between individual items:</p><pre><code class="language-julia hljs">x = C.zip(s1, s2, Float64) do x, y
+    (x - y)^2
+end
+
+C.pretty(x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">──point
+  ╰─┬─x: 0.008099999999999994
+    ╰─y: 0.0004000000000000007</code></pre><p>What if we want to put extra weight on distances between specific variables?</p><pre><code class="language-julia hljs">x = C.izip(s1, s2, Float64) do path, x, y
+    if path == (:point, :x)
+        10
+    else
+        1
+    end * (x - y)^2
+end
+
+C.pretty(x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">──point
+  ╰─┬─x: 0.08099999999999995
+    ╰─y: 0.0004000000000000007</code></pre><h2 id="Combining-trees-with-merge"><a class="docs-heading-anchor" href="#Combining-trees-with-merge">Combining trees with <code>merge</code></a><a id="Combining-trees-with-merge-1"></a><a class="docs-heading-anchor-permalink" href="#Combining-trees-with-merge" title="Permalink"></a></h2><p>Zipping trees together always produces a tree that only contains the intersection of keys from both original trees. That is not very useful if one wants to e.g. add new elements from extended trees. <code>merge</code>-style functions implement precisely that.</p><p>The &quot;zipping&quot; function in <code>merge</code> takes 2 arguments; any of these may be <code>missing</code> in case one of the trees does not contain the elements. Also, a key may be omitted by returning <code>missing</code> from the function.</p><p>Let&#39;s make some very heterogeneous trees and try to combine them:</p><pre><code class="language-julia hljs">t1 = :x^s1.point * :y^s2.point;
+t2 = :x^s2.point * :z^s1.point;
+t3 = :y^s2.point;</code></pre><p>As a nice combination function, we can try to compute an average on all positions from the first 2 trees:</p><pre><code class="language-julia hljs">t = C.merge(t1, t2, Float64) do x, y
+    ismissing(x) &amp;&amp; return y
+    ismissing(y) &amp;&amp; return x
+    (x + y) / 2
+end
+
+C.pretty(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰─┬─x: 0.9450000000000001
+│   ╰─y: 0.79
+├─y
+│ ╰─┬─x: 0.99
+│   ╰─y: 0.78
+╰─z
+  ╰─┬─x: 0.9
+    ╰─y: 0.8</code></pre><p>Merge can also take 3 parameters (which is convenient in some situations). We may also want to omit certain output completely:</p><pre><code class="language-julia hljs">tz = C.merge(t1, t2, t3, Float64) do x, y, z
+    ismissing(z) &amp;&amp; return missing
+    ismissing(x) &amp;&amp; return y
+    ismissing(y) &amp;&amp; return x
+    (x + y) / 2
+end
+
+C.pretty(tz)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+├─y
+│ ╰─┬─x: 0.99
+│   ╰─y: 0.78
+╰─z</code></pre><p>We also have the indexed variants; for example this allows us to only merge the <code>x</code> elements in points:</p><pre><code class="language-julia hljs">tx = C.imerge(t1, t2, Float64) do path, x, y
+    last(path) == :x || return missing
+    ismissing(x) &amp;&amp; return y
+    ismissing(y) &amp;&amp; return x
+    (x + y) / 2
+end
+
+C.pretty(tx)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰───x: 0.9450000000000001
+├─y
+│ ╰───x: 0.99
+╰─z
+  ╰───x: 0.9</code></pre><p>For completeness, we demonstrate a trick with easily coalescing the &quot;missing&quot; things to compute the means more easily:</p><pre><code class="language-julia hljs">miss(_::Missing, _, def) = def;
+miss(x, f, _) = f(x);
+fixmean(a) = miss(a, x -&gt; (x, 1), (0, 0));
+
+tx = C.imerge(t1, t2, t3, Float64) do path, x, y, z
+    last(path) == :x || return missing
+    tmp = fixmean.([x, y, z])
+    sum(first.(tmp)) / sum(last.(tmp))
+end
+
+C.pretty(tx)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰───x: 0.9450000000000001
+├─y
+│ ╰───x: 0.99
+╰─z
+  ╰───x: 0.9</code></pre><h2 id="Allocating-trees-of-variables-using-variables_for"><a class="docs-heading-anchor" href="#Allocating-trees-of-variables-using-variables_for">Allocating trees of variables using <code>variables_for</code></a><a id="Allocating-trees-of-variables-using-variables_for-1"></a><a class="docs-heading-anchor-permalink" href="#Allocating-trees-of-variables-using-variables_for" title="Permalink"></a></h2><p>In many cases it is convenient to make a new model from the old by allocating new variables for whatever &quot;old&quot; tree out there. For example, one might wish to allocate a new variable for an approximate value (plus-minus-one) for each of the above tree&#39;s values. <code>variables_for</code> allocates one variable for each element of the given tree, and allows you to create bounds for the variables via the given function:</p><pre><code class="language-julia hljs">C.pretty(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰─┬─x: 0.9450000000000001
+│   ╰─y: 0.79
+├─y
+│ ╰─┬─x: 0.99
+│   ╰─y: 0.78
+╰─z
+  ╰─┬─x: 0.9
+    ╰─y: 0.8</code></pre><pre><code class="language-julia hljs">x = C.variables_for(t) do a
+    C.Between(a - 1, a + 1)
+end
+
+C.pretty(x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰─┬─x: 1.0*x[1] ∈ [-0.05499999999999994, 1.945]
+│   ╰─y: 1.0*x[2] ∈ [-0.20999999999999996, 1.79]
+├─y
+│ ╰─┬─x: 1.0*x[3] ∈ [-0.010000000000000009, 1.99]
+│   ╰─y: 1.0*x[4] ∈ [-0.21999999999999997, 1.78]
+╰─z
+  ╰─┬─x: 1.0*x[5] ∈ [-0.09999999999999998, 1.9]
+    ╰─y: 1.0*x[6] ∈ [-0.19999999999999996, 1.8]</code></pre><p>(Note that the variable indexes in subtrees are now different from each other!)</p><p>As in all cases with indexes, you may match the tree path to do a special action. For example, to make sure that all <code>y</code> coordinates are exact in the new system:</p><pre><code class="language-julia hljs">x = C.variables_ifor(t) do path, a
+    if last(path) == :y
+        C.EqualTo(a)
+    else
+        C.Between(a - 1, a + 1)
+    end
+end
+
+C.pretty(x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰─┬─x: 1.0*x[1] ∈ [-0.05499999999999994, 1.945]
+│   ╰─y: 1.0*x[2] = 0.79
+├─y
+│ ╰─┬─x: 1.0*x[3] ∈ [-0.010000000000000009, 1.99]
+│   ╰─y: 1.0*x[4] = 0.78
+╰─z
+  ╰─┬─x: 1.0*x[5] ∈ [-0.09999999999999998, 1.9]
+    ╰─y: 1.0*x[6] = 0.8</code></pre><h2 id="Looping-through-the-trees-with-traverse"><a class="docs-heading-anchor" href="#Looping-through-the-trees-with-traverse">Looping through the trees with <code>traverse</code></a><a id="Looping-through-the-trees-with-traverse-1"></a><a class="docs-heading-anchor-permalink" href="#Looping-through-the-trees-with-traverse" title="Permalink"></a></h2><p>Since we are writing our code in an imperative language, it is often quite beneficial to run a function over the trees just for the side effect.</p><p>For this purpose, <a href="../reference/#ConstraintTrees.traverse-Tuple{Any, Any}"><code>traverse</code></a> and <a href="../reference/#ConstraintTrees.itraverse-Tuple{Any, Any}"><code>itraverse</code></a> work precisely like <a href="../reference/#ConstraintTrees.map-Union{Tuple{T}, Tuple{Any, Any}, Tuple{Any, Any, Type{T}}} where T"><code>map</code></a> and <a href="../reference/#ConstraintTrees.imap-Union{Tuple{T}, Tuple{Any, Any}, Tuple{Any, Any, Type{T}}} where T"><code>imap</code></a>, except no tree is returned and the only &quot;output&quot; of the functions are their side effect.</p><p>For example, you can write a less-functional counting of number of constraints in the tree as follows:</p><pre><code class="language-julia hljs">constraint_count = 0
+C.traverse(x) do _
+    global constraint_count += 1
+end
+constraint_count</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><p>The indexed variant of traverse works as expected; it may be beneficial e.g. for printing the contents of the constraint trees in a &quot;flat&quot; form, or potentially working with other path-respecting data structures.</p><pre><code class="language-julia hljs">C.itraverse(x) do ix, c
+    path = join(String.(ix), &#39;/&#39;)
+    println(&quot;$path = $c&quot;)
+end;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">x/x = Constraint(LinearValue([1], [1.0]), Between(-0.05499999999999994, 1.945))
+x/y = Constraint(LinearValue([2], [1.0]), EqualTo(0.79))
+y/x = Constraint(LinearValue([3], [1.0]), Between(-0.010000000000000009, 1.99))
+y/y = Constraint(LinearValue([4], [1.0]), EqualTo(0.78))
+z/x = Constraint(LinearValue([5], [1.0]), Between(-0.09999999999999998, 1.9))
+z/y = Constraint(LinearValue([6], [1.0]), EqualTo(0.8))</code></pre><p>To prevent uncertainty, both functions always traverse the keys in sorted order.</p><h2 id="Removing-constraints-with-filter"><a class="docs-heading-anchor" href="#Removing-constraints-with-filter">Removing constraints with <code>filter</code></a><a id="Removing-constraints-with-filter-1"></a><a class="docs-heading-anchor-permalink" href="#Removing-constraints-with-filter" title="Permalink"></a></h2><p>In many cases it is beneficial to simplify the constraint system by systematically removing constraints. <a href="../reference/#ConstraintTrees.filter-Union{Tuple{T}, Tuple{Any, Tree{T}}} where T"><code>filter</code></a> and <a href="../reference/#ConstraintTrees.ifilter-Union{Tuple{T}, Tuple{Any, Tree{T}}} where T"><code>ifilter</code></a> run a function on all subtrees and leaves (usually the leaves are <a href="../reference/#ConstraintTrees.Constraint"><code>Constraint</code></a>s), and only retain these where the function returns <code>true</code>.</p><p>For example, this removes all constraints named <code>y</code>:</p><pre><code class="language-julia hljs">filtered = C.ifilter(x) do ix, c
+    return c isa C.ConstraintTree || last(ix) != :y
+end
+
+C.pretty(filtered)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰───x: 1.0*x[1] ∈ [-0.05499999999999994, 1.945]
+├─y
+│ ╰───x: 1.0*x[3] ∈ [-0.010000000000000009, 1.99]
+╰─z
+  ╰───x: 1.0*x[5] ∈ [-0.09999999999999998, 1.9]</code></pre><p>Functions <a href="../reference/#ConstraintTrees.filter_leaves-Union{Tuple{T}, Tuple{Any, Tree{T}}} where T"><code>filter_leaves</code></a> and <a href="../reference/#ConstraintTrees.ifilter_leaves-Union{Tuple{T}, Tuple{Any, Tree{T}}} where T"><code>ifilter_leaves</code></a> act similarly but automatically assume that the directory structure is going to stay intact, freeing the user from having to handle the subdirectories.</p><p>The above example thus simplifies to:</p><pre><code class="language-julia hljs">filtered = C.ifilter_leaves(x) do ix, c
+    last(ix) != :y
+end
+
+C.pretty(filtered)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+│ ╰───x: 1.0*x[1] ∈ [-0.05499999999999994, 1.945]
+╰─z
+  ╰───x: 1.0*x[5] ∈ [-0.09999999999999998, 1.9]</code></pre><p>We can also remove whole variable ranges:</p><pre><code class="language-julia hljs">filtered = C.filter_leaves(x) do c
+    all(&gt;=(4), c.value.idxs)
+end
+
+C.pretty(filtered)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─x
+├─y
+│ ╰───y: 1.0*x[4] = 0.78
+╰─z
+  ╰─┬─x: 1.0*x[5] ∈ [-0.09999999999999998, 1.9]
+    ╰─y: 1.0*x[6] = 0.8</code></pre><h3 id="Pruning-unused-variable-references"><a class="docs-heading-anchor" href="#Pruning-unused-variable-references">Pruning unused variable references</a><a id="Pruning-unused-variable-references-1"></a><a class="docs-heading-anchor-permalink" href="#Pruning-unused-variable-references" title="Permalink"></a></h3><p>Filtering operations may leave the constraint tree in a slightly sub-optimal state, where there are indexes allocated for variables that are no longer used!</p><pre><code class="language-julia hljs">C.variable_count(filtered)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><p>To investigate, it is possible to calculate a &quot;reference count&quot; for each variable:</p><pre><code class="language-julia hljs">variable_ref_counts = zeros(Int, C.variable_count(filtered))
+C.collect_variables!(filtered) do idx
+    if idx &gt; 0
+        variable_ref_counts[idx] += 1
+    end
+end
+variable_ref_counts</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6-element Vector{Int64}:
+ 0
+ 0
+ 0
+ 1
+ 1
+ 1</code></pre><p>To fix the issue, it is possible to &quot;squash&quot; the variable indexes using <a href="../reference/#ConstraintTrees.prune_variables-Tuple{Any}"><code>prune_variables</code></a>:</p><pre><code class="language-julia hljs">pruned = C.prune_variables(filtered)
+
+C.variable_count(pruned)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3</code></pre><p>Note that after the pruning and renumbering, the involved constraint trees are no longer compatible, and should not be combined with <code>*</code>. As an anti-example, one might be interested in pruning the variable values before joining them in to larger constraint tree, e.g. to simplify larger quadratic values:</p><pre><code class="language-julia hljs">pruned_qv = C.prune_variables(x.y.x.value * x.z.y.value)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">QuadraticValue([(1, 2)], [1.0])</code></pre><p>This value now corresponds to a completely different value in the original tree! Compare:</p><pre><code class="language-julia hljs">(pruned_qv, x.y.x.value * x.z.y.value)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(QuadraticValue([(1, 2)], [1.0]), QuadraticValue([(3, 6)], [1.0]))</code></pre><p>As another common source of redundant variable references, some variables may be used with zero weights. This situation is not detected by <a href="../reference/#ConstraintTrees.prune_variables-Tuple{Any}"><code>prune_variables</code></a> by default, but you can remove the &quot;zeroed out&quot; variable references by using <a href="../reference/#ConstraintTrees.drop_zeros-Union{Tuple{Tree{T}}, Tuple{T}} where T"><code>drop_zeros</code></a>, which allows the pruning to work properly.</p><p>For example, the value constructed in the tree below does not really refer to <code>x.x.y</code> anymore, but pruning does not help to get rid of the now-redundant variable:</p><pre><code class="language-julia hljs">x.x.y.value = x.x.y.value + x.x.x.value * x.x.x.value - x.x.y.value</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">QuadraticValue([(1, 1), (0, 2)], [1.0, 0.0])</code></pre><pre><code class="language-julia hljs">C.variable_count(C.prune_variables(x))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><p>After the zero-weight variable references are dropped, the pruning behaves as desired:</p><pre><code class="language-julia hljs">C.variable_count(C.prune_variables(C.drop_zeros(x)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../3-mixed-integer-optimization/">« Example: Mixed integer optimization (MILP)</a><a class="docs-footer-nextpage" href="../5-jump-integration/">Better integration with JuMP »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Wednesday 8 January 2025 13:32">Wednesday 8 January 2025</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

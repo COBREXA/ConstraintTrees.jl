@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Example: Mixed integer optimization (MILP) · ConstraintTrees.jl</title><meta name="title" content="Example: Mixed integer optimization (MILP) · ConstraintTrees.jl"/><meta property="og:title" content="Example: Mixed integer optimization (MILP) · ConstraintTrees.jl"/><meta property="twitter:title" content="Example: Mixed integer optimization (MILP) · ConstraintTrees.jl"/><meta name="description" content="Documentation for ConstraintTrees.jl."/><meta property="og:description" content="Documentation for ConstraintTrees.jl."/><meta property="twitter:description" content="Documentation for ConstraintTrees.jl."/><meta property="og:url" content="https://cobrexa.github.io/ConstraintTrees.jl/stable/3-mixed-integer-optimization/"/><meta property="twitter:url" content="https://cobrexa.github.io/ConstraintTrees.jl/stable/3-mixed-integer-optimization/"/><link rel="canonical" href="https://cobrexa.github.io/ConstraintTrees.jl/stable/3-mixed-integer-optimization/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ConstraintTrees.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">README</a></li><li><a class="tocitem" href="../0-quickstart/">Quick start</a></li><li><a class="tocitem" href="../1-metabolic-modeling/">Example: Metabolic modeling</a></li><li><a class="tocitem" href="../2-quadratic-optimization/">Example: Quadratic optimization</a></li><li class="is-active"><a class="tocitem" href>Example: Mixed integer optimization (MILP)</a><ul class="internal"><li><a class="tocitem" href="#Creating-a-custom-bound"><span>Creating a custom bound</span></a></li><li><a class="tocitem" href="#A-note-on-pretty-printing-of-custom-extensions"><span>A note on pretty-printing of custom extensions</span></a></li><li><a class="tocitem" href="#A-more-realistic-example-with-geometry"><span>A more realistic example with geometry</span></a></li></ul></li><li><a class="tocitem" href="../4-functional-tree-processing/">Example: Processing the trees functionally</a></li><li><a class="tocitem" href="../5-jump-integration/">Better integration with JuMP</a></li><li><a class="tocitem" href="../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Example: Mixed integer optimization (MILP)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Example: Mixed integer optimization (MILP)</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/COBREXA/ConstraintTrees.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/COBREXA/ConstraintTrees.jl/blob/master/docs/src/3-mixed-integer-optimization.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Example:-Mixed-integer-optimization-(MILP)"><a class="docs-heading-anchor" href="#Example:-Mixed-integer-optimization-(MILP)">Example: Mixed integer optimization (MILP)</a><a id="Example:-Mixed-integer-optimization-(MILP)-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-Mixed-integer-optimization-(MILP)" title="Permalink"></a></h1><p>This example demonstrates the extension of <code>ConstraintTree</code> bounds structures to accommodate new kinds of problems. In particular, we create a new kind of <code>Bound</code> that is restricting the value to be a full integer, and then solve a geometric problem with that.</p><h2 id="Creating-a-custom-bound"><a class="docs-heading-anchor" href="#Creating-a-custom-bound">Creating a custom bound</a><a id="Creating-a-custom-bound-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-a-custom-bound" title="Permalink"></a></h2><p>All bounds contained in constraints are subtypes of the abstract <a href="../reference/#ConstraintTrees.Bound"><code>ConstraintTrees.Bound</code></a>. These include <a href="../reference/#ConstraintTrees.EqualTo"><code>ConstraintTrees.EqualTo</code></a> and <a href="../reference/#ConstraintTrees.Between"><code>ConstraintTrees.Between</code></a>, but the types can be extended as necessary, given the final rewriting of the constraint system to JuMP can handle the new bounds.</p><p>Let&#39;s make a small &quot;marker&quot; bound for something that needs to be integer-ish, between 2 integers:</p><pre><code class="language-julia hljs">import ConstraintTrees as C
+
+mutable struct IntegerFromTo &lt;: C.Bound
+    from::Int
+    to::Int
+end</code></pre><p>We can now write e.g. a bound on the number on a thrown six-sided die as follows:</p><pre><code class="language-julia hljs">IntegerFromTo(1, 6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.var&quot;Main&quot;.IntegerFromTo(1, 6)</code></pre><p>...and include this bound in constraints and variables:</p><pre><code class="language-julia hljs">dice_system = C.variables(keys = [:first_dice, :second_dice], bounds = IntegerFromTo(1, 6))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTree with 2 elements:
+  :first_dice  =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))
+  :second_dice =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))</code></pre><p>Now the main thing that is left is to be able to translate this bound to JuMP for solving. We can slightly generalize our constraint-translation system from the previous examples for this purpose, by separating out the functions that create the constraints:</p><pre><code class="language-julia hljs">import JuMP
+
+function jump_constraint(m, x, v::C.Value, b::C.EqualTo)
+    JuMP.@constraint(m, C.substitute(v, x) == b.equal_to)
+end
+
+function jump_constraint(m, x, v::C.Value, b::C.Between)
+    isinf(b.lower) || JuMP.@constraint(m, C.substitute(v, x) &gt;= b.lower)
+    isinf(b.upper) || JuMP.@constraint(m, C.substitute(v, x) &lt;= b.upper)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">jump_constraint (generic function with 2 methods)</code></pre><p>JuMP does not support direct integrality constraints, so we need to make a small digression with a slack variable:</p><pre><code class="language-julia hljs">function jump_constraint(m, x, v::C.Value, b::IntegerFromTo)
+    var = JuMP.@variable(m, integer = true)
+    JuMP.@constraint(m, var &gt;= b.from)
+    JuMP.@constraint(m, var &lt;= b.to)
+    JuMP.@constraint(m, C.substitute(v, x) == var)
+end
+
+function milp_optimized_vars(cs::C.ConstraintTree, objective::C.Value, optimizer)
+    model = JuMP.Model(optimizer)
+    JuMP.@variable(model, x[1:C.variable_count(cs)])
+    JuMP.@objective(model, JuMP.MAX_SENSE, C.substitute(objective, x))
+    C.traverse(cs) do c
+        isnothing(c.bound) || jump_constraint(model, x, c.value, c.bound)
+    end
+    JuMP.set_silent(model)
+    JuMP.optimize!(model)
+    JuMP.value.(model[:x])
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">milp_optimized_vars (generic function with 1 method)</code></pre><p>Let&#39;s try to solve a tiny system with the dice first. What&#39;s the best value we can throw if the dice are thrown at least 1.5 points apart?</p><pre><code class="language-julia hljs">dice_system *=
+    :points_distance^C.Constraint(
+        dice_system.first_dice.value - dice_system.second_dice.value,
+        C.Between(1.5, Inf),
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTree with 3 elements:
+  :first_dice      =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))
+  :points_distance =&gt; Constraint(LinearValue(#= ... =#), Between(1.5, Inf))
+  :second_dice     =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 6))</code></pre><p>For solving, we use GLPK (it has MILP capabilities).</p><pre><code class="language-julia hljs">import GLPK
+dices_thrown = C.substitute_values(
+    dice_system,
+    milp_optimized_vars(
+        dice_system,
+        dice_system.first_dice.value + dice_system.second_dice.value,
+        GLPK.Optimizer,
+    ),
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Float64} with 3 elements:
+  :first_dice      =&gt; 6.0
+  :points_distance =&gt; 2.0
+  :second_dice     =&gt; 4.0</code></pre><h2 id="A-note-on-pretty-printing-of-custom-extensions"><a class="docs-heading-anchor" href="#A-note-on-pretty-printing-of-custom-extensions">A note on pretty-printing of custom extensions</a><a id="A-note-on-pretty-printing-of-custom-extensions-1"></a><a class="docs-heading-anchor-permalink" href="#A-note-on-pretty-printing-of-custom-extensions" title="Permalink"></a></h2><p>By default, pretty-printing via <a href="../reference/#ConstraintTrees.pretty-Tuple{Any}"><code>pretty</code></a> attempts to fall back to <code>Base.show</code> for any value which has no explicit overload of <code>pretty</code>. In particular, the bounds in our MILP system are formatted as follows:</p><pre><code class="language-julia hljs">C.pretty(dice_system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─first_dice: 1.0*x[1]; Main.var&quot;Main&quot;.IntegerFromTo(1, 6)
+├─points_distance: 1.0*x[1] + -1.0*x[2] ∈ [1.5, Inf]
+╰─second_dice: 1.0*x[2]; Main.var&quot;Main&quot;.IntegerFromTo(1, 6)</code></pre><p>To provide a prettier rendering, it is sufficient to provide a matching overload of <a href="../reference/#ConstraintTrees.pretty-Tuple{Any}"><code>pretty</code></a>:</p><pre><code class="language-julia hljs">function C.pretty(io::IO, x::IntegerFromTo; style_args...)
+    print(io, &quot; ∈ {$(x.from) … $(x.to)}&quot;)
+end
+
+C.pretty(dice_system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─first_dice: 1.0*x[1] ∈ {1 … 6}
+├─points_distance: 1.0*x[1] + -1.0*x[2] ∈ [1.5, Inf]
+╰─second_dice: 1.0*x[2] ∈ {1 … 6}</code></pre><h2 id="A-more-realistic-example-with-geometry"><a class="docs-heading-anchor" href="#A-more-realistic-example-with-geometry">A more realistic example with geometry</a><a id="A-more-realistic-example-with-geometry-1"></a><a class="docs-heading-anchor-permalink" href="#A-more-realistic-example-with-geometry" title="Permalink"></a></h2><p>Let&#39;s find the size of the smallest right-angled triangle with integer side sizes (aka a Pythagorean triple).</p><pre><code class="language-julia hljs">vars = C.variables(keys = [:a, :b, :c], bounds = IntegerFromTo(1, 100))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ConstraintTree with 3 elements:
+  :a =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 100))
+  :b =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 100))
+  :c =&gt; Constraint(LinearValue(#= ... =#), Main.var&quot;Main&quot;.IntegerFromTo(1, 100))</code></pre><p>For simpliclty, we make a shortcut for &quot;values&quot; in all variables:</p><pre><code class="language-julia hljs">v = C.map(C.value, vars, C.Value)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Value} with 3 elements:
+  :a =&gt; LinearValue([1], [1.0])
+  :b =&gt; LinearValue([2], [1.0])
+  :c =&gt; LinearValue([3], [1.0])</code></pre><p>With that shortcut, the constraint tree constructs quite easily:</p><pre><code class="language-julia hljs">triangle_system =
+    :sides^vars *
+    :circumference^C.Constraint(sum(values(v))) *
+    :a_less_than_b^C.Constraint(v.b - v.a, (0, Inf)) *
+    :b_less_than_c^C.Constraint(v.c - v.b, (0, Inf)) *
+    :right_angled^C.Constraint(C.squared(v.a) + C.squared(v.b) - C.squared(v.c), 0.0)
+
+C.pretty(triangle_system, format_variable = i -&gt; [&quot;&quot;, &quot;A&quot;, &quot;B&quot;, &quot;C&quot;][i+1])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┬─a_less_than_b: -1.0A + 1.0B ∈ [0.0, Inf]
+├─b_less_than_c: -1.0B + 1.0C ∈ [0.0, Inf]
+├─circumference: 1.0A + 1.0B + 1.0C
+├─right_angled: 1.0AA + 1.0BB + -1.0CC = 0.0
+╰─sides
+  ╰─┬─a: 1.0A ∈ {1 … 100}
+    ├─b: 1.0B ∈ {1 … 100}
+    ╰─c: 1.0C ∈ {1 … 100}</code></pre><p>We will need a solver that supports both quadratic and integer optimization:</p><pre><code class="language-julia hljs">import SCIP
+triangle_sides =
+    C.substitute_values(
+        triangle_system,
+        milp_optimized_vars(
+            triangle_system,
+            -triangle_system.circumference.value,
+            SCIP.Optimizer,
+        ),
+    ).sides</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Tree{Float64} with 3 elements:
+  :a =&gt; 3.0
+  :b =&gt; 4.0
+  :c =&gt; 5.0</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../2-quadratic-optimization/">« Example: Quadratic optimization</a><a class="docs-footer-nextpage" href="../4-functional-tree-processing/">Example: Processing the trees functionally »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Wednesday 8 January 2025 13:32">Wednesday 8 January 2025</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
