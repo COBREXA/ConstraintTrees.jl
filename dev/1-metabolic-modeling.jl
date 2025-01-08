@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg                        #src
+# Copyright (c) 2023-2025, University of Luxembourg                        #src
 #                                                                          #src
 # Licensed under the Apache License, Version 2.0 (the "License");          #src
 # you may not use this file except in compliance with the License.         #src
@@ -394,7 +394,7 @@ result.exchanges
 # ### Alternative: Using Accessors.jl
 #
 # Accessors.jl implement a "lensy" way to update immutable data structures.
-# That comes with a nice outcome of doing the right amount of shallow copyies
+# That comes with a nice outcome of doing the right amount of shallow copies
 # for you automatically, thus avoiding much of the technical danger of in-place
 # modifications. (You still lose the equational reasoning on your code, but that
 # may not be an issue at all in usual codebases.)
