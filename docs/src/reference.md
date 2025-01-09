@@ -51,6 +51,20 @@ Modules = [ConstraintTrees]
 Pages = ["src/constraint_tree.jl"]
 ```
 
+## Constrained system simplification
+
+```@autodocs
+Modules = [ConstraintTrees]
+Pages = ["src/presolve.jl"]
+```
+
+### Pre-solver internals
+
+```@autodocs
+Modules = [ConstraintTrees.Presolver]
+Pages = ["src/presolve.jl"]
+```
+
 ## Pretty-printing
 
 ```@autodocs

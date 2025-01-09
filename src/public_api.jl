@@ -44,6 +44,7 @@ public prune_variables
 public renumber_variables
 public drop_zeros
 public variable, variables
+public presolve!
 
 # prettification
 public pretty
