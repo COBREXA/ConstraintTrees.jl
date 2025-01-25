@@ -55,14 +55,14 @@ Pages = ["src/constraint_tree.jl"]
 
 ```@autodocs
 Modules = [ConstraintTrees]
-Pages = ["src/presolve.jl"]
+Pages = ["src/simplify.jl"]
 ```
 
-### Pre-solver internals
+### Simplifier internals
 
 ```@autodocs
-Modules = [ConstraintTrees.Presolver]
-Pages = ["src/presolve.jl"]
+Modules = [ConstraintTrees.Simplifier]
+Pages = ["src/simplify.jl"]
 ```
 
 ## Pretty-printing

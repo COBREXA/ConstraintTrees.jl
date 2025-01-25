@@ -66,7 +66,7 @@ include("bound.jl")
 include("constraint.jl")
 include("tree.jl")
 include("constraint_tree.jl")
-include("presolve.jl")
+include("simplify.jl")
 include("pretty.jl")
 
 # API definition
