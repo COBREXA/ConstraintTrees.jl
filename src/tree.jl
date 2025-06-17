@@ -145,6 +145,26 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Like [`deflate`](@ref), but the function `f` also receives the full tree path
+in the first argument.
+"""
+function ideflate(f, x::Tree{T}, ::Type{U} = T)::Vector{U} where {T,U}
+    count = 0
+    traverse(x) do _
+        count += 1
+    end
+    res = Vector{U}(undef, count)
+    i = 1
+    itraverse(x) do path, c
+        res[i] = f(path, c)
+        i += 1
+    end
+    res
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Insert a vector of elements into the "values" of a [`Tree`](@ref). The order of
 elements in the input vector is given by [`deflate`](@ref).
 """
