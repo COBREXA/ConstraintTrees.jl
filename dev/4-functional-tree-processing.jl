@@ -424,3 +424,67 @@ C.variable_count(C.prune_variables(x))
 C.variable_count(C.prune_variables(C.drop_zeros(x)))
 
 @test C.variable_count(C.prune_variables(C.drop_zeros(x))) == 5 #src
+
+# ## Converting to and from vector representations
+#
+# Often it is useful to look at the constraint system via the "matrix" view as
+# common in mathematical optimization. Functions [`deflate`](@ref
+# ConstraintTrees.deflate) and [`reinflate`](@ref ConstraintTrees.reinflate)
+# provide a sensible way to convert the trees into vectors of constraints and
+# back, giving more possibilities to work with the tree contents.
+#
+# In particular, trees that only contain linear values may be represented as
+# matrices. For demonstration, one may convert the following (slightly fixed)
+# tree to a matrix, a vector of lower and upper bounds, and a vector of
+# constraint "row" names:
+
+x.x.y.value = 3*x.x.x.value + 2 * x.y.y.value + 0.5 * x.z.x.value
+C.pretty(x)
+
+# `deflate` serves as a conversion tool to vectors:
+
+C.deflate(x, C.MaybeBound) do c
+    c.bound
+end
+
+# To extract a proper matrix, one has to convert the linear values to actual
+# vectors:
+
+import SparseArrays: sparse, sparsevec, SparseVector
+
+n_vars = C.variable_count(x)
+vecs = C.deflate(x, SparseVector{Float64}) do c
+    sparsevec(c.value.idxs, c.value.weights, n_vars)
+end;
+sparse(hcat(vecs...)')
+
+# Finally, to extract everything at once with proper identifiers, it is useful
+# to use [`ideflate`](@ref ConstraintTrees.ideflate):
+rows = C.ideflate(x, Pair) do i, c
+    join(i, "/") => (sparsevec(c.value.idxs, c.value.weights, n_vars), c.bound)
+end;
+
+# To convert to the usual form, we use some helper functions:
+lb(x::C.EqualTo) = x.equal_to
+ub(x::C.EqualTo) = x.equal_to
+lb(x::C.Between) = x.lower
+ub(x::C.Between) = x.upper
+
+# This gives good row "identifiers":
+row_names = first.(rows)
+# ...as well as lower and upper bound vectors:
+row_bounds = let constraints = last.(last.(rows))
+    (lb.(constraints), ub.(constraints))
+end
+# ...and the "linear programming" matrix:
+matrix = sparse(hcat(first.(last.(rows))...)')
+
+@test size(matrix) == (6, 6) #src
+@test isapprox(sum(matrix), 10.5) #src
+
+# The vector data can be re-inserted into "same-shaped" trees. For example, one
+# can make a tree where variable references sum to 1 for each variable:
+weighted_matrix = matrix ./ max.(eps(), sum(matrix, dims = 1))
+
+# The weighted matrix is then converted to a vector and re-inserted:
+C.reinflate(x, C.LinearValue.(sparse.(eachrow(weighted_matrix)))) |> C.pretty
