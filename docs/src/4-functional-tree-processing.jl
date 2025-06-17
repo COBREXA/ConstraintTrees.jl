@@ -467,8 +467,8 @@ end;
 # To convert to the usual form, we use some helper functions:
 lb(x::C.EqualTo) = x.equal_to
 ub(x::C.EqualTo) = x.equal_to
-lb(x::C.Between) = x.lower_bound
-ub(x::C.Between) = x.upper_bound
+lb(x::C.Between) = x.lower
+ub(x::C.Between) = x.upper
 
 # This gives good row "identifiers":
 row_names = first.(rows)
