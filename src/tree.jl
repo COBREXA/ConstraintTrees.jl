@@ -1,5 +1,5 @@
 
-# Copyright (c) 2023-2024, University of Luxembourg
+# Copyright (c) 2023-2025, University of Luxembourg
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -115,6 +115,45 @@ Base.merge(a::Base.Callable, d::Tree, others::Tree...) = Base.mergewith(a, d, ot
 
 function Base.mergewith(a::Base.Callable, d::Tree{X}, others::Tree...) where {X}
     Tree{X}(elems = mergewith(a, elems(d), elems.(others)...))
+end
+
+#
+# Deflating and re-inflating trees
+#
+
+"""
+$(TYPEDSIGNATURES)
+
+Extract all elements of a [`Tree`](@ref) in order, and return them in a vector
+as transformed by `f`. If the order is not changed, one can re-insert a vector
+of modified elements into the same-shaped tree using [`reinflate`](@ref).
+"""
+function deflate(f, x::Tree{T}, ::Type{U} = T)::Vector{U} where {T,U}
+    count = 0
+    traverse(x) do _
+        count += 1
+    end
+    res = Vector{U}(undef, count)
+    i = 1
+    traverse(x) do c
+        res[i] = f(c)
+        i += 1
+    end
+    res
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Insert a vector of elements into the "values" of a [`Tree`](@ref). The order of
+elements in the input vector is given by [`deflate`](@ref).
+"""
+function reinflate(x::Tree, elems::Vector{T})::Tree{T} where {T}
+    i = 0
+    map(x, T) do _
+        i += 1
+        elems[i]
+    end
 end
 
 #
