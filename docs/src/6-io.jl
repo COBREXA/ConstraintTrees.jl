@@ -40,7 +40,8 @@
 import ConstraintTrees as C
 
 t = C.variables(keys = [:x, :y], bounds = C.Between(-10, 10))
-t *=
+t =
+    :point^t *
     :difference^C.Constraint(t.x.value - t.y.value, C.EqualTo(3)) *
     :length^C.Constraint(C.squared(t.x.value) + C.squared(t.y.value))
 
@@ -56,7 +57,10 @@ C.serialize(t)
 # The arguably easiest way to "export" the file is to convert it to JSON:
 
 import JSON
-JSON.print(C.serialize(t), 2)
+
+if false #src
+    JSON.print(C.serialize(t), 2)
+end #src
 
 # ...and with appropriate functions, save the JSON to disk:
 open("ct-test.json", "w") do f
@@ -72,3 +76,5 @@ end
 t2 = C.deserialize(C.ConstraintTree, JSON.parsefile("ct-test.json"))
 
 C.pretty(t2)
+
+@test C.serialize(t) == C.serialize(t2) #src

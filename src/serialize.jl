@@ -44,8 +44,8 @@ Produce a type label for serializing the given bound type.
 
 Overloads should correspond to [`deserialize_bound`](@ref).
 """
-serialize_bound_label(::Type{Between}) = :between
-serialize_bound_label(::Type{EqualTo}) = :equal_to
+serialize_bound_label(::Type{Between}) = return :between
+serialize_bound_label(::Type{EqualTo}) = return :equal_to
 
 """
 $(TYPEDSIGNATURES)
@@ -66,8 +66,8 @@ Produce a type label for serializing the given value type.
 
 Overloads should correspond to [`deserialize_value`](@ref).
 """
-serialize_value_label(::Type{LinearValue}) = :linear
-serialize_value_label(::Type{QuadraticValue}) = :quadratic
+serialize_value_label(::Type{LinearValue}) = return :linear
+serialize_value_label(::Type{QuadraticValue}) = return :quadratic
 
 #
 # Deserialization
