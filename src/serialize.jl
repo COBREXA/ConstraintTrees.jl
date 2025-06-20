@@ -21,15 +21,15 @@
 
 struct SerializationLabel{L} end
 
-deserialize_bound(::Type{SerializationLabel{:between}}, x) = deserialize(x, Between)
-deserialize_bound(::Type{SerializationLabel{:equal_to}}, x) = deserialize(x, EqualTo)
+deserialize_bound(::Type{SerializationLabel{:between}}, x) = deserialize(Between, x)
+deserialize_bound(::Type{SerializationLabel{:equal_to}}, x) = deserialize(EqualTo, x)
 
 serialize_bound_label(::Type{Between}) = :between
 serialize_bound_label(::Type{EqualTo}) = :equal_to
 
-deserialize_value(::Type{SerializationLabel{:linear}}, x) = deserialize(x, LinearValue)
+deserialize_value(::Type{SerializationLabel{:linear}}, x) = deserialize(LinearValue, x)
 deserialize_value(::Type{SerializationLabel{:quadratic}}, x) =
-    deserialize(x, QuadraticValue)
+    deserialize(QuadraticValue, x)
 
 serialize_value_label(::Type{LinearValue}) = :linear
 serialize_value_label(::Type{QuadraticValue}) = :quadratic
@@ -38,19 +38,20 @@ serialize_value_label(::Type{QuadraticValue}) = :quadratic
 # Deserialization
 #
 
-deserialize(::Type{Tree{T}}, x::Dict) where {T} =
-    if length(keys(x))==1 && first(keys(x)) == "tree"
-        Tree{T}(Symbol(k) => deserialize(T, v) for (k, v) in x["tree"])
+deserialize(::Type{Tree{T}}, x::Dict) where {T} = Tree{T}(
+    Symbol(k) => if v isa Dict && length(keys(v))==1 && first(keys(x))=="tree"
+        deserialize(Tree{T}, v)
     else
-        deserialize(T, x)
-    end
+        deserialize(T, v)
+    end for (k, v) in x["tree"]
+)
 
 function deserialize(::Type{Constraint}, x::Dict)
     value = deserialize_value(SerializationLabel{Symbol(x["value_type"])}, x["value"])
     bound = if "bound_type" in keys(x)
-        deserialize_value(SerializationLabel{Symbol(x["bound_type"])}, x["bound"])
+        deserialize_bound(SerializationLabel{Symbol(x["bound_type"])}, x["bound"])
     end
-    return C.Constraint(value, bound)
+    return Constraint(value, bound)
 end
 
 deserialize(::Type{Between}, x::Vector) =
