@@ -45,5 +45,8 @@ public renumber_variables
 public drop_zeros
 public variable, variables
 
+# simplifier
+public simplify
+
 # prettification
 public pretty

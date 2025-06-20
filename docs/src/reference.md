@@ -51,6 +51,20 @@ Modules = [ConstraintTrees]
 Pages = ["src/constraint_tree.jl"]
 ```
 
+## Constrained system simplification
+
+```@autodocs
+Modules = [ConstraintTrees]
+Pages = ["src/simplify.jl"]
+```
+
+### Simplifier internals
+
+```@autodocs
+Modules = [ConstraintTrees.Simplifier]
+Pages = ["src/simplify.jl"]
+```
+
 ## Pretty-printing
 
 ```@autodocs
