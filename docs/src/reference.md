@@ -51,6 +51,13 @@ Modules = [ConstraintTrees]
 Pages = ["src/constraint_tree.jl"]
 ```
 
+## Serialization
+
+```@autodocs
+Modules = [ConstraintTrees]
+Pages = ["src/serialize.jl"]
+```
+
 ## Pretty-printing
 
 ```@autodocs
