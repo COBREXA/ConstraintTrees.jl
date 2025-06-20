@@ -45,5 +45,10 @@ public renumber_variables
 public drop_zeros
 public variable, variables
 
+# serialization
+public serialize, deserialize
+public deserialize_bound, deserialize_value
+public serialize_bound_label, serialize_value_label
+
 # prettification
 public pretty
