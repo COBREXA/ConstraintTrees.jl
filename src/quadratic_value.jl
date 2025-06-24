@@ -19,7 +19,7 @@ using SparseArrays
 $(TYPEDEF)
 
 A representation of a quadratic form in the constrained optimization problem.
-The `QuadraticValue` is an affine quadratic combination (i.e., a polynomial of
+The `QuadraticValue` is an affine quadratic combination (i.e., a multinomial of
 maximum degree 2) over the variables, weighted by coefficients of the parameter
 type `T`.
 
@@ -33,8 +33,8 @@ $(TYPEDFIELDS)
 Base.@kwdef struct QuadraticValueT{T} <: Value
     """
     Indexes of variable pairs used by the value. The indexes must always be
-    sorted in strictly co-lexicographically increasing order, and the second
-    index must always be greater than or equal to the first one. (Speaking in
+    sorted in strictly co-lexicographically increasing order, and the first
+    index must always be less than or equal to the second one. (Speaking in
     matrix terms, the indexing follows the indexes in an upper triangular
     matrix by columns.)
 
@@ -116,7 +116,7 @@ $(TYPEDSIGNATURES)
 
 Internal helper for co-lex ordering of indexes.
 """
-colex_le((a, b), (c, d)) = (b, a) < (d, c)
+colex_lt((a, b), (c, d)) = (b, a) < (d, c)
 
 """
 $(TYPEDSIGNATURES)
@@ -144,11 +144,11 @@ function add_sparse_quadratic_combination(
     sizehint!(r_weights, ae + be)
 
     while ai <= ae && bi <= be
-        if colex_le(a_idxs[ai], b_idxs[bi])
+        if colex_lt(a_idxs[ai], b_idxs[bi])
             push!(r_idxs, a_idxs[ai])
             push!(r_weights, a_weights[ai])
             ai += 1
-        elseif colex_le(b_idxs[bi], a_idxs[ai])
+        elseif colex_lt(b_idxs[bi], a_idxs[ai])
             push!(r_idxs, b_idxs[bi])
             push!(r_weights, b_weights[bi])
             bi += 1

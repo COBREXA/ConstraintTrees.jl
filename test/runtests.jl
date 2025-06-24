@@ -42,6 +42,10 @@ using Test
         include("../docs/src/5-jump-integration.jl")
     end
 
+    @testset "Serialization" begin
+        include("../docs/src/6-io.jl")
+    end
+
     @testset "Miscellaneous methods" begin
         include("misc.jl")
     end
