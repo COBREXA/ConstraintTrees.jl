@@ -13,6 +13,25 @@ complex constraint systems. The primary purpose is to support constraint-based
 metabolic modeling within
 [COBREXA.jl](https://github.com/COBREXA/COBREXA.jl).
 
+In short, a constraint tree organizes constraints into folder. An example field
+area allocation problem can be organized like this:
+```
+┬─area
+│ ╰─┬─barley: 1.0 * x[2] ∈ [0.0, Inf]
+│   ╰─wheat:  1.0 * x[1] ∈ [0.0, Inf]
+├─profit:  350.0 * x[1] + 550.0 * x[2]
+├─resources
+│ ╰─┬─fertilizer:  6.0 * x[1] + 2.0 * x[2] ∈ [0.0, 500.0]
+│   ╰─insecticide: 1.0 * x[1] + 4.0 * x[2] ∈ [0.0, 300.0]
+╰─total_area: 1.0 * x[1] + 1.0 * x[2] ∈ [0.0, 100.0]
+```
+This relieves the user from having to do matrix math, maintaining constraints
+in vectors, and from managing variable names and allocations. In the above
+example, the constraints `area.wheat` and `area.barley` easily double as their
+associated variables -- for example, `t.resources.fertilizer.value` is by
+definition equal to `6*t.area.wheat.value + 2*t.area.barley.value`, and can be
+directly constructed as such.
+
 ConstraintTrees are intended to be used with
 [JuMP](https://github.com/jump-dev/JuMP.jl), but the package does not depend on
 JuMP -- instead it is completely generic and lightweight, and may be used with
