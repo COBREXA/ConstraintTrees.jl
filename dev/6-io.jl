@@ -54,7 +54,8 @@ C.pretty(t)
 
 C.serialize(t)
 
-# The arguably easiest way to "export" the file is to convert it to JSON:
+# The arguably easiest way to "export" the serialized tree is to write the Dict
+# out as JSON:
 
 import JSON
 
@@ -70,10 +71,14 @@ end
 # ## De-serialization
 
 # Because of the involved polymorphism, deserialization functions need to know
-# the type of what is actually being parsed. With that in hand, the JSON can be
-# re-loaded as follows, giving the same tree:
+# the type of what is actually being parsed, and we also have to specify that
+# the JSON parsing should output an actual `Dict`. With that in hand, the JSON
+# can be re-loaded as follows, giving the same tree:
 
-t2 = C.deserialize(C.ConstraintTree, JSON.parsefile("ct-test.json"))
+t2 = C.deserialize(
+    C.ConstraintTree,
+    JSON.parsefile("ct-test.json", dicttype = Dict{String,Any}),
+)
 
 C.pretty(t2)
 
