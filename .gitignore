@@ -1,5 +1,7 @@
 /docs/build/
 /Manifest.toml
 
+test/Manifest.toml
+
 *.cov
 .*.swp
