@@ -1,7 +1,7 @@
 name = "ConstraintTrees"
 uuid = "5515826b-29c3-47a5-8849-8513ac836620"
-authors = ["The developers of ConstraintTrees.jl"]
 version = "1.11.0"
+authors = ["The developers of ConstraintTrees.jl"]
 
 [deps]
 ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
@@ -19,7 +19,7 @@ GLPK = "1"
 JSON = "1"
 JuMP = "1"
 SBML = "1"
-SCIP = "0.11"
+SCIP = "0.11, 0.12"
 julia = "1.10"
 
 [extras]
