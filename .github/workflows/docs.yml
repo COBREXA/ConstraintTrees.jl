@@ -19,7 +19,7 @@ jobs:
       - uses: julia-actions/setup-julia@v3
       - uses: julia-actions/cache@v3
       - name: Install dependencies
-        run: julia --color=yes --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: julia --color=yes --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.add(["Documenter", "Literate"]); Pkg.instantiate()'
       - name: Build and deploy
         env:
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # For authentication with SSH deploy key
