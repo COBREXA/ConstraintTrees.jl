@@ -437,8 +437,8 @@ $(TYPEDSIGNATURES)
 
 Get a sorted set of keys from a tree that is possibly `missing`.
 """
-optional_tree_keys(::Missing) = SortedSet()
-optional_tree_keys(x) = SortedSet(keys(x))
+optional_tree_keys(::Missing) = SortedSet{Symbol}()
+optional_tree_keys(x) = SortedSet{Symbol}(keys(x))
 
 """
 $(TYPEDSIGNATURES)

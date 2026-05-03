@@ -25,6 +25,8 @@ jobs:
       - name: Remove trailing whitespace
         run: |
           find -name '*.jl' -or -name '*.md' -or -name '*.toml' -or -name '*.yml' | while read filename ; do
+            # skip symlinks
+            if [ -h "$filename" ] ; then continue ; fi
             # remove any trailing spaces
             sed --in-place -e 's/\s*$//' "$filename"
             # add a final newline if missing

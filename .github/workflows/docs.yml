@@ -19,7 +19,11 @@ jobs:
       - uses: julia-actions/setup-julia@v3
       - uses: julia-actions/cache@v3
       - name: Install dependencies
-        run: julia --color=yes --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: |
+          # force copy of the Project.toml from test (normally it's a symlink and julia gets somewhat confused by that)
+          rm -f docs/Project.toml
+          cp test/Project.toml docs
+          julia --color=yes --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.add(["Documenter", "Literate"]); '
       - name: Build and deploy
         env:
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # For authentication with SSH deploy key
