@@ -137,10 +137,9 @@ If you extend the functionality of ConstraintTrees by overloading
 for [`renumber_variables`](@ref) which grants more functionality, mainly
 variable pruning.
 """
-increase_variable_indexes(x, incr::Int) =
-    renumber_variables(x) do idx
-        idx == 0 ? 0 : idx + incr
-    end
+increase_variable_indexes(x, incr::Int) = renumber_variables(x) do idx
+    idx == 0 ? 0 : idx + incr
+end
 
 """
 Old name for [`increase_variable_indexes`](@ref).
@@ -347,10 +346,9 @@ effectively remove them from the problem.
 Cf. [`substitute_values`](@ref), which creates a tree of "plain" values with
 no constraints.
 """
-substitute(x::ConstraintTree, y::AbstractVector) =
-    map(x) do c
-        substitute(c, y)
-    end
+substitute(x::ConstraintTree, y::AbstractVector) = map(x) do c
+    substitute(c, y)
+end
 
 """
 $(TYPEDSIGNATURES)
