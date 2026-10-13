@@ -109,7 +109,7 @@ Base.:*(a::Real, b::QuadraticValueT) = b * a
 Base.:*(a::QuadraticValueT, b::Real) =
     QuadraticValueT(idxs = a.idxs, weights = b .* a.weights)
 Base.:/(a::QuadraticValueT, b::Real) =
-    QuadraticValue(idxs = a.idxs, weights = a.weights ./ b)
+    QuadraticValueT(idxs = a.idxs, weights = a.weights ./ b)
 
 """
 $(TYPEDSIGNATURES)
