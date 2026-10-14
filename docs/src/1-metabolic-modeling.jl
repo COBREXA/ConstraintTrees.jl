@@ -128,8 +128,8 @@ collect(keys(c))
 sum(C.value.(values(c.fluxes)))
 
 # Notably, ConstraintTrees provide their own implementation of `sum` which
-# typically works faster when adding many `Value`s together. The basic interface and results are otherwise
-# the same as with the `sum` from Base:
+# typically works faster when adding many `Value`s together. The basic
+# interface and results are otherwise the same as with the `sum` from Base:
 
 C.sum(C.value.(values(c.fluxes)))
 
@@ -479,7 +479,8 @@ changes.fluxes
 
 c.community.species1.handicap
 
-@test c.community.species1.handicap.value.idxs == [49] #src
+@test c.community.species1.handicap.value.idxs == #src
+      c.community.species1.fluxes.R_PFK.value.idxs #src
 
 # Obviously, the variable at index `49` must be equal to zero in the whole
 # model, and we could completely remove it from the model. Unfortunately, just
