@@ -2,3 +2,7 @@ Manifest.toml
 /docs/build/
 *.cov
 .*.swp
+
+# files generated during tests
+test/ct-test.json
+test/e_coli_core.xml
